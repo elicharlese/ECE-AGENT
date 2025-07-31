@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT - Advanced AI Research & Security Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .sidebar.collapsed { width: 4rem; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .nav-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .domain-btn.active { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .tool-toggle.active { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .message { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tool-card:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .floating-panel { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-online { background-color: #10b981; }
+        .status-offline { background-color: #ef4444; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <!-- Floating Status Panel -->
+    <div class="floating-panel glass-effect rounded-lg p-3 text-sm">
+        <div class="flex items-center space-x-2">
+            <span class="status-indicator status-online pulse"></span>
+            <span class="font-medium">AGENT Online</span>
+        </div>
+    </div>
+
+    <!-- Modern Header -->
+    <header class="gradient-bg text-white shadow-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-black opacity-10"></div>
+        <div class="container mx-auto px-6 py-4 relative z-10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-robot text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-bold tracking-tight">AGENT</h1>
+                            <p class="text-sm opacity-90 font-medium">Advanced AI Research & Security Platform</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <!-- Tool Toggles -->
+                    <div class="hidden md:flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium">Port Scanner</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="portScannerToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium">Container Builder</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="containerBuilderToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm font-medium">Real-time Monitor</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="monitorToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
+                        <span class="status-indicator status-online pulse"></span>
+                        <span class="text-sm font-medium">System Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-screen pt-4">
+        <!-- Modern Sidebar -->
+        <div id="sidebar" class="sidebar bg-white shadow-2xl w-72 fixed lg:relative z-30 rounded-r-2xl">
+            <div class="p-6">
+                <!-- Navigation Tabs -->
+                <nav class="space-y-3">
+                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300 active" data-tab="chat">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-comments text-blue-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">AI Chat</span>
+                            <p class="text-xs text-gray-500">Multi-domain conversations</p>
+                        </div>
+                    </button>
+                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="tools">
+                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-tools text-purple-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Security Tools</span>
+                            <p class="text-xs text-gray-500">Port scanner, builder, monitor</p>
+                        </div>
+                    </button>
+                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="knowledge">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-database text-green-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Knowledge Base</span>
+                            <p class="text-xs text-gray-500">Cybersecurity & CS concepts</p>
+                        </div>
+                    </button>
+                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="containers">
+                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cube text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Containers</span>
+                            <p class="text-xs text-gray-500">Deploy & manage environments</p>
+                        </div>
+                    </button>
+                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="admin">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cog text-red-600"></i>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Admin Panel</span>
+                            <p class="text-xs text-gray-500">Training & system config</p>
+                        </div>
+                    </button>
+                </nav>
+                
+                <!-- Quick Tools Panel -->
+                <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
+                    <h3 class="font-semibold text-gray-800 mb-3">Quick Tools</h3>
+                    <div class="space-y-2">
+                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="port-scanner">
+                            <i class="fas fa-search text-blue-500"></i>
+                            <span class="text-sm font-medium">Port Scanner</span>
+                        </button>
+                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="container-builder">
+                            <i class="fas fa-hammer text-purple-500"></i>
+                            <span class="text-sm font-medium">Container Builder</span>
+                        </button>
+                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="network-monitor">
+                            <i class="fas fa-chart-line text-green-500"></i>
+                            <span class="text-sm font-medium">Network Monitor</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 lg:ml-0">
+            <!-- Chat Tab -->
+            <div id="chat-tab" class="tab-content active p-6">
+                <!-- Domain Selection -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4">Select Domain</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button class="domain-btn active" data-domain="developer">
+                            <div class="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg border-2 border-blue-200 transition-all">
+                                <i class="fas fa-code text-2xl text-blue-600 mb-2"></i>
+                                <h3 class="font-semibold text-blue-800">Developer</h3>
+                                <p class="text-sm text-gray-600">Code review, debugging, architecture</p>
+                            </div>
+                        </button>
+                        <button class="domain-btn" data-domain="trader">
+                            <div class="bg-green-50 hover:bg-green-100 p-4 rounded-lg border-2 border-green-200 transition-all">
+                                <i class="fas fa-chart-line text-2xl text-green-600 mb-2"></i>
+                                <h3 class="font-semibold text-green-800">Trader</h3>
+                                <p class="text-sm text-gray-600">Market analysis, strategies, risk</p>
+                            </div>
+                        </button>
+                        <button class="domain-btn" data-domain="lawyer">
+                            <div class="bg-purple-50 hover:bg-purple-100 p-4 rounded-lg border-2 border-purple-200 transition-all">
+                                <i class="fas fa-gavel text-2xl text-purple-600 mb-2"></i>
+                                <h3 class="font-semibold text-purple-800">Lawyer</h3>
+                                <p class="text-sm text-gray-600">Contracts, compliance, smart contracts</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gray-50 px-6 py-4 border-b">
+                        <h2 class="text-lg font-semibold flex items-center">
+                            <i class="fas fa-comments mr-2 text-gray-600"></i>
+                            Chat with AGENT
+                            <span id="currentDomain" class="ml-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">Developer</span>
+                        </h2>
+                    </div>
+                    
+                    <div id="chatContainer" class="chat-container p-6 space-y-4">
+                        <div class="message flex items-start space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-robot text-white text-sm"></i>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg p-3 max-w-3xl">
+                                <p class="text-gray-800">Hello! I'm AGENT, your AI assistant with enhanced agentic capabilities. I can help with development, trading, legal matters, cybersecurity research, and container deployment. How can I assist you today?</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t p-4">
+                        <div class="flex space-x-4">
+                            <div class="flex-1 relative">
+                                <input type="text" id="messageInput" placeholder="Ask me anything..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <button id="sendBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between mt-3">
+                            <label class="flex items-center space-x-2 text-sm text-gray-600">
+                                <input type="checkbox" id="useInternet" checked class="rounded">
+                                <span>Use internet search</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Tools Tab -->
+            <div id="tools-tab" class="tab-content p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Port Scanner -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4">
+                            <h3 class="text-xl font-bold flex items-center">
+                                <i class="fas fa-search mr-3"></i>
+                                Port Scanner
+                            </h3>
+                            <p class="text-blue-100 text-sm mt-1">Scan network ports and services</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Target IP/Domain</label>
+                                    <input type="text" id="scanTarget" placeholder="192.168.1.1 or example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Port Range</label>
+                                        <select id="portRange" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                            <option value="common">Common Ports</option>
+                                            <option value="1-1000">1-1000</option>
+                                            <option value="1-65535">All Ports</option>
+                                            <option value="custom">Custom Range</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Scan Type</label>
+                                        <select id="scanType" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                            <option value="tcp">TCP Scan</option>
+                                            <option value="udp">UDP Scan</option>
+                                            <option value="syn">SYN Scan</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button id="startScan" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                    <i class="fas fa-play mr-2"></i>Start Scan
+                                </button>
+                            </div>
+                            <div id="scanResults" class="mt-6 hidden">
+                                <h4 class="font-semibold text-gray-800 mb-3">Scan Results</h4>
+                                <div id="scanOutput" class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Container Builder -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-6 py-4">
+                            <h3 class="text-xl font-bold flex items-center">
+                                <i class="fas fa-hammer mr-3"></i>
+                                Container Builder
+                            </h3>
+                            <p class="text-purple-100 text-sm mt-1">Create custom security environments</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Container Name</label>
+                                    <input type="text" id="containerName" placeholder="my-security-lab" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Base Image</label>
+                                    <select id="baseImage" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option value="ubuntu:latest">Ubuntu Latest</option>
+                                        <option value="kali-linux/kali-rolling">Kali Linux</option>
+                                        <option value="parrotsec/security">Parrot Security</option>
+                                        <option value="alpine:latest">Alpine Linux</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Security Tools</label>
+                                    <div class="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="nmap" checked>
+                                            <span class="text-sm">Nmap</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="metasploit">
+                                            <span class="text-sm">Metasploit</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="burpsuite">
+                                            <span class="text-sm">Burp Suite</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="wireshark">
+                                            <span class="text-sm">Wireshark</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="john">
+                                            <span class="text-sm">John the Ripper</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" class="tool-checkbox" value="hashcat">
+                                            <span class="text-sm">Hashcat</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <button id="buildContainer" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-semibold">
+                                    <i class="fas fa-cogs mr-2"></i>Build Container
+                                </button>
+                            </div>
+                            <div id="buildStatus" class="mt-6 hidden">
+                                <h4 class="font-semibold text-gray-800 mb-3">Build Status</h4>
+                                <div id="buildOutput" class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network Monitor -->
+                <div class="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4">
+                        <h3 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-chart-line mr-3"></i>
+                            Real-time Network Monitor
+                        </h3>
+                        <p class="text-green-100 text-sm mt-1">Monitor network traffic and system resources</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- System Stats -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-server mr-2 text-blue-500"></i>
+                                    System Resources
+                                </h4>
+                                <div class="space-y-3">
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span>CPU Usage</span>
+                                            <span id="cpuUsage">--</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div id="cpuBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span>Memory Usage</span>
+                                            <span id="memUsage">--</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div id="memBar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between text-sm mb-1">
+                                            <span>Network I/O</span>
+                                            <span id="networkIO">--</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div id="networkBar" class="bg-purple-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Active Connections -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-network-wired mr-2 text-green-500"></i>
+                                    Active Connections
+                                </h4>
+                                <div id="activeConnections" class="space-y-2 max-h-48 overflow-y-auto">
+                                    <p class="text-gray-500 text-sm">Monitoring connections...</p>
+                                </div>
+                            </div>
+
+                            <!-- Security Alerts -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-shield-alt mr-2 text-red-500"></i>
+                                    Security Alerts
+                                </h4>
+                                <div id="securityAlerts" class="space-y-2 max-h-48 overflow-y-auto">
+                                    <p class="text-gray-500 text-sm">No alerts detected</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 flex justify-center space-x-4">
+                            <button id="startMonitoring" class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                                <i class="fas fa-play mr-2"></i>Start Monitoring
+                            </button>
+                            <button id="stopMonitoring" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition-colors font-semibold">
+                                <i class="fas fa-stop mr-2"></i>Stop Monitoring
+                            </button>
+                            <button id="exportLogs" class="bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                <i class="fas fa-download mr-2"></i>Export Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Knowledge Base Tab -->
+            <div id="knowledge-tab" class="tab-content p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Cybersecurity & CS Knowledge Base</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <button class="knowledge-btn bg-red-50 hover:bg-red-100 p-4 rounded-lg border-2 border-red-200" data-type="vulnerabilities">
+                            <i class="fas fa-shield-alt text-2xl text-red-600 mb-2"></i>
+                            <h3 class="font-semibold text-red-800">Vulnerabilities</h3>
+                            <p class="text-sm text-gray-600">CVEs and security flaws</p>
+                        </button>
+                        <button class="knowledge-btn bg-orange-50 hover:bg-orange-100 p-4 rounded-lg border-2 border-orange-200" data-type="attack-techniques">
+                            <i class="fas fa-crosshairs text-2xl text-orange-600 mb-2"></i>
+                            <h3 class="font-semibold text-orange-800">Attack Techniques</h3>
+                            <p class="text-sm text-gray-600">MITRE ATT&CK framework</p>
+                        </button>
+                        <button class="knowledge-btn bg-blue-50 hover:bg-blue-100 p-4 rounded-lg border-2 border-blue-200" data-type="tools">
+                            <i class="fas fa-tools text-2xl text-blue-600 mb-2"></i>
+                            <h3 class="font-semibold text-blue-800">Security Tools</h3>
+                            <p class="text-sm text-gray-600">Pentesting and analysis tools</p>
+                        </button>
+                        <button class="knowledge-btn bg-green-50 hover:bg-green-100 p-4 rounded-lg border-2 border-green-200" data-type="cs-concepts">
+                            <i class="fas fa-brain text-2xl text-green-600 mb-2"></i>
+                            <h3 class="font-semibold text-green-800">CS Concepts</h3>
+                            <p class="text-sm text-gray-600">Computer science fundamentals</p>
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <input type="text" id="knowledgeSearch" placeholder="Search knowledge base..." class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                    </div>
+
+                    <div id="knowledgeResults" class="space-y-4">
+                        <p class="text-gray-500 text-center py-8">Select a category above to explore the knowledge base</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Containers Tab -->
+            <div id="containers-tab" class="tab-content p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Container Orchestration</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Templates -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Available Templates</h3>
+                            <div id="containerTemplates" class="space-y-3">
+                                <!-- Templates will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Running Containers -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4">Running Containers</h3>
+                            <div id="runningContainers" class="space-y-3">
+                                <!-- Containers will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="admin-tab" class="tab-content p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6">Admin Panel</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Training Stats -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4">Training Statistics</h3>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-2xl font-bold text-blue-600" id="devCount">0</div>
+                                    <div class="text-sm text-gray-600">Developer</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-green-600" id="traderCount">0</div>
+                                    <div class="text-sm text-gray-600">Trader</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-purple-600" id="lawyerCount">0</div>
+                                    <div class="text-sm text-gray-600">Lawyer</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Training Interface -->
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4">Train AGENT</h3>
+                            <div class="space-y-3">
+                                <select id="trainDomain" class="w-full p-2 border rounded">
+                                    <option value="developer">Developer</option>
+                                    <option value="trader">Trader</option>
+                                    <option value="lawyer">Lawyer</option>
+                                </select>
+                                <textarea id="trainInput" placeholder="Input text..." class="w-full p-2 border rounded h-20"></textarea>
+                                <textarea id="trainOutput" placeholder="Expected output..." class="w-full p-2 border rounded h-20"></textarea>
+                                <button id="trainBtn" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+                                    Add Training Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "Data Science Environment",
+  "description": "Python data science and ML environment",
+  "dockerfile": "FROM jupyter/scipy-notebook:latest\nRUN pip install tensorflow pytorch scikit-learn pandas numpy matplotlib seaborn plotly\nWORKDIR /workspace\nEXPOSE 8888\nCMD [\"jupyter\", \"lab\", \"--ip=0.0.0.0\", \"--allow-root\"]",
+  "docker_compose": "version: '3.8'\nservices:\n  data-science:\n    build: .\n    container_name: data-science-env\n    ports:\n      - \"8888:8888\"\n    volumes:\n      - ./workspace:/workspace\n    networks:\n      - ds-net\nnetworks:\n  ds-net:\n    driver: bridge",
+  "tools": [
+    "jupyter",
+    "pandas",
+    "scikit-learn",
+    "tensorflow",
+    "pytorch"
+  ]
+}

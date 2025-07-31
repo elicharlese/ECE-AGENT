@@ -1,0 +1,13 @@
+{
+  "name": "Development Environment",
+  "description": "Full-stack development environment",
+  "dockerfile": "FROM ubuntu:22.04\nRUN apt-get update && apt-get install -y nodejs npm python3 python3-pip git curl wget vim\nRUN npm install -g @angular/cli create-react-app\nRUN pip3 install fastapi uvicorn django flask\nWORKDIR /workspace\nEXPOSE 3000 8000 5000\nCMD [\"/bin/bash\"]",
+  "docker_compose": "version: '3.8'\nservices:\n  dev-env:\n    build: .\n    container_name: dev-environment\n    ports:\n      - \"3000:3000\"\n      - \"8000:8000\"\n      - \"5000:5000\"\n    volumes:\n      - ./workspace:/workspace\n    networks:\n      - dev-net\nnetworks:\n  dev-net:\n    driver: bridge",
+  "tools": [
+    "nodejs",
+    "python",
+    "git",
+    "docker",
+    "vscode-server"
+  ]
+}
