@@ -1,0 +1,52 @@
+{
+  "base_url": "https://agent-ece.vercel.app",
+  "check_interval": 60,
+  "alert_thresholds": {
+    "response_time_ms": 5000,
+    "cpu_percent": 80,
+    "memory_percent": 85,
+    "disk_percent": 90,
+    "error_rate_percent": 5,
+    "uptime_hours": 24
+  },
+  "notifications": {
+    "email": {
+      "enabled": false,
+      "smtp_server": "smtp.gmail.com",
+      "smtp_port": 587,
+      "username": "your-email@gmail.com",
+      "password": "your-app-password",
+      "recipients": ["admin@yourcompany.com"]
+    },
+    "webhook": {
+      "enabled": false,
+      "url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    "discord": {
+      "enabled": false,
+      "webhook_url": "https://discord.com/api/webhooks/YOUR/DISCORD/WEBHOOK"
+    }
+  },
+  "endpoints_to_check": [
+    "/health",
+    "/agent/status",
+    "/",
+    "/knowledge/vulnerabilities",
+    "/containers/templates",
+    "/security/system-stats",
+    "/admin/status"
+  ],
+  "performance_benchmarks": {
+    "ai_response_time_ms": 3000,
+    "database_query_time_ms": 500,
+    "api_response_time_ms": 1000
+  },
+  "auto_recovery": {
+    "enabled": true,
+    "max_restart_attempts": 3,
+    "restart_cooldown_minutes": 5
+  }
+}

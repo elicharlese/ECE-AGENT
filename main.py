@@ -15,6 +15,9 @@ from agent.web_scraper import WebScraper
 from agent.knowledge_base import CyberSecurityKnowledgeBase
 from agent.container_orchestrator import ContainerOrchestrator
 from agent.security_tools import SecurityToolsManager
+import psutil
+import time
+from datetime import datetime
 
 app = FastAPI(title="AGENT - AI Developer, Trader & Lawyer", version="1.0.0")
 
@@ -270,10 +273,79 @@ async def start_container(container_name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Health check
+# Comprehensive Health Check
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+    """Comprehensive health check endpoint"""
+    try:
+        # Basic system metrics
+        cpu_percent = psutil.cpu_percent(interval=0.1)
+        memory = psutil.virtual_memory()
+        disk = psutil.disk_usage('/')
+        
+        # Test AI model responsiveness
+        ai_healthy = True
+        ai_response_time = 0
+        try:
+            start_time = time.time()
+            test_response = await agent_core.process_query(
+                "Health check test", "developer", use_internet=False
+            )
+            ai_response_time = (time.time() - start_time) * 1000
+            ai_healthy = test_response.get("success", False)
+        except Exception as e:
+            ai_healthy = False
+            ai_response_time = 0
+        
+        # Test database connectivity
+        db_healthy = True
+        try:
+            knowledge_base.search_vulnerabilities("test", limit=1)
+        except Exception:
+            db_healthy = False
+        
+        # Calculate overall health
+        overall_healthy = (
+            cpu_percent < 90 and
+            memory.percent < 90 and
+            disk.percent < 95 and
+            ai_healthy and
+            db_healthy
+        )
+        
+        return {
+            "status": "healthy" if overall_healthy else "degraded",
+            "timestamp": datetime.now().isoformat(),
+            "overall_healthy": overall_healthy,
+            "system_metrics": {
+                "cpu_percent": cpu_percent,
+                "memory_percent": memory.percent,
+                "memory_available_gb": memory.available / (1024**3),
+                "disk_percent": disk.percent,
+                "disk_free_gb": disk.free / (1024**3),
+                "uptime_seconds": time.time() - psutil.boot_time()
+            },
+            "ai_model": {
+                "healthy": ai_healthy,
+                "response_time_ms": ai_response_time
+            },
+            "database": {
+                "healthy": db_healthy
+            },
+            "services": {
+                "agent_core": True,
+                "knowledge_base": db_healthy,
+                "security_tools": True,
+                "container_orchestrator": True
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "timestamp": datetime.now().isoformat(),
+            "overall_healthy": False,
+            "error": str(e)
+        }
 
 # Serve static files (Enhanced frontend)
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
