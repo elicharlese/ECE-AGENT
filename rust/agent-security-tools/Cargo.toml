@@ -17,19 +17,18 @@ tracing = { workspace = true }
 reqwest = { workspace = true }
 pyo3 = { workspace = true }
 
-# Security-specific dependencies
-nmap = "0.4"
+# Security-specific dependencies  
 trust-dns-resolver = "0.23"
 socket2 = "0.5"
-netstat2 = "0.9"
 sysinfo = "0.30"
 futures = "0.3"
 async-std = "1.12"
 crossbeam = "0.8"
 rayon = "1.8"
+tokio-util = "0.7"
+chrono = { version = "0.4", features = ["serde"] }
 
 # Network scanning
-ping = "0.5"
 pnet = "0.34"
 
 [build-dependencies]

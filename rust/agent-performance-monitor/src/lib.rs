@@ -4,11 +4,9 @@ use std::collections::HashMap;
 use std::time::{Duration, Instant};
 use tokio::time::timeout;
 use futures::future::join_all;
-use sysinfo::{System, SystemExt, CpuExt, ProcessExt};
-use anyhow::{Result, Context};
-use tracing::{info, warn, error, debug};
-use chrono::{DateTime, Utc};
-use histogram::Histogram;
+use sysinfo::System;
+use anyhow::Result;
+use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PerformanceMetrics {
@@ -146,7 +144,7 @@ impl PerformanceMonitorCore {
 
     async fn measure_single_request(&self, client: &reqwest::Client, url: &str) -> PerformanceMetrics {
         let start_time = Instant::now();
-        let timestamp = Utc::now().to_rfc3339();
+        let timestamp = chrono::Utc::now().to_rfc3339();
 
         match timeout(Duration::from_secs(15), client.get(url).send()).await {
             Ok(Ok(response)) => {
@@ -268,7 +266,7 @@ impl PerformanceMonitorCore {
     pub fn get_system_performance(&mut self) -> Result<SystemPerformance> {
         self.system.refresh_all();
 
-        let cpu_usage = self.system.global_cpu_info().cpu_usage();
+    let cpu_usage = self.system.global_cpu_info().cpu_usage();
         let memory = self.system.total_memory();
         let used_memory = self.system.used_memory();
         let available_memory = memory - used_memory;
@@ -282,7 +280,7 @@ impl PerformanceMonitorCore {
 
         let process_count = self.system.processes().len();
         let thread_count = self.system.processes().values()
-            .map(|p| p.tasks().map(|t| t.len()).unwrap_or(1))
+            .map(|_p| 1) // Simplified thread count
             .sum();
 
         // Network and disk I/O (simplified for demo)
@@ -301,7 +299,7 @@ impl PerformanceMonitorCore {
         };
 
         Ok(SystemPerformance {
-            timestamp: Utc::now().to_rfc3339(),
+            timestamp: chrono::Utc::now().to_rfc3339(),
             cpu_usage_percent: cpu_usage,
             memory_usage_percent: (used_memory as f32 / memory as f32) * 100.0,
             memory_available_gb: available_memory as f64 / (1024.0 * 1024.0 * 1024.0),
@@ -316,7 +314,7 @@ impl PerformanceMonitorCore {
     /// Detect performance anomalies
     pub fn detect_performance_alerts(&self, current: &SystemPerformance, thresholds: &PerformanceThresholds) -> Vec<PerformanceAlert> {
         let mut alerts = Vec::new();
-        let timestamp = Utc::now().to_rfc3339();
+        let timestamp = chrono::Utc::now().to_rfc3339();
 
         // CPU usage alert
         if current.cpu_usage_percent > thresholds.cpu_usage_percent {

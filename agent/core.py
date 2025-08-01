@@ -10,6 +10,11 @@ import numpy as np
 from .domains.developer import DeveloperAgent
 from .domains.trader import TraderAgent
 from .domains.lawyer import LawyerAgent
+from .rust_integration import (
+    get_integration_manager, 
+    get_cache_manager, 
+    get_string_processor
+)
 
 class AGENTCore:
     """Core AGENT system that coordinates between different domain agents"""
@@ -17,6 +22,20 @@ class AGENTCore:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.setup_logging()
+        
+        # Initialize Rust integration for performance optimization  
+        self.rust_manager = get_integration_manager()
+        self.cache_manager = get_cache_manager()
+        self.string_processor = get_string_processor()
+        self.http_client = self.rust_manager.get_http_client()
+        self.security_scanner = self.rust_manager.get_security_scanner()
+        self.container_manager = self.rust_manager.get_container_orchestrator()
+        
+        # Log Rust availability
+        if self.rust_manager.rust_available:
+            self.logger.info("High-performance Rust components available and loaded")
+        else:
+            self.logger.warning("Rust components not available, using Python fallbacks")
         
         # Initialize domain agents
         self.developer_agent = DeveloperAgent()
@@ -35,7 +54,10 @@ class AGENTCore:
             "successful_responses": 0,
             "domain_usage": {"developer": 0, "trader": 0, "lawyer": 0},
             "last_training": None,
-            "model_version": "1.0.0"
+            "model_version": "1.0.0",
+            "rust_enabled": is_rust_available(),
+            "cache_hits": 0,
+            "cache_misses": 0
         }
     
     def setup_logging(self):
@@ -62,10 +84,24 @@ class AGENTCore:
             raise
     
     async def process_query(self, query: str, domain: str, web_context: List[Dict] = None) -> Dict[str, Any]:
-        """Process a query through the appropriate domain agent"""
+        """Process a query through the appropriate domain agent with performance optimizations"""
         try:
             self.metrics["queries_processed"] += 1
             self.metrics["domain_usage"][domain] += 1
+            
+            # Check cache first using optimized Rust cache
+            cache_key = self.string_processor.fast_hash(f"{domain}:{query}")
+            cached_result = self.cache_manager.get(cache_key)
+            if cached_result:
+                self.metrics["cache_hits"] += 1
+                self.logger.info(f"Cache hit for query: {query[:50]}...")
+                return cached_result
+            else:
+                self.metrics["cache_misses"] += 1
+            
+            # Extract keywords for better processing using optimized string processing
+            keywords = self.string_processor.extract_keywords(query, min_length=3)
+            self.logger.info(f"Extracted keywords: {keywords[:5]}")  # Log first 5 keywords
             
             # Route to appropriate domain agent
             if domain == "developer":
@@ -81,16 +117,22 @@ class AGENTCore:
             # Enhance response with base model if needed
             enhanced_response = await self._enhance_with_base_model(query, response, domain)
             
-            self.metrics["successful_responses"] += 1
-            
-            return {
+            result = {
                 "answer": enhanced_response,
                 "domain": domain,
                 "confidence": response.get("confidence", 0.8),
                 "sources": response.get("sources", []),
                 "reasoning": response.get("reasoning", ""),
-                "timestamp": datetime.now().isoformat()
+                "keywords": keywords,
+                "timestamp": datetime.now().isoformat(),
+                "cached": False
             }
+            
+            # Cache the result for future queries (with 1 hour TTL)
+            self.cache_manager.set(cache_key, result, ttl=3600)
+            
+            self.metrics["successful_responses"] += 1
+            return result
             
         except Exception as e:
             self.logger.error(f"Error processing query: {e}")
@@ -99,7 +141,8 @@ class AGENTCore:
                 "domain": domain,
                 "confidence": 0.0,
                 "error": str(e),
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
+                "cached": False
             }
     
     async def _enhance_with_base_model(self, query: str, domain_response: Dict, domain: str) -> str:
@@ -178,12 +221,28 @@ class AGENTCore:
             }
     
     async def get_status(self) -> Dict[str, Any]:
-        """Get current AGENT status"""
+        """Get current AGENT status with performance metrics"""
+        rust_performance_metrics = get_performance_metrics()
+        
         return {
             "model_loaded": self.model is not None,
             "model_name": self.model_name,
             "metrics": self.metrics,
             "domains_available": ["developer", "trader", "lawyer"],
+            "rust_enabled": is_rust_available(),
+            "performance_metrics": {
+                "total_operations": len(rust_performance_metrics),
+                "average_response_time_ms": sum(m.duration_ms for m in rust_performance_metrics[-100:]) / min(len(rust_performance_metrics), 100) if rust_performance_metrics else 0,
+                "cache_hit_rate": self.metrics["cache_hits"] / max(self.metrics["cache_hits"] + self.metrics["cache_misses"], 1) * 100,
+                "recent_operations": [
+                    {
+                        "operation": m.operation,
+                        "duration_ms": m.duration_ms,
+                        "success": m.success,
+                        "timestamp": m.timestamp
+                    } for m in rust_performance_metrics[-10:]  # Last 10 operations
+                ]
+            },
             "last_updated": datetime.now().isoformat()
         }
     
@@ -216,6 +275,60 @@ class AGENTCore:
                 elif domain == "lawyer":
                     await self.lawyer_agent.update_knowledge()
                 return {"message": f"{domain} domain updated successfully"}
+            
+            elif command == "clear_cache":
+                self.cache_manager.clear()
+                return {"message": "Cache cleared successfully"}
+            
+            elif command == "security_scan":
+                target = parameters.get("target", "127.0.0.1")
+                ports = parameters.get("ports", [22, 80, 443, 8080])
+                scan_results = self.security_scanner.scan_ports(target, ports)
+                return {
+                    "message": "Security scan completed", 
+                    "results": scan_results,
+                    "target": target
+                }
+            
+            elif command == "deploy_container":
+                template_id = parameters.get("template_id", "dev-environment")
+                container_name = parameters.get("container_name")
+                deployment_result = self.container_manager.deploy_template(template_id, container_name)
+                return {
+                    "message": "Container deployment initiated",
+                    "result": deployment_result
+                }
+            
+            elif command == "list_containers":
+                containers = self.container_manager.list_containers()
+                return {
+                    "message": "Container list retrieved",
+                    "containers": containers
+                }
+            
+            elif command == "performance_test":
+                # Run a performance test using Rust components
+                test_strings = [f"test string {i}" for i in range(1000)]
+                
+                import time
+                start_time = time.time()
+                processed = self.string_processor.parallel_process(test_strings, "lowercase")
+                process_time = (time.time() - start_time) * 1000
+                
+                start_time = time.time()
+                hashes = [self.string_processor.fast_hash(s) for s in test_strings[:100]]
+                hash_time = (time.time() - start_time) * 1000
+                
+                return {
+                    "message": "Performance test completed",
+                    "results": {
+                        "string_processing_ms": process_time,
+                        "hash_generation_ms": hash_time,
+                        "processed_strings": len(processed),
+                        "generated_hashes": len(hashes),
+                        "rust_enabled": is_rust_available()
+                    }
+                }
             
             else:
                 return {"error": f"Unknown command: {command}"}
