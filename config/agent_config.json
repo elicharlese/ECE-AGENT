@@ -1,0 +1,154 @@
+{
+    "server": {
+        "host": "0.0.0.0",
+        "port": 8000,
+        "workers": 4,
+        "timeout": 120,
+        "max_request_size": "100MB",
+        "reload": true,
+        "debug": true
+    },
+    "agent": {
+        "default_domain": "developer",
+        "max_context_length": 4000,
+        "temperature": 0.7,
+        "enable_web_search": true,
+        "enable_memory": true,
+        "enable_file_upload": true,
+        "max_file_size": "50MB",
+        "allowed_file_types": [
+            ".txt", ".md", ".py", ".js", ".ts", ".json", ".yaml", ".yml",
+            ".csv", ".xml", ".log", ".sql", ".sh", ".bat", ".dockerfile",
+            ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
+        ]
+    },
+    "domains": {
+        "developer": {
+            "enabled": true,
+            "tools": ["code_analysis", "debugging", "performance_optimization"],
+            "language_support": ["python", "javascript", "typescript", "rust", "go", "java", "c++"]
+        },
+        "trader": {
+            "enabled": true,
+            "tools": ["market_analysis", "risk_assessment", "portfolio_optimization"],
+            "data_sources": ["yahoo_finance", "alpha_vantage", "quandl"]
+        },
+        "lawyer": {
+            "enabled": true,
+            "tools": ["contract_analysis", "legal_research", "compliance_check"],
+            "specializations": ["corporate", "intellectual_property", "privacy"]
+        },
+        "researcher": {
+            "enabled": true,
+            "tools": ["osint", "threat_intelligence", "data_correlation"],
+            "search_engines": ["google", "bing", "shodan", "censys"]
+        },
+        "data_engineer": {
+            "enabled": true,
+            "tools": ["pipeline_analysis", "data_quality", "query_optimization"],
+            "platforms": ["spark", "kafka", "airflow", "dbt"]
+        },
+        "hacking": {
+            "enabled": true,
+            "tools": ["vulnerability_assessment", "penetration_testing", "exploit_analysis"],
+            "frameworks": ["metasploit", "nmap", "burp_suite", "owasp_zap"]
+        },
+        "network_admin": {
+            "enabled": true,
+            "tools": ["network_monitoring", "configuration_management", "troubleshooting"],
+            "protocols": ["tcp", "udp", "http", "https", "dns", "dhcp"]
+        },
+        "network_analyst": {
+            "enabled": true,
+            "tools": ["traffic_analysis", "performance_monitoring", "security_analysis"],
+            "analysis_tools": ["wireshark", "tcpdump", "netstat", "iptables"]
+        }
+    },
+    "security": {
+        "cors_origins": ["*"],
+        "rate_limit": "100/minute",
+        "api_key_required": false,
+        "session_timeout": 3600,
+        "max_login_attempts": 5,
+        "enable_2fa": false,
+        "secure_headers": true,
+        "content_security_policy": true
+    },
+    "monitoring": {
+        "enable_metrics": true,
+        "enable_health_check": true,
+        "enable_performance_tracking": true,
+        "log_level": "INFO",
+        "log_format": "json",
+        "log_rotation": {
+            "max_size": "100MB",
+            "backup_count": 5
+        },
+        "metrics_port": 9090,
+        "health_check_interval": 30
+    },
+    "rust": {
+        "build_release": true,
+        "enable_performance_monitor": true,
+        "enable_security_tools": true,
+        "enable_container_orchestrator": true,
+        "optimization_level": "3"
+    },
+    "database": {
+        "type": "sqlite",
+        "url": "sqlite:///data/agent.db",
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 30,
+        "backup_enabled": true,
+        "backup_interval": "24h"
+    },
+    "cache": {
+        "type": "memory",
+        "max_size": "500MB",
+        "ttl": 3600,
+        "cleanup_interval": 300
+    },
+    "features": {
+        "experimental": {
+            "ai_code_generation": true,
+            "voice_commands": false,
+            "advanced_analytics": true,
+            "multi_agent_collaboration": false
+        },
+        "integrations": {
+            "github": true,
+            "slack": false,
+            "discord": false,
+            "email": false
+        }
+    },
+    "ui": {
+        "theme": "dark",
+        "sidebar_collapsed": false,
+        "auto_save": true,
+        "keyboard_shortcuts": true,
+        "notifications": {
+            "position": "top-right",
+            "timeout": 5000,
+            "sound": false
+        }
+    },
+    "development": {
+        "hot_reload": true,
+        "debug_mode": true,
+        "profiling": false,
+        "test_mode": false,
+        "mock_external_apis": false
+    },
+    "production": {
+        "hot_reload": false,
+        "debug_mode": false,
+        "profiling": true,
+        "compression": true,
+        "static_file_caching": true,
+        "ssl_enabled": false,
+        "ssl_cert_path": "",
+        "ssl_key_path": ""
+    }
+}

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT Admin Panel - Model Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #00ffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ffff;
+            padding-bottom: 20px;
+        }
+
+        .admin-title {
+            font-size: 2.5rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px #00ffff;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .admin-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px #00ffff; }
+            to { text-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff; }
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .admin-panel {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid #00ffff;
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            color: #00ffff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title i {
+            font-size: 1.5rem;
+        }
+
+        .model-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+
+        .model-name {
+            font-weight: bold;
+            color: #00ffff;
+        }
+
+        .model-version {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .status-training {
+            background: rgba(255, 255, 0, 0.3);
+            color: #ffff00;
+            border: 1px solid #ffff00;
+        }
+
+        .status-error {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .neon-button {
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 5px;
+        }
+
+        .neon-button:hover {
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .neon-button.danger {
+            border-color: #ff0066;
+            color: #ff0066;
+        }
+
+        .neon-button.danger:hover {
+            background: rgba(255, 0, 102, 0.1);
+            box-shadow: 0 0 15px rgba(255, 0, 102, 0.5);
+        }
+
+        .neon-button.success {
+            border-color: #00ff66;
+            color: #00ff66;
+        }
+
+        .neon-button.success:hover {
+            background: rgba(0, 255, 102, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
+        }
+
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 10px;
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 5px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffff;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .log-panel {
+            grid-column: 1 / -1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid #00ffff;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        .log-entry.error {
+            border-left-color: #ff0066;
+            color: #ff0066;
+        }
+
+        .log-entry.success {
+            border-left-color: #00ff66;
+            color: #00ff66;
+        }
+
+        .log-entry.warning {
+            border-left-color: #ffff00;
+            color: #ffff00;
+        }
+
+        .monitoring-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .version-history {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            margin-bottom: 5px;
+            border-radius: 3px;
+        }
+
+        .version-item.current {
+            border: 1px solid #00ff66;
+            background: rgba(0, 255, 102, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #0080ff);
+            transition: width 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1 class="admin-title">
+                <i class="fas fa-brain"></i>
+                AGENT Model Management
+            </h1>
+            <p class="admin-subtitle">Advanced AI Model Training & Versioning System</p>
+        </header>
+
+        <div class="admin-grid">
+            <!-- Model Status Panel -->
+            <div class="admin-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-microchip"></i>
+                    Model Status
+                </h2>
+                <div id="modelStatus">
+                    <div class="model-status">
+                        <div>
+                            <div class="model-name">Developer Agent</div>
+                            <div class="model-version">Version: Loading...</div>
+                        </div>
+                        <span class="status-indicator status-active">Active</span>
+                    </div>
+                    <div class="model-status">
+                        <div>
+                            <div class="model-name">Trader Agent</div>
+                            <div class="model-version">Version: Loading...</div>
+                        </div>
+                        <span class="status-indicator status-active">Active</span>
+                    </div>
+                    <div class="model-status">
+                        <div>
+                            <div class="model-name">Lawyer Agent</div>
+                            <div class="model-version">Version: Loading...</div>
+                        </div>
+                        <span class="status-indicator status-active">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Controls -->
+            <div class="admin-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-cogs"></i>
+                    Training Controls
+                </h2>
+                <div class="monitoring-controls">
+                    <button id="startMonitoring" class="neon-button success">
+                        <i class="fas fa-play"></i> Start Auto-Retrain
+                    </button>
+                    <button id="stopMonitoring" class="neon-button danger">
+                        <i class="fas fa-stop"></i> Stop Monitoring
+                    </button>
+                </div>
+                <div>
+                    <button onclick="retrainModel('developer')" class="neon-button">
+                        <i class="fas fa-code"></i> Retrain Developer
+                    </button>
+                    <button onclick="retrainModel('trader')" class="neon-button">
+                        <i class="fas fa-chart-line"></i> Retrain Trader
+                    </button>
+                    <button onclick="retrainModel('lawyer')" class="neon-button">
+                        <i class="fas fa-balance-scale"></i> Retrain Lawyer
+                    </button>
+                </div>
+                <div id="trainingProgress" class="hidden">
+                    <p>Training in progress...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="admin-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Performance Metrics
+                </h2>
+                <div class="performance-metrics" id="performanceMetrics">
+                    <div class="metric">
+                        <span class="metric-value" id="totalModels">3</span>
+                        <span class="metric-label">Active Models</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="trainingData">--</span>
+                        <span class="metric-label">Training Samples</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="avgAccuracy">--</span>
+                        <span class="metric-label">Avg Accuracy</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-value" id="lastTrained">--</span>
+                        <span class="metric-label">Last Trained</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Version Control -->
+            <div class="admin-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-code-branch"></i>
+                    Version Control
+                </h2>
+                <div>
+                    <select id="domainSelect" class="neon-button" style="width: 100%; margin-bottom: 10px;">
+                        <option value="developer">Developer Agent</option>
+                        <option value="trader">Trader Agent</option>
+                        <option value="lawyer">Lawyer Agent</option>
+                    </select>
+                    <div class="version-history" id="versionHistory">
+                        <!-- Version history will be populated here -->
+                    </div>
+                    <button onclick="rollbackModel()" class="neon-button danger" style="width: 100%; margin-top: 10px;">
+                        <i class="fas fa-undo"></i> Rollback to Selected Version
+                    </button>
+                </div>
+            </div>
+
+            <!-- System Logs -->
+            <div class="admin-panel log-panel">
+                <h2 class="panel-title">
+                    <i class="fas fa-terminal"></i>
+                    System Logs
+                    <button onclick="clearLogs()" class="neon-button danger" style="margin-left: auto; padding: 4px 8px; font-size: 0.8rem;">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </h2>
+                <div id="systemLogs">
+                    <div class="log-entry">System initialized - Admin panel ready</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class AdminPanel {
+            constructor() {
+                this.apiBase = window.location.origin;
+                this.refreshInterval = null;
+                this.selectedDomain = 'developer';
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadInitialData();
+                this.startPeriodicRefresh();
+            }
+
+            setupEventListeners() {
+                document.getElementById('startMonitoring').addEventListener('click', () => this.startMonitoring());
+                document.getElementById('stopMonitoring').addEventListener('click', () => this.stopMonitoring());
+                document.getElementById('domainSelect').addEventListener('change', (e) => {
+                    this.selectedDomain = e.target.value;
+                    this.loadVersionHistory();
+                });
+            }
+
+            async loadInitialData() {
+                await Promise.all([
+                    this.loadTrainingStats(),
+                    this.loadVersionHistory()
+                ]);
+            }
+
+            async loadTrainingStats() {
+                try {
+                    const response = await this.authenticatedFetch('/training/stats');
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updatePerformanceMetrics(data.data);
+                        this.updateModelStatus(data.data);
+                    }
+                } catch (error) {
+                    this.addLog('Error loading training stats: ' + error.message, 'error');
+                }
+            }
+
+            async loadVersionHistory() {
+                try {
+                    const response = await this.authenticatedFetch(`/training/performance/${this.selectedDomain}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.updateVersionHistory(data.data);
+                    }
+                } catch (error) {
+                    this.addLog('Error loading version history: ' + error.message, 'error');
+                }
+            }
+
+            updatePerformanceMetrics(stats) {
+                const dataCounts = stats.data_counts || {};
+                const totalSamples = Object.values(dataCounts).reduce((sum, count) => sum + count, 0);
+                
+                document.getElementById('trainingData').textContent = totalSamples;
+                
+                const performanceMetrics = stats.training_stats?.performance_metrics || {};
+                const accuracies = Object.values(performanceMetrics)
+                    .map(metric => metric.accuracy || 0)
+                    .filter(acc => acc > 0);
+                
+                const avgAccuracy = accuracies.length > 0 
+                    ? (accuracies.reduce((sum, acc) => sum + acc, 0) / accuracies.length * 100).toFixed(1) + '%'
+                    : 'N/A';
+                
+                document.getElementById('avgAccuracy').textContent = avgAccuracy;
+                
+                const lastTrained = stats.training_stats?.last_training;
+                if (lastTrained) {
+                    const date = new Date(lastTrained);
+                    document.getElementById('lastTrained').textContent = date.toLocaleDateString();
+                } else {
+                    document.getElementById('lastTrained').textContent = 'Never';
+                }
+            }
+
+            updateModelStatus(stats) {
+                const modelVersions = stats.training_stats?.model_versions || {};
+                const modelStatuses = document.querySelectorAll('.model-status');
+                
+                const domains = ['developer', 'trader', 'lawyer'];
+                modelStatuses.forEach((status, index) => {
+                    const domain = domains[index];
+                    const versionElement = status.querySelector('.model-version');
+                    const version = modelVersions[domain] || 'v1.0.0';
+                    versionElement.textContent = `Version: ${version}`;
+                });
+            }
+
+            updateVersionHistory(performanceData) {
+                const versionHistory = document.getElementById('versionHistory');
+                versionHistory.innerHTML = '';
+                
+                // Mock version history for now - in real implementation, this would come from the API
+                const versions = [
+                    { version: 'v1.2.3', date: '2024-01-15', accuracy: 0.92, current: true },
+                    { version: 'v1.2.2', date: '2024-01-14', accuracy: 0.89, current: false },
+                    { version: 'v1.2.1', date: '2024-01-13', accuracy: 0.87, current: false }
+                ];
+                
+                versions.forEach(version => {
+                    const versionItem = document.createElement('div');
+                    versionItem.className = `version-item ${version.current ? 'current' : ''}`;
+                    versionItem.innerHTML = `
+                        <div>
+                            <strong>${version.version}</strong><br>
+                            <small>${version.date}</small>
+                        </div>
+                        <div>
+                            <span style="color: #00ff66">${(version.accuracy * 100).toFixed(1)}%</span>
+                        </div>
+                    `;
+                    versionHistory.appendChild(versionItem);
+                });
+            }
+
+            async startMonitoring() {
+                try {
+                    const response = await this.authenticatedFetch('/training/monitoring/start', { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.addLog('Auto-retrain monitoring started', 'success');
+                        document.getElementById('startMonitoring').disabled = true;
+                        document.getElementById('stopMonitoring').disabled = false;
+                    }
+                } catch (error) {
+                    this.addLog('Error starting monitoring: ' + error.message, 'error');
+                }
+            }
+
+            async stopMonitoring() {
+                try {
+                    const response = await this.authenticatedFetch('/training/monitoring/stop', { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.addLog('Auto-retrain monitoring stopped', 'warning');
+                        document.getElementById('startMonitoring').disabled = false;
+                        document.getElementById('stopMonitoring').disabled = true;
+                    }
+                } catch (error) {
+                    this.addLog('Error stopping monitoring: ' + error.message, 'error');
+                }
+            }
+
+            async retrainModel(domain) {
+                try {
+                    this.showTrainingProgress();
+                    this.addLog(`Starting ${domain} model retraining...`, 'warning');
+                    
+                    const response = await this.authenticatedFetch(`/training/retrain/${domain}`, { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.addLog(`${domain} model retrained successfully`, 'success');
+                        this.addLog(`New version: ${data.data.version_id}`, 'success');
+                        await this.loadTrainingStats();
+                        await this.loadVersionHistory();
+                    } else {
+                        this.addLog(`Failed to retrain ${domain} model: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    this.addLog(`Error retraining ${domain} model: ` + error.message, 'error');
+                } finally {
+                    this.hideTrainingProgress();
+                }
+            }
+
+            async rollbackModel() {
+                const selectedVersion = document.querySelector('.version-item:not(.current)');
+                if (!selectedVersion) {
+                    this.addLog('Please select a version to rollback to', 'warning');
+                    return;
+                }
+                
+                try {
+                    const response = await this.authenticatedFetch(`/training/rollback/${this.selectedDomain}`, { method: 'POST' });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.addLog(`Rolled back ${this.selectedDomain} model to ${data.data.version}`, 'success');
+                        await this.loadTrainingStats();
+                        await this.loadVersionHistory();
+                    } else {
+                        this.addLog(`Failed to rollback: ${data.error}`, 'error');
+                    }
+                } catch (error) {
+                    this.addLog('Error during rollback: ' + error.message, 'error');
+                }
+            }
+
+            showTrainingProgress() {
+                const progress = document.getElementById('trainingProgress');
+                progress.classList.remove('hidden');
+                
+                let width = 0;
+                const progressFill = progress.querySelector('.progress-fill');
+                const interval = setInterval(() => {
+                    width += Math.random() * 20;
+                    if (width >= 100) {
+                        width = 100;
+                        clearInterval(interval);
+                    }
+                    progressFill.style.width = width + '%';
+                }, 500);
+            }
+
+            hideTrainingProgress() {
+                const progress = document.getElementById('trainingProgress');
+                progress.classList.add('hidden');
+                progress.querySelector('.progress-fill').style.width = '0%';
+            }
+
+            addLog(message, type = 'info') {
+                const logsContainer = document.getElementById('systemLogs');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${type}`;
+                
+                const timestamp = new Date().toLocaleTimeString();
+                logEntry.innerHTML = `[${timestamp}] ${message}`;
+                
+                logsContainer.appendChild(logEntry);
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            }
+
+            clearLogs() {
+                document.getElementById('systemLogs').innerHTML = '';
+                this.addLog('Logs cleared');
+            }
+
+            startPeriodicRefresh() {
+                this.refreshInterval = setInterval(async () => {
+                    await this.loadTrainingStats();
+                }, 30000); // Refresh every 30 seconds
+            }
+
+            async authenticatedFetch(url, options = {}) {
+                const token = localStorage.getItem('agent_access_token');
+                if (!token) {
+                    throw new Error('Not authenticated');
+                }
+
+                return fetch(url, {
+                    ...options,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+            }
+        }
+
+        // Global functions for button onclick handlers
+        function retrainModel(domain) {
+            adminPanel.retrainModel(domain);
+        }
+
+        function rollbackModel() {
+            adminPanel.rollbackModel();
+        }
+
+        function clearLogs() {
+            adminPanel.clearLogs();
+        }
+
+        // Initialize admin panel
+        const adminPanel = new AdminPanel();
+    </script>
+</body>
+</html>

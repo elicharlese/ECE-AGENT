@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
 import os
+import logging
 from typing import Dict, List, Optional
 import asyncio
 import json
@@ -15,9 +16,13 @@ from agent.web_scraper import WebScraper
 from agent.knowledge_base import CyberSecurityKnowledgeBase
 from agent.container_orchestrator import ContainerOrchestrator
 from agent.security_tools import SecurityToolsManager
+from agent.auth import auth_manager
 import psutil
 import time
 from datetime import datetime
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AGENT - AI Developer, Trader & Lawyer", version="1.0.0")
 
@@ -54,9 +59,106 @@ class AdminCommand(BaseModel):
     command: str
     parameters: Dict = {}
 
-# Main AGENT endpoint
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(BaseModel):
+    username: str
+    role: str
+    permissions: List[str]
+    last_login: Optional[str]
+    session_created: str
+
+# Authentication dependency
+async def get_current_user(authorization: str = Header(None)):
+    """Dependency to get current authenticated user"""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid authorization header")
+    
+    token = authorization.split(" ")[1]
+    session = auth_manager.validate_session(token)
+    
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+    
+    return session
+
+# Admin permission dependency
+async def require_admin_permission(user_session=Depends(get_current_user)):
+    """Dependency to require admin permissions"""
+    if user_session['role'] != 'admin':
+        raise HTTPException(status_code=403, detail="Admin permissions required")
+    return user_session
+
+# Authentication endpoints
+@app.post("/auth/login")
+async def login(request: LoginRequest):
+    """User login endpoint"""
+    try:
+        token = auth_manager.authenticate(request.username, request.password)
+        
+        if not token:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        user_info = auth_manager.get_user_info(token)
+        
+        return {
+            "success": True,
+            "access_token": token,
+            "token_type": "bearer",
+            "user": user_info,
+            "timestamp": datetime.now().isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Login failed")
+
+@app.post("/auth/logout")
+async def logout(user_session=Depends(get_current_user)):
+    """User logout endpoint"""
+    try:
+        # Extract token from the session (this is a simplified approach)
+        # In a real implementation, you'd pass the token directly
+        token = None
+        for t, s in auth_manager.sessions.items():
+            if s['username'] == user_session['username']:
+                token = t
+                break
+        
+        if token:
+            auth_manager.logout(token)
+        
+        return {
+            "success": True,
+            "message": "Successfully logged out",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Logout failed")
+
+@app.get("/auth/me")
+async def get_current_user_info(user_session=Depends(get_current_user)):
+    """Get current user information"""
+    try:
+        return {
+            "success": True,
+            "user": {
+                "username": user_session['username'],
+                "role": user_session['role'],
+                "permissions": user_session['permissions'],
+                "session_created": user_session['created_at'].isoformat(),
+                "last_activity": user_session['last_activity'].isoformat()
+            },
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Failed to get user info")
+
+# Main AGENT endpoint (now requires authentication)
 @app.post("/agent/query")
-async def query_agent(request: QueryRequest):
+async def query_agent(request: QueryRequest, user_session=Depends(get_current_user)):
     """Main endpoint for querying the AGENT"""
     try:
         # Get internet data if requested
@@ -80,9 +182,9 @@ async def query_agent(request: QueryRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Admin endpoints
+# Admin endpoints (now require admin permissions)
 @app.post("/admin/train")
-async def train_model(training_data: TrainingData, background_tasks: BackgroundTasks):
+async def train_model(training_data: TrainingData, background_tasks: BackgroundTasks, admin_session=Depends(require_admin_permission)):
     """Admin endpoint for training the model"""
     try:
         # Add training task to background
@@ -103,7 +205,7 @@ async def train_model(training_data: TrainingData, background_tasks: BackgroundT
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/admin/status")
-async def get_agent_status():
+async def get_agent_status(admin_session=Depends(require_admin_permission)):
     """Get current AGENT status and metrics"""
     try:
         status = await agent_core.get_status()
@@ -119,7 +221,7 @@ async def get_agent_status():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/admin/command")
-async def execute_admin_command(command: AdminCommand):
+async def execute_admin_command(command: AdminCommand, admin_session=Depends(require_admin_permission)):
     """Execute admin commands"""
     try:
         result = await agent_core.execute_admin_command(
@@ -134,6 +236,76 @@ async def execute_admin_command(command: AdminCommand):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced training endpoints with model versioning
+@app.get("/training/stats", dependencies=[Depends(get_current_user)])
+async def get_training_statistics():
+    """Get comprehensive training statistics with model versions"""
+    try:
+        stats = await agent_trainer.get_training_stats()
+        return {"success": True, "data": stats}
+    except Exception as e:
+        logger.error(f"Error getting training stats: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve training statistics")
+
+@app.post("/training/retrain/{domain}", dependencies=[Depends(get_current_user)])
+async def retrain_domain_model(domain: str):
+    """Retrain model for specific domain"""
+    try:
+        if domain not in ['developer', 'trader', 'lawyer']:
+            raise HTTPException(status_code=400, detail="Invalid domain")
+        
+        result = await agent_trainer.retrain_domain_model(domain)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Error retraining {domain} model: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to retrain {domain} model")
+
+@app.get("/training/performance/{domain}", dependencies=[Depends(get_current_user)])
+async def get_model_performance(domain: str):
+    """Get performance metrics for domain model"""
+    try:
+        if domain not in ['developer', 'trader', 'lawyer']:
+            raise HTTPException(status_code=400, detail="Invalid domain")
+        
+        performance = await agent_trainer.get_model_performance(domain)
+        return {"success": True, "data": performance}
+    except Exception as e:
+        logger.error(f"Error getting performance for {domain}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get {domain} performance")
+
+@app.post("/training/rollback/{domain}", dependencies=[Depends(get_current_user)])
+async def rollback_domain_model(domain: str, version_id: Optional[str] = None):
+    """Rollback domain model to previous version"""
+    try:
+        if domain not in ['developer', 'trader', 'lawyer']:
+            raise HTTPException(status_code=400, detail="Invalid domain")
+        
+        result = await agent_trainer.rollback_model(domain, version_id)
+        return {"success": True, "data": result}
+    except Exception as e:
+        logger.error(f"Error rolling back {domain} model: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to rollback {domain} model")
+
+@app.post("/training/monitoring/start", dependencies=[Depends(get_current_user)])
+async def start_auto_retrain_monitoring():
+    """Start automatic retraining monitoring"""
+    try:
+        agent_trainer.start_auto_retrain_monitoring()
+        return {"success": True, "message": "Auto-retrain monitoring started"}
+    except Exception as e:
+        logger.error(f"Error starting monitoring: {e}")
+        raise HTTPException(status_code=500, detail="Failed to start monitoring")
+
+@app.post("/training/monitoring/stop", dependencies=[Depends(get_current_user)])
+async def stop_auto_retrain_monitoring():
+    """Stop automatic retraining monitoring"""
+    try:
+        agent_trainer.stop_auto_retrain_monitoring()
+        return {"success": True, "message": "Auto-retrain monitoring stopped"}
+    except Exception as e:
+        logger.error(f"Error stopping monitoring: {e}")
+        raise HTTPException(status_code=500, detail="Failed to stop monitoring")
 
 # Knowledge Base endpoints
 @app.get("/knowledge/vulnerabilities")

@@ -1,0 +1,20 @@
+{
+  "users": {
+    "admin": {
+      "password_hash": "3d9cf57702c1ac89e448ff7fa24b4cbac3e861c99cd3006e7892f74ce7c09c9d:0a5f11f109b0f474134d636f34ee18133d8d7843954965afd0b281e2fa92a15e",
+      "role": "admin",
+      "created_at": "2025-08-01T23:05:44.015215",
+      "last_login": null,
+      "permissions": [
+        "admin_panel",
+        "model_training",
+        "user_management",
+        "system_config",
+        "security_tools",
+        "container_management"
+      ]
+    }
+  },
+  "session_timeout": 3600,
+  "last_updated": "2025-08-01T23:05:44.015309"
+}

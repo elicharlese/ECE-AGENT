@@ -3,168 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AGENT - Advanced AI Research & Security Platform</title>
+    <title>AGENT - Advanced AI Multi-Domain Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        .sidebar.collapsed { width: 4rem; }
+    <style>
+        /* Server Room Theme - Gun Metal & Neon */
+        :root {
+            --gunmetal: #2c3e50;
+            --gunmetal-dark: #1a252f;
+            --gunmetal-light: #34495e;
+            --neon-cyan: #00ffff;
+            --neon-green: #00ff41;
+            --neon-orange: #ff6600;
+            --neon-red: #ff0040;
+            --neon-purple: #8a2be2;
+            --neon-blue: #0080ff;
+            --dark-bg: #0d1117;
+            --darker-bg: #010409;
+            --terminal-green: #00ff00;
+            --warning-amber: #ffb000;
+        }
+
+        * { 
+            font-family: 'JetBrains Mono', monospace; 
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 50%, var(--gunmetal-dark) 100%);
+            color: var(--neon-cyan);
+            overflow-x: hidden;
+        }
+
+        /* Animated Background Grid */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        /* Neon Effects */
+        .neon-text {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 10px currentColor,
+                0 0 15px currentColor,
+                0 0 20px currentColor;
+        }
+
+        .neon-border {
+            border: 1px solid var(--neon-cyan);
+            box-shadow: 
+                0 0 10px var(--neon-cyan),
+                inset 0 0 10px rgba(0, 255, 255, 0.1);
+        }
+
+        .neon-glow {
+            box-shadow: 
+                0 0 20px var(--neon-cyan),
+                0 0 40px var(--neon-cyan),
+                0 0 60px var(--neon-cyan);
+        }
+
+        /* Server Panel Styling */
+        .server-panel {
+            background: linear-gradient(145deg, var(--gunmetal-dark), var(--gunmetal));
+            border: 1px solid var(--gunmetal-light);
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .terminal-panel {
+            background: var(--darker-bg);
+            border: 1px solid var(--neon-green);
+            border-radius: 4px;
+            box-shadow: 
+                0 0 15px rgba(0, 255, 65, 0.3),
+                inset 0 0 15px rgba(0, 255, 65, 0.05);
+        }
+
+        /* Status Indicators */
+        .status-online {
+            background: var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+            animation: pulse 2s infinite;
+        }
+
+        .status-warning {
+            background: var(--warning-amber);
+            box-shadow: 0 0 10px var(--warning-amber);
+            animation: pulse 2s infinite;
+        }
+
+        .status-error {
+            background: var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Navigation */
+        .nav-item {
+            background: var(--gunmetal);
+            border: 1px solid var(--gunmetal-light);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--gunmetal), var(--gunmetal-light));
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.4),
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gunmetal), var(--gunmetal-light));
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--gunmetal-light), var(--neon-cyan));
+            color: var(--gunmetal-dark);
+            box-shadow: 0 0 20px var(--neon-cyan);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--gunmetal), var(--gunmetal-light));
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, var(--gunmetal-light), var(--neon-red));
+            color: var(--gunmetal-dark);
+            box-shadow: 0 0 20px var(--neon-red);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--gunmetal), var(--gunmetal-light));
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, var(--gunmetal-light), var(--neon-green));
+            color: var(--gunmetal-dark);
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        /* Input Fields */
+        .input-field {
+            background: var(--darker-bg);
+            border: 1px solid var(--gunmetal-light);
+            color: var(--neon-cyan);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: rgba(0, 255, 255, 0.4);
+        }
+
+        /* Chat Messages */
+        .message-user {
+            background: linear-gradient(135deg, var(--gunmetal), var(--gunmetal-light));
+            border-left: 3px solid var(--neon-blue);
+        }
+
+        .message-agent {
+            background: linear-gradient(135deg, var(--darker-bg), var(--gunmetal-dark));
+            border-left: 3px solid var(--neon-green);
+        }
+
+        .message-system {
+            background: linear-gradient(135deg, var(--gunmetal-dark), var(--darker-bg));
+            border-left: 3px solid var(--warning-amber);
+        }
+
+        /* Domain Tags */
+        .domain-tag {
+            background: var(--gunmetal);
+            border: 1px solid var(--gunmetal-light);
+            color: var(--neon-cyan);
+            transition: all 0.3s ease;
+        }
+
+        .domain-tag.active {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            color: var(--gunmetal-dark);
+            box-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .domain-tag:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Tool Cards */
+        .tool-card {
+            background: var(--gunmetal);
+            border: 1px solid var(--gunmetal-light);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tool-card:hover {
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .tool-card.active {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.4);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--gunmetal-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+            border-radius: 4px;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--neon-blue);
+        }
+
+        /* Loading Animations */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+
+        /* Toggle Switches */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gunmetal);
+            border: 1px solid var(--gunmetal-light);
+            transition: .4s;
+            border-radius: 28px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--neon-cyan);
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        input:checked + .slider {
+            background-color: var(--gunmetal-light);
+            border-color: var(--neon-green);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(32px);
+            background-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        /* Typography */
+        .font-orbitron {
+            font-family: 'Orbitron', monospace;
+        }
+
+        .text-neon-cyan { color: var(--neon-cyan); }
+        .text-neon-green { color: var(--neon-green); }
+        .text-neon-orange { color: var(--neon-orange); }
+        .text-neon-red { color: var(--neon-red); }
+        .text-neon-purple { color: var(--neon-purple); }
+        .text-neon-blue { color: var(--neon-blue); }
+        .text-terminal-green { color: var(--terminal-green); }
+        .text-warning-amber { color: var(--warning-amber); }
+
+        /* Responsive */
+        .sidebar-collapsed .sidebar-text { display: none; }
+        .sidebar-collapsed .sidebar-icon { margin: 0 auto; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+        }
+
+        /* Special Effects */
+        .scan-line {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            animation: scanLine 2s infinite;
+        }
+
+        @keyframes scanLine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .matrix-rain {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Hide default elements that don't fit the theme */
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .nav-tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .domain-btn.active { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
-        .tool-toggle.active { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
-        .message { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .tool-card:hover { transform: translateY(-2px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-        .glass-effect { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #2196F3; }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .floating-panel { position: fixed; top: 20px; right: 20px; z-index: 1000; }
-        .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .status-online { background-color: #10b981; }
-        .status-offline { background-color: #ef4444; }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-    </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-    <!-- Floating Status Panel -->
-    <div class="floating-panel glass-effect rounded-lg p-3 text-sm">
-        <div class="flex items-center space-x-2">
-            <span class="status-indicator status-online pulse"></span>
-            <span class="font-medium">AGENT Online</span>
+<body class="min-h-screen">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+        <div class="server-panel rounded-lg p-8 max-w-md w-full mx-4 border-2 border-neon-cyan">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-r from-neon-cyan to-neon-blue rounded-full flex items-center justify-center mx-auto mb-4 neon-glow">
+                    <i class="fas fa-robot text-2xl text-white"></i>
+                </div>
+                <h2 class="text-2xl font-bold font-orbitron text-neon-cyan">AGENT ACCESS</h2>
+                <p class="text-sm text-neon-green font-mono mt-2">Secure Terminal Authentication</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">USERNAME</label>
+                    <input type="text" id="loginUsername" required 
+                           class="w-full px-4 py-3 input-field rounded-lg font-mono text-terminal-green"
+                           placeholder="Enter username">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">PASSWORD</label>
+                    <input type="password" id="loginPassword" required 
+                           class="w-full px-4 py-3 input-field rounded-lg font-mono text-terminal-green"
+                           placeholder="Enter password">
+                </div>
+                
+                <button type="submit" id="loginBtn" 
+                        class="w-full btn-success py-3 px-4 rounded-lg font-semibold font-mono neon-glow">
+                    <i class="fas fa-sign-in-alt mr-2"></i>AUTHENTICATE
+                </button>
+            </form>
+            
+            <div id="loginError" class="hidden mt-4 p-3 bg-neon-red bg-opacity-20 border border-neon-red rounded-lg">
+                <div class="flex items-center text-neon-red font-mono">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span id="loginErrorText">Authentication failed</span>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center">
+                <div class="text-xs text-neon-green font-mono">
+                    <div class="mb-1">DEFAULT CREDENTIALS:</div>
+                    <div class="text-warning-amber">Username: admin</div>
+                    <div class="text-warning-amber">Password: CyberAgent2025!</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modern Header -->
-    <header class="gradient-bg text-white shadow-2xl relative overflow-hidden">
-        <div class="absolute inset-0 bg-black opacity-10"></div>
+    <!-- Matrix Rain Effect -->
+    <canvas id="matrixCanvas" class="matrix-rain"></canvas>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Command Palette -->
+    <div id="commandPalette" class="hidden fixed inset-0 bg-black bg-opacity-80 z-50">
+        <div class="command-palette server-panel w-96 max-h-96 overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-gunmetal-light">
+                <input type="text" id="commandInput" placeholder="[SYSTEM] Enter command..." class="w-full px-3 py-2 input-field">
+            </div>
+            <div id="commandResults" class="max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="server-panel border-b border-gunmetal-light relative overflow-hidden">
+        <div class="scan-line"></div>
         <div class="container mx-auto px-6 py-4 relative z-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-4">
-                    <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-all">
+                    <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg btn-primary">
                         <i class="fas fa-bars text-xl"></i>
                     </button>
                     <div class="flex items-center space-x-3">
-                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-                            <i class="fas fa-robot text-2xl"></i>
+                        <div class="w-12 h-12 server-panel rounded-xl flex items-center justify-center neon-glow">
+                            <i class="fas fa-robot text-2xl text-neon-cyan neon-text"></i>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-bold tracking-tight">AGENT</h1>
-                            <p class="text-sm opacity-90 font-medium">Advanced AI Research & Security Platform</p>
+                            <h1 class="text-3xl font-bold font-orbitron neon-text text-neon-cyan">AGENT</h1>
+                            <p class="text-sm text-neon-green font-mono">MULTI-DOMAIN AI PLATFORM</p>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center space-x-6">
-                    <!-- Tool Toggles -->
-                    <div class="hidden md:flex items-center space-x-4">
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium">Port Scanner</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="portScannerToggle">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium">Container Builder</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="containerBuilderToggle">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm font-medium">Real-time Monitor</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="monitorToggle" checked>
-                                <span class="slider"></span>
-                            </label>
+                <div class="flex items-center space-x-4">
+                    <!-- System Status -->
+                    <div class="hidden md:flex items-center space-x-3">
+                        <button id="cmdPaletteBtn" class="p-2 server-panel rounded-lg btn-primary" title="Command Terminal [Ctrl+`]">
+                            <i class="fas fa-terminal"></i>
+                        </button>
+                        <button id="settingsBtn" class="p-2 server-panel rounded-lg btn-primary" title="System Config">
+                            <i class="fas fa-cog"></i>
+                        </button>
+                        <div class="flex items-center space-x-2 server-panel rounded-lg px-3 py-2">
+                            <span class="status-online w-2 h-2 rounded-full"></span>
+                            <span class="text-sm font-mono text-neon-green">ONLINE</span>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg px-3 py-2">
-                        <span class="status-indicator status-online pulse"></span>
-                        <span class="text-sm font-medium">System Active</span>
+                    
+                    <!-- User Info & Logout -->
+                    <div id="userInfo" class="hidden items-center space-x-3">
+                        <div class="server-panel rounded-lg px-3 py-2">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-user text-neon-cyan"></i>
+                                <span id="currentUser" class="text-sm font-mono text-neon-green">admin</span>
+                            </div>
+                        </div>
+                        <button id="logoutBtn" class="btn-danger p-2 rounded-lg" title="Sign Out">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="flex h-screen pt-4">
-        <!-- Modern Sidebar -->
-        <div id="sidebar" class="sidebar bg-white shadow-2xl w-72 fixed lg:relative z-30 rounded-r-2xl">
+    <div class="flex h-screen pt-0">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar server-panel w-80 fixed lg:relative z-30 border-r border-gunmetal-light">
             <div class="p-6">
-                <!-- Navigation Tabs -->
-                <nav class="space-y-3">
-                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300 active" data-tab="chat">
-                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-comments text-blue-600"></i>
+                <!-- System Info -->
+                <div class="mb-6 terminal-panel p-4 rounded-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-neon-cyan font-orbitron">SYSTEM STATUS</h3>
+                        <div class="flex space-x-1">
+                            <div class="w-2 h-2 bg-neon-green rounded-full status-online"></div>
+                            <div class="w-2 h-2 bg-neon-cyan rounded-full status-online"></div>
+                            <div class="w-2 h-2 bg-neon-blue rounded-full status-online"></div>
                         </div>
-                        <div>
-                            <span class="font-semibold">AI Chat</span>
-                            <p class="text-xs text-gray-500">Multi-domain conversations</p>
+                    </div>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="flex justify-between">
+                            <span class="text-neon-cyan">CPU:</span>
+                            <span class="text-terminal-green" id="cpuUsage">45%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neon-cyan">MEM:</span>
+                            <span class="text-terminal-green" id="memUsage">2.1GB</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-neon-cyan">NET:</span>
+                            <span class="text-terminal-green" id="netStatus">CONNECTED</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Domain Selector -->
+                <div class="mb-6 server-panel p-4 rounded-lg">
+                    <h3 class="font-semibold text-neon-orange mb-3 font-orbitron">ACTIVE DOMAIN</h3>
+                    <select id="quickDomainSelect" class="w-full p-3 input-field rounded-lg font-mono">
+                        <option value="developer">◉ DEVELOPER</option>
+                        <option value="trader">◉ TRADER</option>
+                        <option value="lawyer">◉ LAWYER</option>
+                        <option value="researcher">◉ RESEARCHER</option>
+                        <option value="data-engineer">◉ DATA ENGINEER</option>
+                        <option value="hacker">◉ SECURITY ANALYST</option>
+                        <option value="network-admin">◉ NETWORK ADMIN</option>
+                        <option value="network-analyst">◉ NET ANALYST</option>
+                        <option value="pentester">◉ PENTESTER</option>
+                        <option value="incident-response">◉ INCIDENT RESPONSE</option>
+                    </select>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="space-y-2">
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all active" data-tab="chat">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-terminal text-neon-cyan text-sm"></i>
+                        </div>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">CONSOLE</span>
+                            <p class="text-xs text-neon-green font-mono">AI Interface</p>
                         </div>
                     </button>
-                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="tools">
-                        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-tools text-purple-600"></i>
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all" data-tab="tools">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-shield-alt text-neon-orange text-sm"></i>
                         </div>
-                        <div>
-                            <span class="font-semibold">Security Tools</span>
-                            <p class="text-xs text-gray-500">Port scanner, builder, monitor</p>
-                        </div>
-                    </button>
-                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="knowledge">
-                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-database text-green-600"></i>
-                        </div>
-                        <div>
-                            <span class="font-semibold">Knowledge Base</span>
-                            <p class="text-xs text-gray-500">Cybersecurity & CS concepts</p>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">SECURITY</span>
+                            <p class="text-xs text-neon-green font-mono">Tool Suite</p>
                         </div>
                     </button>
-                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="containers">
-                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-cube text-indigo-600"></i>
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all" data-tab="research">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-search text-neon-purple text-sm"></i>
                         </div>
-                        <div>
-                            <span class="font-semibold">Containers</span>
-                            <p class="text-xs text-gray-500">Deploy & manage environments</p>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">INTEL</span>
+                            <p class="text-xs text-neon-green font-mono">Research Hub</p>
                         </div>
                     </button>
-                    <button class="nav-tab w-full text-left px-6 py-4 rounded-xl hover:bg-gray-50 flex items-center space-x-4 transition-all duration-300" data-tab="admin">
-                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-cog text-red-600"></i>
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all" data-tab="containers">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-cube text-neon-blue text-sm"></i>
                         </div>
-                        <div>
-                            <span class="font-semibold">Admin Panel</span>
-                            <p class="text-xs text-gray-500">Training & system config</p>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">CONTAINERS</span>
+                            <p class="text-xs text-neon-green font-mono">Environment</p>
+                        </div>
+                    </button>
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all" data-tab="monitoring">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-chart-line text-neon-red text-sm"></i>
+                        </div>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">MONITOR</span>
+                            <p class="text-xs text-neon-green font-mono">System Metrics</p>
+                        </div>
+                    </button>
+                    <button class="nav-item nav-tab w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-all" data-tab="admin">
+                        <div class="w-8 h-8 server-panel rounded-lg flex items-center justify-center sidebar-icon">
+                            <i class="fas fa-user-shield text-warning-amber text-sm"></i>
+                        </div>
+                        <div class="sidebar-text">
+                            <span class="font-semibold text-sm font-orbitron">ADMIN</span>
+                            <p class="text-xs text-neon-green font-mono">Configuration</p>
                         </div>
                     </button>
                 </nav>
                 
-                <!-- Quick Tools Panel -->
-                <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                    <h3 class="font-semibold text-gray-800 mb-3">Quick Tools</h3>
+                <!-- System Tools -->
+                <div class="mt-6 terminal-panel p-4 rounded-lg">
+                    <h3 class="font-semibold text-neon-red mb-3 text-sm font-orbitron">ACTIVE MODULES</h3>
                     <div class="space-y-2">
-                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="port-scanner">
-                            <i class="fas fa-search text-blue-500"></i>
-                            <span class="text-sm font-medium">Port Scanner</span>
-                        </button>
-                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="container-builder">
-                            <i class="fas fa-hammer text-purple-500"></i>
-                            <span class="text-sm font-medium">Container Builder</span>
-                        </button>
-                        <button class="tool-toggle w-full text-left px-3 py-2 rounded-lg hover:bg-white hover:shadow-sm flex items-center space-x-2 transition-all" data-tool="network-monitor">
-                            <i class="fas fa-chart-line text-green-500"></i>
-                            <span class="text-sm font-medium">Network Monitor</span>
-                        </button>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-neon-cyan">PORT_SCANNER</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="portScannerToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-neon-cyan">NET_MONITOR</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="networkMonitorToggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-mono text-neon-cyan">THREAT_INTEL</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="threatIntelToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -172,85 +678,1199 @@
 
         <!-- Main Content -->
         <div class="flex-1 lg:ml-0">
-            <!-- Chat Tab -->
+            <!-- Chat Console Tab -->
             <div id="chat-tab" class="tab-content active p-6">
-                <!-- Domain Selection -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold mb-4">Select Domain</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button class="domain-btn active" data-domain="developer">
-                            <div class="bg-blue-50 hover:bg-blue-100 p-4 rounded-lg border-2 border-blue-200 transition-all">
-                                <i class="fas fa-code text-2xl text-blue-600 mb-2"></i>
-                                <h3 class="font-semibold text-blue-800">Developer</h3>
-                                <p class="text-sm text-gray-600">Code review, debugging, architecture</p>
-                            </div>
+                <!-- Domain Selection Bar -->
+                <div class="server-panel rounded-lg p-4 mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold font-orbitron text-neon-cyan">AI COMMAND INTERFACE</h2>
+                        <div class="flex items-center space-x-2">
+                            <button id="clearChat" class="px-3 py-1 text-sm btn-danger rounded-lg">
+                                <i class="fas fa-trash mr-1"></i>CLEAR
+                            </button>
+                            <button id="exportChat" class="px-3 py-1 text-sm btn-primary rounded-lg">
+                                <i class="fas fa-download mr-1"></i>EXPORT
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Domain Tags -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button class="domain-tag active px-3 py-1 text-xs rounded-full font-mono" data-domain="developer">
+                            DEVELOPER
                         </button>
-                        <button class="domain-btn" data-domain="trader">
-                            <div class="bg-green-50 hover:bg-green-100 p-4 rounded-lg border-2 border-green-200 transition-all">
-                                <i class="fas fa-chart-line text-2xl text-green-600 mb-2"></i>
-                                <h3 class="font-semibold text-green-800">Trader</h3>
-                                <p class="text-sm text-gray-600">Market analysis, strategies, risk</p>
-                            </div>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="trader">
+                            TRADER
                         </button>
-                        <button class="domain-btn" data-domain="lawyer">
-                            <div class="bg-purple-50 hover:bg-purple-100 p-4 rounded-lg border-2 border-purple-200 transition-all">
-                                <i class="fas fa-gavel text-2xl text-purple-600 mb-2"></i>
-                                <h3 class="font-semibold text-purple-800">Lawyer</h3>
-                                <p class="text-sm text-gray-600">Contracts, compliance, smart contracts</p>
-                            </div>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="lawyer">
+                            LAWYER
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="researcher">
+                            RESEARCHER
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="data-engineer">
+                            DATA_ENG
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="hacker">
+                            SEC_ANALYST
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="network-admin">
+                            NET_ADMIN
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="network-analyst">
+                            NET_ANALYST
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="pentester">
+                            PENTESTER
+                        </button>
+                        <button class="domain-tag px-3 py-1 text-xs rounded-full font-mono" data-domain="incident-response">
+                            INCIDENT_RSP
                         </button>
                     </div>
                 </div>
 
-                <!-- Chat Interface -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="bg-gray-50 px-6 py-4 border-b">
-                        <h2 class="text-lg font-semibold flex items-center">
-                            <i class="fas fa-comments mr-2 text-gray-600"></i>
-                            Chat with AGENT
-                            <span id="currentDomain" class="ml-2 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">Developer</span>
-                        </h2>
+                <!-- Chat Terminal -->
+                <div class="terminal-panel rounded-lg overflow-hidden">
+                    <div class="bg-gunmetal-dark px-6 py-4 border-b border-neon-green">
+                        <div class="flex items-center justify-between">
+                            <h2 class="text-lg font-semibold flex items-center font-orbitron">
+                                <i class="fas fa-terminal mr-2 text-terminal-green"></i>
+                                AGENT TERMINAL
+                                <span id="currentDomainBadge" class="ml-3 px-3 py-1 bg-gunmetal text-neon-cyan text-sm rounded-full font-mono neon-border">
+                                    DEVELOPER
+                                </span>
+                            </h2>
+                            <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-1 text-sm text-neon-green font-mono">
+                                    <span class="status-online w-2 h-2 rounded-full"></span>
+                                    <span>CONNECTED</span>
+                                </div>
+                                <button id="voiceInputToggle" class="p-2 text-neon-cyan hover:text-neon-green transition-colors" title="Voice Input">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div id="chatContainer" class="chat-container p-6 space-y-4">
-                        <div class="message flex items-start space-x-3">
-                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                                <i class="fas fa-robot text-white text-sm"></i>
+                    <!-- Chat Messages -->
+                    <div id="chatContainer" class="h-96 p-6 space-y-4 overflow-y-auto bg-darker-bg">
+                        <div class="message message-system flex items-start space-x-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 server-panel neon-border">
+                                <i class="fas fa-robot text-terminal-green text-sm"></i>
                             </div>
-                            <div class="bg-gray-100 rounded-lg p-3 max-w-3xl">
-                                <p class="text-gray-800">Hello! I'm AGENT, your AI assistant with enhanced agentic capabilities. I can help with development, trading, legal matters, cybersecurity research, and container deployment. How can I assist you today?</p>
+                            <div class="flex-1">
+                                <div class="terminal-panel rounded-lg p-4">
+                                    <div class="flex items-center space-x-2 mb-2">
+                                        <span class="font-semibold text-sm text-terminal-green font-orbitron">AGENT_SYSTEM</span>
+                                        <span class="text-xs text-neon-cyan font-mono">[MULTI_DOMAIN_AI]</span>
+                                        <div class="flex space-x-1">
+                                            <span class="w-2 h-2 bg-neon-green rounded-full status-online"></span>
+                                            <span class="w-2 h-2 bg-neon-cyan rounded-full status-online"></span>
+                                            <span class="w-2 h-2 bg-neon-purple rounded-full status-online"></span>
+                                        </div>
+                                    </div>
+                                    <p class="text-neon-cyan font-mono text-sm">SYSTEM INITIALIZED. MULTI-DOMAIN AI READY.</p>
+                                    <div class="mt-3 text-xs text-neon-green font-mono space-y-1">
+                                        <div>► DEVELOPER: Code analysis, debugging, architecture</div>
+                                        <div>► TRADER: Market analysis, risk assessment</div>
+                                        <div>► LAWYER: Contract analysis, compliance</div>
+                                        <div>► SECURITY: Penetration testing, threat analysis</div>
+                                        <div>► RESEARCH: Intel gathering, data analysis</div>
+                                        <div>► NETWORK: Infrastructure management, monitoring</div>
+                                    </div>
+                                    <p class="mt-3 text-neon-orange font-mono text-sm">SELECT DOMAIN AND INITIATE COMMAND SEQUENCE.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="border-t p-4">
-                        <div class="flex space-x-4">
-                            <div class="flex-1 relative">
-                                <input type="text" id="messageInput" placeholder="Ask me anything..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <!-- Input Interface -->
+                    <div class="border-t border-neon-green bg-gunmetal-dark">
+                        <!-- Input Controls -->
+                        <div class="p-4">
+                            <div class="flex items-start space-x-3">
+                                <!-- Input Area -->
+                                <div class="flex-1">
+                                    <div class="relative">
+                                        <textarea 
+                                            id="messageInput" 
+                                            placeholder="[AGENT] Enter command or query..." 
+                                            class="w-full px-4 py-3 pr-12 input-field rounded-lg font-mono resize-none"
+                                            rows="1"
+                                            style="min-height: 44px; max-height: 120px;"></textarea>
+                                        
+                                        <!-- Input Actions -->
+                                        <div class="absolute right-2 top-2 flex items-center space-x-1">
+                                            <button id="attachFileBtn" class="p-2 text-neon-cyan hover:text-neon-green transition-colors" title="Attach File">
+                                                <i class="fas fa-paperclip"></i>
+                                            </button>
+                                            <button id="voiceBtn" class="p-2 text-neon-cyan hover:text-neon-green transition-colors" title="Voice Input">
+                                                <i class="fas fa-microphone"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- System Options -->
+                                    <div class="flex items-center justify-between mt-3">
+                                        <div class="flex items-center space-x-4">
+                                            <label class="flex items-center space-x-2 text-xs text-neon-cyan font-mono">
+                                                <input type="checkbox" id="useWebSearch" checked class="rounded">
+                                                <span>WEB_SEARCH</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2 text-xs text-neon-cyan font-mono">
+                                                <input type="checkbox" id="useMemory" checked class="rounded">
+                                                <span>CONTEXT_MEM</span>
+                                            </label>
+                                            <label class="flex items-center space-x-2 text-xs text-neon-cyan font-mono">
+                                                <input type="checkbox" id="streamResponse" checked class="rounded">
+                                                <span>STREAM_MODE</span>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="flex items-center space-x-2">
+                                            <!-- Model Selector -->
+                                            <select id="modelSelect" class="text-xs input-field rounded px-2 py-1 font-mono">
+                                                <option value="gpt-4">GPT-4</option>
+                                                <option value="claude">CLAUDE</option>
+                                                <option value="local">LOCAL</option>
+                                            </select>
+                                            
+                                            <!-- Temperature -->
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs text-neon-cyan font-mono">TEMP:</span>
+                                                <input type="range" id="temperatureSlider" min="0" max="100" value="70" class="w-16">
+                                                <span id="temperatureValue" class="text-xs text-neon-green font-mono w-8">0.7</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Send Button -->
+                                <button id="sendBtn" class="btn-success p-3 rounded-lg flex-shrink-0">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
                             </div>
-                            <button id="sendBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
-                                <i class="fas fa-paper-plane"></i>
+                        </div>
+                    </div>
+                </div>
+            <!-- Security Tools Tab -->
+            <div id="tools-tab" class="tab-content p-6">
+                <div class="space-y-6">
+                    <!-- Tool Categories -->
+                    <div class="server-panel rounded-lg p-6">
+                        <h2 class="text-2xl font-bold mb-6 font-orbitron text-neon-orange">SECURITY TOOLKIT</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            <button class="tool-category-btn active tool-card flex flex-col items-center p-4 rounded-lg neon-border" data-category="network">
+                                <i class="fas fa-network-wired text-2xl text-neon-cyan mb-2"></i>
+                                <span class="text-sm font-medium text-neon-cyan font-mono">NETWORK</span>
+                            </button>
+                            <button class="tool-category-btn tool-card flex flex-col items-center p-4 rounded-lg" data-category="web">
+                                <i class="fas fa-globe text-2xl text-neon-green mb-2"></i>
+                                <span class="text-sm font-medium text-neon-green font-mono">WEB</span>
+                            </button>
+                            <button class="tool-category-btn tool-card flex flex-col items-center p-4 rounded-lg" data-category="forensics">
+                                <i class="fas fa-search-plus text-2xl text-neon-purple mb-2"></i>
+                                <span class="text-sm font-medium text-neon-purple font-mono">FORENSICS</span>
+                            </button>
+                            <button class="tool-category-btn tool-card flex flex-col items-center p-4 rounded-lg" data-category="crypto">
+                                <i class="fas fa-lock text-2xl text-neon-red mb-2"></i>
+                                <span class="text-sm font-medium text-neon-red font-mono">CRYPTO</span>
+                            </button>
+                            <button class="tool-category-btn tool-card flex flex-col items-center p-4 rounded-lg" data-category="osint">
+                                <i class="fas fa-eye text-2xl text-neon-blue mb-2"></i>
+                                <span class="text-sm font-medium text-neon-blue font-mono">OSINT</span>
+                            </button>
+                            <button class="tool-category-btn tool-card flex flex-col items-center p-4 rounded-lg" data-category="reporting">
+                                <i class="fas fa-file-alt text-2xl text-warning-amber mb-2"></i>
+                                <span class="text-sm font-medium text-warning-amber font-mono">REPORTS</span>
                             </button>
                         </div>
-                        <div class="flex items-center justify-between mt-3">
-                            <label class="flex items-center space-x-2 text-sm text-gray-600">
-                                <input type="checkbox" id="useInternet" checked class="rounded">
-                                <span>Use internet search</span>
-                            </label>
+                    </div>
+
+                    <!-- Network Tools Section -->
+                    <div id="network-tools" class="tool-section">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Advanced Port Scanner -->
+                            <div class="server-panel rounded-lg overflow-hidden">
+                                <div class="bg-gunmetal-dark text-neon-cyan px-6 py-4 border-b border-neon-cyan">
+                                    <h3 class="text-xl font-bold flex items-center font-orbitron">
+                                        <i class="fas fa-search mr-3"></i>
+                                        PORT SCANNER
+                                    </h3>
+                                    <p class="text-neon-green text-sm mt-1 font-mono">Advanced network discovery & analysis</p>
+                                </div>
+                                <div class="p-6">
+                                    <div class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">TARGET(S)</label>
+                                                <input type="text" id="scanTargets" placeholder="192.168.1.0/24" class="w-full px-4 py-2 input-field rounded-lg font-mono">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">SCAN TYPE</label>
+                                                <select id="advancedScanType" class="w-full px-4 py-2 input-field rounded-lg font-mono">
+                                                    <option value="tcp-connect">TCP CONNECT</option>
+                                                    <option value="tcp-syn">TCP SYN</option>
+                                                    <option value="udp">UDP SCAN</option>
+                                                    <option value="comprehensive">COMPREHENSIVE</option>
+                                                    <option value="stealth">STEALTH</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex space-x-3">
+                                            <button id="startAdvancedScan" class="flex-1 btn-success py-3 px-4 rounded-lg font-semibold font-mono">
+                                                <i class="fas fa-play mr-2"></i>INITIATE SCAN
+                                            </button>
+                                            <button id="stopScan" class="px-6 btn-danger py-3 rounded-lg">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                            <button id="exportScanResults" class="px-6 btn-primary py-3 rounded-lg">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="scanResults" class="mt-6 hidden">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="font-semibold text-neon-cyan font-orbitron">SCAN RESULTS</h4>
+                                            <div class="flex items-center space-x-2">
+                                                <span id="scanProgress" class="text-sm text-neon-green font-mono">0/0 hosts</span>
+                                                <div class="w-32 bg-gunmetal-dark rounded-full h-2 neon-border">
+                                                    <div id="scanProgressBar" class="bg-neon-cyan h-2 rounded-full transition-all neon-glow" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="scanOutput" class="terminal-panel rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm text-terminal-green"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Network Monitoring -->
+                            <div class="server-panel rounded-lg overflow-hidden">
+                                <div class="bg-gunmetal-dark text-neon-green px-6 py-4 border-b border-neon-green">
+                                    <h3 class="text-xl font-bold flex items-center font-orbitron">
+                                        <i class="fas fa-chart-line mr-3"></i>
+                                        NET MONITOR
+                                    </h3>
+                                    <p class="text-neon-cyan text-sm mt-1 font-mono">Real-time traffic analysis</p>
+                                </div>
+                                <div class="p-6">
+                                    <div class="grid grid-cols-1 gap-4 mb-6">
+                                        <div class="terminal-panel rounded-lg p-4">
+                                            <h4 class="font-semibold text-neon-cyan mb-2 flex items-center font-orbitron">
+                                                <i class="fas fa-server mr-2 text-neon-blue"></i>
+                                                SYSTEM STATUS
+                                            </h4>
+                                            <div class="space-y-2">
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-neon-cyan font-mono">CPU</span>
+                                                    <span id="cpuUsage" class="text-terminal-green font-mono">0%</span>
+                                                </div>
+                                                <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                                    <div id="cpuBar" class="bg-neon-blue h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-neon-cyan font-mono">MEMORY</span>
+                                                    <span id="memUsage" class="text-terminal-green font-mono">0%</span>
+                                                </div>
+                                                <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                                    <div id="memBar" class="bg-neon-green h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-neon-cyan font-mono">NETWORK I/O</span>
+                                                    <span id="networkIO" class="text-terminal-green font-mono">0 KB/s</span>
+                                                </div>
+                                                <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                                    <div id="networkBar" class="bg-neon-purple h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-center space-x-3">
+                                        <button id="startNetworkMonitoring" class="btn-success py-2 px-4 rounded-lg font-semibold flex items-center font-mono">
+                                            <i class="fas fa-play mr-2"></i>START
+                                        </button>
+                                        <button id="stopNetworkMonitoring" class="btn-danger py-2 px-4 rounded-lg font-semibold flex items-center font-mono">
+                                            <i class="fas fa-stop mr-2"></i>STOP
+                                        </button>
+                                        <button id="exportNetworkLogs" class="btn-primary py-2 px-4 rounded-lg font-semibold flex items-center font-mono">
+                                            <i class="fas fa-download mr-2"></i>EXPORT
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Security Tools Tab -->
+            <!-- Intelligence Hub Tab -->
+            <div id="research-tab" class="tab-content p-6">
+                <div class="space-y-6">
+                    <!-- Research Dashboard -->
+                    <div class="server-panel rounded-lg p-6">
+                        <h2 class="text-2xl font-bold mb-6 font-orbitron text-neon-purple">INTELLIGENCE HUB</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- OSINT Tools -->
+                            <div class="tool-card p-6 rounded-lg border-neon-blue">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-search text-2xl text-neon-blue mr-3"></i>
+                                    <h3 class="font-semibold text-neon-blue font-orbitron">OSINT</h3>
+                                </div>
+                                <p class="text-sm text-neon-cyan mb-4 font-mono">Open Source Intelligence</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Domain Intel
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Social Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Email/Phone Lookup
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Threat Intelligence -->
+                            <div class="tool-card p-6 rounded-lg border-neon-red">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-shield-alt text-2xl text-neon-red mr-3"></i>
+                                    <h3 class="font-semibold text-neon-red font-orbitron">THREAT INTEL</h3>
+                                </div>
+                                <p class="text-sm text-neon-cyan mb-4 font-mono">IOC Analysis & Feeds</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        IOC Lookup
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Malware Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        APT Tracking
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Data Analysis -->
+                            <div class="tool-card p-6 rounded-lg border-neon-green">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-chart-bar text-2xl text-neon-green mr-3"></i>
+                                    <h3 class="font-semibold text-neon-green font-orbitron">ANALYTICS</h3>
+                                </div>
+                                <p class="text-sm text-neon-cyan mb-4 font-mono">Pattern Recognition</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Log Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Pattern Detect
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Timeline Build
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reporting -->
+                            <div class="tool-card p-6 rounded-lg border-warning-amber">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-file-alt text-2xl text-warning-amber mr-3"></i>
+                                    <h3 class="font-semibold text-warning-amber font-orbitron">REPORTS</h3>
+                                </div>
+                                <p class="text-sm text-neon-cyan mb-4 font-mono">Auto Documentation</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Security Reports
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Incident Reports
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 server-panel rounded-lg hover:neon-glow transition-colors text-sm font-mono text-neon-cyan">
+                                        Executive Brief
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Research Projects -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="server-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 font-orbitron text-neon-orange">ACTIVE PROJECTS</h3>
+                            <div class="space-y-3">
+                                <div class="border-l-4 border-neon-blue pl-4 py-2 terminal-panel rounded-r">
+                                    <h4 class="font-medium font-mono text-neon-cyan">DOMAIN_ANALYSIS: example.com</h4>
+                                    <p class="text-sm text-neon-green font-mono">STATUS: IN_PROGRESS</p>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2 mt-2">
+                                        <div class="bg-neon-blue h-2 rounded-full neon-glow" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                <div class="border-l-4 border-neon-green pl-4 py-2 terminal-panel rounded-r">
+                                    <h4 class="font-medium font-mono text-neon-cyan">THREAT_PROFILE: APT29</h4>
+                                    <p class="text-sm text-neon-green font-mono">STATUS: COMPLETED</p>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2 mt-2">
+                                        <div class="bg-neon-green h-2 rounded-full neon-glow" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div class="border-l-4 border-warning-amber pl-4 py-2 terminal-panel rounded-r">
+                                    <h4 class="font-medium font-mono text-neon-cyan">IOC_INVESTIGATION</h4>
+                                    <p class="text-sm text-neon-green font-mono">STATUS: PENDING_REVIEW</p>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2 mt-2">
+                                        <div class="bg-warning-amber h-2 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="server-panel rounded-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4 font-orbitron text-neon-orange">INTEL FEEDS</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 terminal-panel rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-neon-green rounded-full status-online"></div>
+                                        <span class="font-medium font-mono text-neon-cyan">MISP_FEED</span>
+                                    </div>
+                                    <span class="text-sm text-neon-green font-mono">ACTIVE</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 terminal-panel rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-neon-green rounded-full status-online"></div>
+                                        <span class="font-medium font-mono text-neon-cyan">VIRUSTOTAL_API</span>
+                                    </div>
+                                    <span class="text-sm text-neon-green font-mono">ACTIVE</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 terminal-panel rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-neon-red rounded-full status-error"></div>
+                                        <span class="font-medium font-mono text-neon-cyan">SHODAN_API</span>
+                                    </div>
+                                    <span class="text-sm text-neon-red font-mono">OFFLINE</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 terminal-panel rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-warning-amber rounded-full status-warning"></div>
+                                        <span class="font-medium font-mono text-neon-cyan">ALIENVAULT_OTX</span>
+                                    </div>
+                                    <span class="text-sm text-warning-amber font-mono">LIMITED</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Containers Tab -->
+            <div id="containers-tab" class="tab-content p-6">
+                <div class="server-panel rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6 font-orbitron text-neon-blue">CONTAINER ORCHESTRATION</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Templates -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 font-orbitron text-neon-orange">AVAILABLE TEMPLATES</h3>
+                            <div id="containerTemplates" class="space-y-3">
+                                <div class="tool-card p-4 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold font-mono text-neon-cyan">KALI_LINUX</h4>
+                                            <p class="text-sm text-neon-green font-mono">Penetration testing environment</p>
+                                        </div>
+                                        <button class="btn-primary px-3 py-1 rounded text-sm font-mono">DEPLOY</button>
+                                    </div>
+                                </div>
+                                <div class="tool-card p-4 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold font-mono text-neon-cyan">UBUNTU_DEV</h4>
+                                            <p class="text-sm text-neon-green font-mono">Development environment</p>
+                                        </div>
+                                        <button class="btn-primary px-3 py-1 rounded text-sm font-mono">DEPLOY</button>
+                                    </div>
+                                </div>
+                                <div class="tool-card p-4 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold font-mono text-neon-cyan">FORENSICS_LAB</h4>
+                                            <p class="text-sm text-neon-green font-mono">Digital forensics tools</p>
+                                        </div>
+                                        <button class="btn-primary px-3 py-1 rounded text-sm font-mono">DEPLOY</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Running Containers -->
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 font-orbitron text-neon-orange">RUNNING CONTAINERS</h3>
+                            <div id="runningContainers" class="space-y-3">
+                                <div class="terminal-panel p-4 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold font-mono text-terminal-green">agent_kali_001</h4>
+                                            <p class="text-sm text-neon-cyan font-mono">STATUS: RUNNING | CPU: 15% | MEM: 512MB</p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button class="btn-success px-2 py-1 rounded text-xs font-mono">CONNECT</button>
+                                            <button class="btn-danger px-2 py-1 rounded text-xs font-mono">STOP</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="terminal-panel p-4 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-semibold font-mono text-terminal-green">agent_dev_002</h4>
+                                            <p class="text-sm text-neon-cyan font-mono">STATUS: RUNNING | CPU: 8% | MEM: 256MB</p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <button class="btn-success px-2 py-1 rounded text-xs font-mono">CONNECT</button>
+                                            <button class="btn-danger px-2 py-1 rounded text-xs font-mono">STOP</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div id="monitoring-tab" class="tab-content p-6">
+                <div class="server-panel rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6 font-orbitron text-neon-red">SYSTEM MONITORING</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- System Metrics -->
+                        <div class="terminal-panel p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4 font-orbitron text-neon-cyan">SYSTEM METRICS</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="font-mono text-neon-cyan">CPU_USAGE</span>
+                                        <span class="font-mono text-terminal-green">42%</span>
+                                    </div>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                        <div class="bg-neon-blue h-2 rounded-full" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="font-mono text-neon-cyan">MEMORY</span>
+                                        <span class="font-mono text-terminal-green">2.1GB</span>
+                                    </div>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                        <div class="bg-neon-green h-2 rounded-full" style="width: 68%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span class="font-mono text-neon-cyan">DISK_IO</span>
+                                        <span class="font-mono text-terminal-green">15MB/s</span>
+                                    </div>
+                                    <div class="w-full bg-gunmetal-dark rounded-full h-2">
+                                        <div class="bg-neon-purple h-2 rounded-full" style="width: 23%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Status -->
+                        <div class="terminal-panel p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4 font-orbitron text-neon-cyan">NETWORK STATUS</h3>
+                            <div class="space-y-2 text-sm font-mono">
+                                <div class="flex justify-between">
+                                    <span class="text-neon-cyan">INTERFACE:</span>
+                                    <span class="text-terminal-green">eth0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neon-cyan">IP_ADDR:</span>
+                                    <span class="text-terminal-green">192.168.1.100</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neon-cyan">RX_BYTES:</span>
+                                    <span class="text-terminal-green">1.2GB</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neon-cyan">TX_BYTES:</span>
+                                    <span class="text-terminal-green">856MB</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-neon-cyan">CONNECTIONS:</span>
+                                    <span class="text-terminal-green">47</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Status -->
+                        <div class="terminal-panel p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4 font-orbitron text-neon-cyan">SECURITY STATUS</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-2 h-2 bg-neon-green rounded-full status-online"></div>
+                                    <span class="text-neon-green font-mono">FIREWALL_ACTIVE</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-2 h-2 bg-neon-green rounded-full status-online"></div>
+                                    <span class="text-neon-green font-mono">IDS_RUNNING</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-2 h-2 bg-warning-amber rounded-full status-warning"></div>
+                                    <span class="text-warning-amber font-mono">AV_SCAN_DUE</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-sm">
+                                    <div class="w-2 h-2 bg-neon-green rounded-full status-online"></div>
+                                    <span class="text-neon-green font-mono">SSL_CERTS_VALID</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Tab -->
+            <div id="admin-tab" class="tab-content p-6">
+                <div class="server-panel rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-6 font-orbitron text-warning-amber">ADMIN PANEL</h2>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- System Configuration -->
+                        <div class="terminal-panel p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4 font-orbitron text-neon-orange">SYSTEM CONFIG</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">DEBUG_MODE</label>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="debugMode">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">LOG_LEVEL</label>
+                                    <select class="w-full px-3 py-2 input-field rounded-lg font-mono">
+                                        <option>DEBUG</option>
+                                        <option selected>INFO</option>
+                                        <option>WARNING</option>
+                                        <option>ERROR</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-neon-cyan mb-2 font-mono">MAX_WORKERS</label>
+                                    <input type="number" value="4" class="w-full px-3 py-2 input-field rounded-lg font-mono">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Training Interface -->
+                        <div class="terminal-panel p-4 rounded-lg">
+                            <h3 class="font-semibold mb-4 font-orbitron text-neon-orange">TRAINING MODULE</h3>
+                            <div class="space-y-3">
+                                <select id="trainDomain" class="w-full p-2 input-field rounded font-mono">
+                                    <option value="developer">DEVELOPER</option>
+                                    <option value="trader">TRADER</option>
+                                    <option value="lawyer">LAWYER</option>
+                                    <option value="researcher">RESEARCHER</option>
+                                </select>
+                                <textarea id="trainInput" placeholder="[INPUT] Training data..." class="w-full p-2 input-field rounded h-20 font-mono"></textarea>
+                                <textarea id="trainOutput" placeholder="[OUTPUT] Expected response..." class="w-full p-2 input-field rounded h-20 font-mono"></textarea>
+                                <button id="trainBtn" class="w-full btn-success py-2 rounded font-mono">
+                                    ADD_TRAINING_DATA
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matrix Rain Canvas Script -->
+    <script>
+        // Matrix Rain Effect
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%+-/~{[|`]}";
+        const matrixArray = matrix.split("");
+
+        const fontSize = 10;
+        const columns = canvas.width / fontSize;
+
+        const drops = [];
+        for(let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(1, 4, 9, 0.04)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px JetBrains Mono';
+
+            for(let i = 0; i < drops.length; i++) {
+                const text = matrixArray[Math.floor(Math.random() * matrixArray.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        // Slower animation for subtle effect
+        setInterval(drawMatrix, 50);
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+
+    <script src="app.js"></script>
+</body>
+</html>
             <div id="tools-tab" class="tab-content p-6">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Port Scanner -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4">
-                            <h3 class="text-xl font-bold flex items-center">
-                                <i class="fas fa-search mr-3"></i>
-                                Port Scanner
+                <div class="space-y-6">
+                    <!-- Tool Categories -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-2xl font-bold mb-6">Security & Analysis Toolkit</h2>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            <button class="tool-category-btn active flex flex-col items-center p-4 rounded-lg border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-all" data-category="network">
+                                <i class="fas fa-network-wired text-2xl text-blue-600 mb-2"></i>
+                                <span class="text-sm font-medium text-blue-800">Network</span>
+                            </button>
+                            <button class="tool-category-btn flex flex-col items-center p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-50 transition-all" data-category="web">
+                                <i class="fas fa-globe text-2xl text-green-600 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-700">Web</span>
+                            </button>
+                            <button class="tool-category-btn flex flex-col items-center p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-50 transition-all" data-category="forensics">
+                                <i class="fas fa-search-plus text-2xl text-purple-600 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-700">Forensics</span>
+                            </button>
+                            <button class="tool-category-btn flex flex-col items-center p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-50 transition-all" data-category="crypto">
+                                <i class="fas fa-lock text-2xl text-red-600 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-700">Crypto</span>
+                            </button>
+                            <button class="tool-category-btn flex flex-col items-center p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-50 transition-all" data-category="osint">
+                                <i class="fas fa-eye text-2xl text-indigo-600 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-700">OSINT</span>
+                            </button>
+                            <button class="tool-category-btn flex flex-col items-center p-4 rounded-lg border-2 border-gray-200 hover:bg-gray-50 transition-all" data-category="reporting">
+                                <i class="fas fa-file-alt text-2xl text-orange-600 mb-2"></i>
+                                <span class="text-sm font-medium text-gray-700">Reports</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Network Tools Section -->
+                    <div id="network-tools" class="tool-section">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Advanced Port Scanner -->
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4">
+                                    <h3 class="text-xl font-bold flex items-center">
+                                        <i class="fas fa-search mr-3"></i>
+                                        Advanced Port Scanner
+                                    </h3>
+                                    <p class="text-blue-100 text-sm mt-1">Comprehensive network discovery & port analysis</p>
+                                </div>
+                                <div class="p-6">
+                                    <div class="space-y-4">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Target(s)</label>
+                                                <input type="text" id="scanTargets" placeholder="192.168.1.0/24, example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Scan Type</label>
+                                                <select id="advancedScanType" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                    <option value="tcp-connect">TCP Connect</option>
+                                                    <option value="tcp-syn">TCP SYN</option>
+                                                    <option value="udp">UDP Scan</option>
+                                                    <option value="comprehensive">Comprehensive</option>
+                                                    <option value="stealth">Stealth</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Port Range</label>
+                                                <select id="portRangeSelect" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                    <option value="common">Common (Top 1000)</option>
+                                                    <option value="1-1000">1-1000</option>
+                                                    <option value="1-65535">All Ports</option>
+                                                    <option value="custom">Custom Range</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Timing</label>
+                                                <select id="scanTiming" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                    <option value="paranoid">Paranoid (-T0)</option>
+                                                    <option value="sneaky">Sneaky (-T1)</option>
+                                                    <option value="polite">Polite (-T2)</option>
+                                                    <option value="normal">Normal (-T3)</option>
+                                                    <option value="aggressive">Aggressive (-T4)</option>
+                                                    <option value="insane">Insane (-T5)</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-2">Detection</label>
+                                                <div class="space-y-2">
+                                                    <label class="flex items-center">
+                                                        <input type="checkbox" id="osDetection" class="mr-2">
+                                                        <span class="text-sm">OS Detection</span>
+                                                    </label>
+                                                    <label class="flex items-center">
+                                                        <input type="checkbox" id="serviceVersion" class="mr-2">
+                                                        <span class="text-sm">Service Version</span>
+                                                    </label>
+                                                    <label class="flex items-center">
+                                                        <input type="checkbox" id="scriptScan" class="mr-2">
+                                                        <span class="text-sm">Script Scan</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex space-x-3">
+                                            <button id="startAdvancedScan" class="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                                <i class="fas fa-play mr-2"></i>Start Scan
+                                            </button>
+                                            <button id="stopScan" class="px-6 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition-colors">
+                                                <i class="fas fa-stop"></i>
+                                            </button>
+                                            <button id="exportScanResults" class="px-6 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="scanResults" class="mt-6 hidden">
+                                        <div class="flex items-center justify-between mb-3">
+                                            <h4 class="font-semibold text-gray-800">Scan Results</h4>
+                                            <div class="flex items-center space-x-2">
+                                                <span id="scanProgress" class="text-sm text-gray-500">0/0 hosts</span>
+                                                <div class="w-32 bg-gray-200 rounded-full h-2">
+                                                    <div id="scanProgressBar" class="bg-blue-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="scanOutput" class="bg-gray-900 text-green-400 rounded-lg p-4 max-h-64 overflow-y-auto font-mono text-sm"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Network Monitoring -->
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4">
+                                    <h3 class="text-xl font-bold flex items-center">
+                                        <i class="fas fa-chart-line mr-3"></i>
+                                        Network Monitor
+                                    </h3>
+                                    <p class="text-green-100 text-sm mt-1">Real-time network traffic analysis</p>
+                                </div>
+                                <div class="p-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div class="bg-gray-50 rounded-lg p-4">
+                                            <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
+                                                <i class="fas fa-server mr-2 text-blue-500"></i>
+                                                System Resources
+                                            </h4>
+                                            <div class="space-y-2">
+                                                <div class="flex justify-between text-sm">
+                                                    <span>CPU</span>
+                                                    <span id="cpuUsage">0%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div id="cpuBar" class="bg-blue-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span>Memory</span>
+                                                    <span id="memUsage">0%</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div id="memBar" class="bg-green-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span>Network I/O</span>
+                                                    <span id="networkIO">0 KB/s</span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div id="networkBar" class="bg-purple-500 h-2 rounded-full transition-all" style="width: 0%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-gray-50 rounded-lg p-4">
+                                            <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
+                                                <i class="fas fa-shield-alt mr-2 text-red-500"></i>
+                                                Security Status
+                                            </h4>
+                                            <div id="securityAlerts" class="space-y-2 max-h-32 overflow-y-auto">
+                                                <div class="flex items-center space-x-2 text-sm text-green-600">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <span>No threats detected</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-center space-x-3">
+                                        <button id="startNetworkMonitoring" class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold flex items-center">
+                                            <i class="fas fa-play mr-2"></i>Start Monitor
+                                        </button>
+                                        <button id="stopNetworkMonitoring" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-semibold flex items-center">
+                                            <i class="fas fa-stop mr-2"></i>Stop Monitor
+                                        </button>
+                                        <button id="exportNetworkLogs" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center">
+                                            <i class="fas fa-download mr-2"></i>Export Logs
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Vulnerability Scanner -->
+                        <div class="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
+                            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4">
+                                <h3 class="text-xl font-bold flex items-center">
+                                    <i class="fas fa-bug mr-3"></i>
+                                    Vulnerability Scanner
+                                </h3>
+                                <p class="text-red-100 text-sm mt-1">Automated security assessment and vulnerability detection</p>
+                            </div>
+                            <div class="p-6">
+                                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Target URL/IP</label>
+                                            <input type="text" id="vulnTarget" placeholder="https://example.com" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Scan Profile</label>
+                                            <select id="vulnProfile" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                                <option value="quick">Quick Scan</option>
+                                                <option value="full">Full Scan</option>
+                                                <option value="web">Web Application</option>
+                                                <option value="network">Network Services</option>
+                                                <option value="custom">Custom Profile</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-2">Scan Options</label>
+                                            <div class="space-y-2">
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="sqlInjection" class="mr-2" checked>
+                                                    <span class="text-sm">SQL Injection</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="xssDetection" class="mr-2" checked>
+                                                    <span class="text-sm">XSS Detection</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="csrfCheck" class="mr-2">
+                                                    <span class="text-sm">CSRF Check</span>
+                                                </label>
+                                                <label class="flex items-center">
+                                                    <input type="checkbox" id="sslCheck" class="mr-2" checked>
+                                                    <span class="text-sm">SSL/TLS Analysis</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button id="startVulnScan" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-semibold">
+                                            <i class="fas fa-search mr-2"></i>Start Vulnerability Scan
+                                        </button>
+                                    </div>
+
+                                    <div class="lg:col-span-2">
+                                        <div id="vulnResults" class="hidden">
+                                            <h4 class="font-semibold text-gray-800 mb-3">Vulnerability Assessment Results</h4>
+                                            <div id="vulnSummary" class="grid grid-cols-4 gap-4 mb-4">
+                                                <div class="bg-red-50 p-3 rounded-lg text-center">
+                                                    <div class="text-2xl font-bold text-red-600" id="criticalCount">0</div>
+                                                    <div class="text-sm text-red-800">Critical</div>
+                                                </div>
+                                                <div class="bg-orange-50 p-3 rounded-lg text-center">
+                                                    <div class="text-2xl font-bold text-orange-600" id="highCount">0</div>
+                                                    <div class="text-sm text-orange-800">High</div>
+                                                </div>
+                                                <div class="bg-yellow-50 p-3 rounded-lg text-center">
+                                                    <div class="text-2xl font-bold text-yellow-600" id="mediumCount">0</div>
+                                                    <div class="text-sm text-yellow-800">Medium</div>
+                                                </div>
+                                                <div class="bg-blue-50 p-3 rounded-lg text-center">
+                                                    <div class="text-2xl font-bold text-blue-600" id="lowCount">0</div>
+                                                    <div class="text-sm text-blue-800">Low</div>
+                                                </div>
+                                            </div>
+                                            <div id="vulnDetails" class="bg-gray-50 rounded-lg p-4 max-h-64 overflow-y-auto"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Research & Intelligence Hub -->
+            <div id="research-tab" class="tab-content p-6">
+                <div class="space-y-6">
+                    <!-- Research Dashboard -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-2xl font-bold mb-6">Intelligence & Research Hub</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- OSINT Tools -->
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-search text-2xl text-blue-600 mr-3"></i>
+                                    <h3 class="font-semibold text-blue-800">OSINT</h3>
+                                </div>
+                                <p class="text-sm text-blue-600 mb-4">Open Source Intelligence gathering and analysis</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-blue-50 transition-colors text-sm">
+                                        Domain Intelligence
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-blue-50 transition-colors text-sm">
+                                        Social Media Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-blue-50 transition-colors text-sm">
+                                        Email/Phone Lookup
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Threat Intelligence -->
+                            <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-shield-alt text-2xl text-red-600 mr-3"></i>
+                                    <h3 class="font-semibold text-red-800">Threat Intel</h3>
+                                </div>
+                                <p class="text-sm text-red-600 mb-4">Threat intelligence feeds and IOC analysis</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-red-50 transition-colors text-sm">
+                                        IOC Lookup
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-red-50 transition-colors text-sm">
+                                        Malware Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-red-50 transition-colors text-sm">
+                                        APT Tracking
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Data Analysis -->
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-chart-bar text-2xl text-green-600 mr-3"></i>
+                                    <h3 class="font-semibold text-green-800">Analytics</h3>
+                                </div>
+                                <p class="text-sm text-green-600 mb-4">Data processing and pattern recognition</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-green-50 transition-colors text-sm">
+                                        Log Analysis
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-green-50 transition-colors text-sm">
+                                        Pattern Recognition
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-green-50 transition-colors text-sm">
+                                        Timeline Analysis
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reporting -->
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-file-alt text-2xl text-purple-600 mr-3"></i>
+                                    <h3 class="font-semibold text-purple-800">Reports</h3>
+                                </div>
+                                <p class="text-sm text-purple-600 mb-4">Automated report generation and documentation</p>
+                                <div class="space-y-2">
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-purple-50 transition-colors text-sm">
+                                        Security Reports
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-purple-50 transition-colors text-sm">
+                                        Incident Reports
+                                    </button>
+                                    <button class="w-full text-left px-3 py-2 bg-white rounded-lg hover:bg-purple-50 transition-colors text-sm">
+                                        Executive Summary
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Research Projects -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Active Research Projects</h3>
+                            <div class="space-y-3">
+                                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                    <h4 class="font-medium">Domain Analysis: example.com</h4>
+                                    <p class="text-sm text-gray-600">Status: In Progress</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                <div class="border-l-4 border-green-500 pl-4 py-2">
+                                    <h4 class="font-medium">Threat Actor Profile: APT29</h4>
+                                    <p class="text-sm text-gray-600">Status: Completed</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-green-500 h-2 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div class="border-l-4 border-yellow-500 pl-4 py-2">
+                                    <h4 class="font-medium">IOC Investigation</h4>
+                                    <p class="text-sm text-gray-600">Status: Pending Review</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-lg font-semibold mb-4">Intelligence Feeds</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="font-medium">MISP Feed</span>
+                                    </div>
+                                    <span class="text-sm text-green-600">Active</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span class="font-medium">VirusTotal API</span>
+                                    </div>
+                                    <span class="text-sm text-green-600">Active</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <span class="font-medium">Shodan API</span>
+                                    </div>
+                                    <span class="text-sm text-red-600">Offline</span>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <span class="font-medium">AlienVault OTX</span>
+                                    </div>
+                                    <span class="text-sm text-yellow-600">Limited</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
                             </h3>
                             <p class="text-blue-100 text-sm mt-1">Scan network ports and services</p>
                         </div>
