@@ -1,0 +1,14 @@
+{
+  "name": "agent-system",
+  "version": "2.0.0",
+  "description": "Enhanced AGENT System - Multi-Domain AI Platform",
+  "main": "api/index.py",
+  "scripts": {
+    "start": "uvicorn api/index:app --host 0.0.0.0 --port 8000"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

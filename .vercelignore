@@ -1,0 +1,101 @@
+# Build artifacts and cache
+rust/target/
+target/
+*.d
+*.rlib
+*.so
+*.dylib
+*.dll
+.cargo/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Local data and logs
+logs/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+agent_knowledge.db
+models/
+model_archive/
+*.pkl
+*.model
+
+# Development and testing
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation source (keep compiled docs)
+docs/batches/
+docs/patches/
+
+# Large dependencies that can be installed on deploy
+node_modules/
+.npm/
+.yarn/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# System files
+.dockerignore
+Dockerfile
+docker-compose.yml
+Makefile
+*.sh
+test_*.py
+*_test.py
+benchmark_*.py
+performance_*.py
+
+# Rust source (keep only compiled libraries if needed)
+rust/*/src/
+Cargo.lock
