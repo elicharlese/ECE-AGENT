@@ -8,89 +8,72 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 
-class ReasoningType(Enum):
-    CHAIN_OF_THOUGHT = "chain_of_thought"
-    REACT = "react"
-    REFLECTION = "reflection"
-    PLANNING = "planning"
+from .core import AGENTCore
+from .rust_integration import get_integration_manager, get_cache_manager, get_string_processor
+from .base_classes import ReasoningType, Thought, Tool, Memory
 
-@dataclass
-class Thought:
-    """Represents a single thought in the reasoning process"""
-    id: str
-    content: str
-    type: ReasoningType
-    confidence: float
-    timestamp: datetime
-    metadata: Dict[str, Any] = None
-
-@dataclass
-class Tool:
-    """Represents a tool that can be used by the agent"""
-    name: str
-    description: str
-    function: Callable
-    parameters: Dict[str, Any]
-    required_params: List[str]
-
-@dataclass
-class Memory:
-    """Represents a memory item"""
-    id: str
-    content: str
-    context: str
-    importance: float
-    timestamp: datetime
-    tags: List[str]
-
-class EnhancedAgentBase(ABC):
-    """Enhanced base class for all AGENT domain agents with advanced agentic capabilities"""
+class EnhancedAgent(AGENTCore):
+    """Enhanced AGENT system with advanced agentic capabilities"""
     
-    def __init__(self, domain: str):
-        self.domain = domain
-        self.logger = logging.getLogger(f"{self.__class__.__name__}")
+    def __init__(self):
+        # Initialize the core system first
+        super().__init__()
         
-        # Core agentic components
+        # Initialize enhanced components
         self.memory_manager = MemoryManager()
         self.tool_registry = ToolRegistry()
         self.reasoning_engine = ReasoningEngine()
         self.planning_engine = PlanningEngine()
         
+        # Enhanced Rust integration
+        self.rust_integration = get_integration_manager()
+        self.enhanced_cache = get_cache_manager()
+        self.enhanced_string_processor = get_string_processor()
+        
         # Agent state
         self.current_context = {}
-        self.active_plan = None
+        self.active_plans = {}
         self.reasoning_history = []
         
-        # Initialize domain-specific tools and knowledge
-        self.setup_domain_tools()
-        self.setup_domain_knowledge()
+        # Performance tracking
+        self.enhanced_metrics = {
+            "enhanced_queries": 0,
+            "reasoning_sessions": 0,
+            "plans_created": 0,
+            "plans_executed": 0,
+            "tools_used": {},
+            "memory_operations": 0,
+            "average_confidence": 0.0
+        }
+        
+        self.logger.info("Enhanced AGENT system initialized with agentic capabilities")
     
-    @abstractmethod
-    def setup_domain_tools(self):
-        """Setup domain-specific tools"""
-        pass
-    
-    @abstractmethod
-    def setup_domain_knowledge(self):
-        """Setup domain-specific knowledge base"""
-        pass
-    
-    async def process_enhanced(self, query: str, context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Enhanced processing with full agentic capabilities"""
+    async def process_enhanced_query(self, query: str, domain: str = "general", 
+                                    context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Enhanced query processing with full agentic capabilities"""
         try:
+            self.enhanced_metrics["enhanced_queries"] += 1
+            
             # Update context
             self.current_context.update(context or {})
+            self.current_context["domain"] = domain
             
             # Step 1: Analyze the query and determine approach
             analysis = await self.analyze_query(query)
+            self.logger.info(f"Query analysis: {analysis}")
             
             # Step 2: Create or update plan if needed
+            plan_id = None
             if analysis.get("requires_planning", False):
-                self.active_plan = await self.planning_engine.create_plan(
+                plan = await self.planning_engine.create_plan(
                     goal=query,
                     context=self.current_context,
                     available_tools=self.tool_registry.get_available_tools()
                 )
+                plan_id = plan["id"]
+                self.active_plans[plan_id] = plan
+                self.enhanced_metrics["plans_created"] += 1
+                self.logger.info(f"Created plan {plan_id} with {len(plan['steps'])} steps")
             
             # Step 3: Execute reasoning process
             reasoning_result = await self.reasoning_engine.reason(
@@ -100,127 +83,266 @@ class EnhancedAgentBase(ABC):
                 tools=self.tool_registry,
                 memory=self.memory_manager
             )
+            self.enhanced_metrics["reasoning_sessions"] += 1
             
             # Step 4: Execute plan if exists
-            if self.active_plan:
+            if plan_id and plan_id in self.active_plans:
                 execution_result = await self.planning_engine.execute_plan(
-                    plan=self.active_plan,
+                    plan=self.active_plans[plan_id],
                     tools=self.tool_registry,
                     context=self.current_context
                 )
                 reasoning_result.update(execution_result)
+                self.enhanced_metrics["plans_executed"] += 1
             
-            # Step 5: Store important information in memory
-            await self.store_interaction_memory(query, reasoning_result)
+            # Step 5: Use core AGENT processing for domain-specific enhancement
+            core_result = await self.process_query(query, domain)
             
-            # Step 6: Self-reflection and improvement
+            # Step 6: Combine enhanced reasoning with core response
+            combined_answer = self._combine_responses(
+                core_result.get("answer", ""),
+                reasoning_result.get("final_answer", ""),
+                reasoning_result.get("reasoning_chain", [])
+            )
+            
+            # Step 7: Store important information in memory
+            await self.store_interaction_memory(query, reasoning_result, core_result)
+            self.enhanced_metrics["memory_operations"] += 1
+            
+            # Step 8: Self-reflection and improvement
             reflection = await self.self_reflect(query, reasoning_result)
             
+            # Update confidence tracking
+            confidence = reasoning_result.get("confidence", core_result.get("confidence", 0.7))
+            self._update_confidence_metrics(confidence)
+            
+            # Track tool usage
+            for tool in reasoning_result.get("tools_used", []):
+                self.enhanced_metrics["tools_used"][tool] = self.enhanced_metrics["tools_used"].get(tool, 0) + 1
+            
             return {
-                "answer": reasoning_result.get("final_answer", "I need more information to provide a complete response."),
+                "answer": combined_answer,
                 "reasoning_chain": reasoning_result.get("reasoning_chain", []),
                 "tools_used": reasoning_result.get("tools_used", []),
-                "confidence": reasoning_result.get("confidence", 0.7),
-                "plan_executed": self.active_plan is not None,
+                "confidence": confidence,
+                "plan_executed": plan_id is not None,
+                "plan_id": plan_id,
                 "reflection": reflection,
                 "proactive_suggestions": await self.generate_proactive_suggestions(query, reasoning_result),
-                "domain": self.domain,
-                "timestamp": datetime.now().isoformat()
+                "domain": domain,
+                "sources": core_result.get("sources", []),
+                "keywords": core_result.get("keywords", []),
+                "enhanced": True,
+                "timestamp": datetime.now().isoformat(),
+                "analysis": analysis
             }
             
         except Exception as e:
             self.logger.error(f"Error in enhanced processing: {e}")
-            return {
-                "answer": f"I encountered an error while processing your {self.domain} query. Let me try a different approach.",
-                "error": str(e),
-                "confidence": 0.0
-            }
+            # Fallback to core processing
+            core_result = await self.process_query(query, domain, context)
+            core_result["enhanced"] = False
+            core_result["fallback_reason"] = str(e)
+            return core_result
+    
+    def _combine_responses(self, core_answer: str, reasoning_answer: str, reasoning_chain: List[Dict]) -> str:
+        """Combine core AGENT response with enhanced reasoning"""
+        if not reasoning_answer or reasoning_answer == core_answer:
+            return core_answer
+        
+        combined = core_answer
+        
+        # Add reasoning insights if they provide value
+        if reasoning_chain and len(reasoning_chain) > 2:
+            combined += f"\n\n**My reasoning process:**\n"
+            for i, step in enumerate(reasoning_chain[:3], 1):  # Show first 3 steps
+                if isinstance(step, dict):
+                    thought = step.get("thought", step.get("content", ""))
+                    if thought:
+                        combined += f"{i}. {thought}\n"
+        
+        return combined
+    
+    def _update_confidence_metrics(self, confidence: float):
+        """Update average confidence tracking"""
+        current_avg = self.enhanced_metrics["average_confidence"]
+        total_queries = self.enhanced_metrics["enhanced_queries"]
+        
+        if total_queries == 1:
+            self.enhanced_metrics["average_confidence"] = confidence
+        else:
+            # Calculate running average
+            self.enhanced_metrics["average_confidence"] = (
+                (current_avg * (total_queries - 1) + confidence) / total_queries
+            )
     
     async def analyze_query(self, query: str) -> Dict[str, Any]:
         """Analyze query to determine processing approach"""
         query_lower = query.lower()
         
+        # Use enhanced string processing for keyword analysis
+        keywords = self.enhanced_string_processor.extract_keywords(query, min_length=3)
+        
         # Determine if planning is needed
-        planning_keywords = ["plan", "strategy", "approach", "steps", "how to", "process"]
+        planning_keywords = ["plan", "strategy", "approach", "steps", "how to", "process", "implement", "create"]
         requires_planning = any(keyword in query_lower for keyword in planning_keywords)
         
-        # Determine reasoning type
-        if any(word in query_lower for word in ["analyze", "compare", "evaluate"]):
+        # Determine reasoning type based on enhanced analysis
+        if any(word in query_lower for word in ["analyze", "compare", "evaluate", "assess"]):
             reasoning_type = ReasoningType.CHAIN_OF_THOUGHT
-        elif any(word in query_lower for word in ["research", "find", "search", "investigate"]):
+        elif any(word in query_lower for word in ["research", "find", "search", "investigate", "look up"]):
             reasoning_type = ReasoningType.REACT
-        elif any(word in query_lower for word in ["review", "check", "assess"]):
+        elif any(word in query_lower for word in ["review", "check", "verify", "validate"]):
             reasoning_type = ReasoningType.REFLECTION
+        elif requires_planning:
+            reasoning_type = ReasoningType.PLANNING
         else:
             reasoning_type = ReasoningType.CHAIN_OF_THOUGHT
         
-        # Determine complexity
-        complexity = "simple"
-        if len(query.split()) > 20 or "?" in query.count("?") > 1:
+        # Determine complexity using enhanced metrics
+        word_count = len(query.split())
+        question_count = query.count("?")
+        complexity_words = ["comprehensive", "detailed", "thorough", "complete", "full"]
+        
+        if word_count > 30 or question_count > 2 or any(word in query_lower for word in complexity_words):
             complexity = "complex"
-        elif any(word in query_lower for word in ["comprehensive", "detailed", "thorough"]):
+        elif word_count > 15 or any(word in query_lower for word in ["detailed", "explain"]):
             complexity = "detailed"
+        else:
+            complexity = "simple"
         
         return {
             "requires_planning": requires_planning,
             "reasoning_type": reasoning_type,
             "complexity": complexity,
-            "estimated_steps": 3 if complexity == "simple" else 5 if complexity == "detailed" else 7
+            "estimated_steps": 3 if complexity == "simple" else 5 if complexity == "detailed" else 7,
+            "keywords": keywords[:10],  # Top 10 keywords
+            "word_count": word_count,
+            "question_count": question_count
         }
     
-    async def store_interaction_memory(self, query: str, result: Dict[str, Any]):
+    async def store_interaction_memory(self, query: str, reasoning_result: Dict[str, Any], core_result: Dict[str, Any]):
         """Store important information from the interaction"""
         memory_content = {
             "query": query,
-            "domain": self.domain,
-            "tools_used": result.get("tools_used", []),
-            "confidence": result.get("confidence", 0.0),
-            "success": result.get("confidence", 0.0) > 0.5
+            "domain": self.current_context.get("domain", "general"),
+            "tools_used": reasoning_result.get("tools_used", []),
+            "confidence": reasoning_result.get("confidence", core_result.get("confidence", 0.0)),
+            "success": reasoning_result.get("confidence", core_result.get("confidence", 0.0)) > 0.5,
+            "reasoning_type": str(reasoning_result.get("reasoning_type", "unknown")),
+            "plan_executed": "plan_executed" in reasoning_result,
+            "keywords": core_result.get("keywords", [])
         }
+        
+        # Determine importance based on complexity and confidence
+        confidence = memory_content["confidence"]
+        importance = confidence * 0.7  # Base importance from confidence
+        
+        if memory_content["plan_executed"]:
+            importance += 0.2  # Boost for planned interactions
+        
+        if len(memory_content["tools_used"]) > 0:
+            importance += 0.1  # Boost for tool usage
         
         await self.memory_manager.store_memory(
             content=json.dumps(memory_content),
-            context=f"{self.domain}_interaction",
-            importance=result.get("confidence", 0.5),
-            tags=[self.domain, "interaction", "query_response"]
+            context=f"{memory_content['domain']}_enhanced_interaction",
+            importance=min(importance, 1.0),
+            tags=[memory_content["domain"], "enhanced", "interaction", memory_content["reasoning_type"]]
         )
     
     async def self_reflect(self, query: str, result: Dict[str, Any]) -> Dict[str, Any]:
         """Perform self-reflection on the response quality"""
         confidence = result.get("confidence", 0.0)
         tools_used = result.get("tools_used", [])
+        reasoning_chain = result.get("reasoning_chain", [])
         
         reflection = {
-            "quality_assessment": "good" if confidence > 0.7 else "needs_improvement" if confidence > 0.4 else "poor",
+            "quality_assessment": "excellent" if confidence > 0.8 else "good" if confidence > 0.6 else "needs_improvement",
             "improvement_suggestions": [],
-            "learning_opportunities": []
+            "learning_opportunities": [],
+            "reasoning_depth": len(reasoning_chain),
+            "tool_utilization": len(tools_used)
         }
         
         # Identify improvement opportunities
         if confidence < 0.7:
             reflection["improvement_suggestions"].append("Consider using additional tools or data sources")
         
-        if not tools_used:
-            reflection["improvement_suggestions"].append("Explore using domain-specific tools for better results")
+        if not tools_used and "research" in query.lower():
+            reflection["improvement_suggestions"].append("Research queries might benefit from web search tools")
+        
+        if len(reasoning_chain) < 3:
+            reflection["improvement_suggestions"].append("Could benefit from deeper reasoning process")
         
         # Identify learning opportunities
         if "new" in query.lower() or "latest" in query.lower():
             reflection["learning_opportunities"].append("Update knowledge base with recent information")
+        
+        if confidence < 0.5:
+            reflection["learning_opportunities"].append("Review and improve handling of similar queries")
         
         return reflection
     
     async def generate_proactive_suggestions(self, query: str, result: Dict[str, Any]) -> List[str]:
         """Generate proactive suggestions for the user"""
         suggestions = []
+        domain = self.current_context.get("domain", "general")
+        confidence = result.get("confidence", 0.0)
         
-        # Domain-specific suggestions will be implemented in subclasses
-        base_suggestions = [
-            "Would you like me to provide more detailed analysis?",
-            "I can help you with related questions in this domain.",
-            "Consider exploring complementary topics for a broader perspective."
-        ]
+        # Domain-specific suggestions
+        if domain == "developer":
+            suggestions.append("Would you like me to generate code examples or provide implementation guidance?")
+            suggestions.append("I can help with debugging, testing, or architectural decisions.")
+        elif domain == "trader":
+            suggestions.append("Would you like me to analyze market trends or risk factors?")
+            suggestions.append("I can provide trading strategies or portfolio optimization advice.")
+        elif domain == "lawyer":
+            suggestions.append("Would you like me to review related legal precedents or regulations?")
+            suggestions.append("I can help with contract analysis or compliance guidance.")
         
-        return base_suggestions[:2]  # Return top 2 suggestions
+        # General suggestions based on confidence
+        if confidence < 0.7:
+            suggestions.append("Would you like me to provide more detailed analysis with additional research?")
+        
+        if result.get("tools_used"):
+            suggestions.append("I can explore related topics using additional research tools.")
+        
+        # Add contextual suggestions
+        if "how" in query.lower():
+            suggestions.append("Would you like a step-by-step implementation guide?")
+        
+        if "what" in query.lower():
+            suggestions.append("I can provide more examples or detailed explanations.")
+        
+        return suggestions[:3]  # Return top 3 suggestions
+    
+    async def get_enhanced_status(self) -> Dict[str, Any]:
+        """Get enhanced system status including agentic capabilities"""
+        core_status = await self.get_status()
+        
+        enhanced_status = {
+            **core_status,
+            "enhanced_capabilities": {
+                "reasoning_engine": True,
+                "planning_engine": True,
+                "memory_manager": True,
+                "tool_registry": True,
+                "self_reflection": True
+            },
+            "enhanced_metrics": self.enhanced_metrics,
+            "active_plans": len(self.active_plans),
+            "memory_items": len(self.memory_manager.memories),
+            "available_tools": self.tool_registry.get_available_tools(),
+            "reasoning_types": [rt.value for rt in ReasoningType],
+            "rust_integration_enhanced": {
+                "available": self.rust_integration.rust_available if hasattr(self.rust_integration, 'rust_available') else False,
+                "cache_manager": type(self.enhanced_cache).__name__,
+                "string_processor": type(self.enhanced_string_processor).__name__
+            }
+        }
+        
+        return enhanced_status
 
 class MemoryManager:
     """Manages agent memory for context retention and learning"""

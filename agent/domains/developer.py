@@ -4,7 +4,7 @@ import re
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 import logging
-from ..enhanced_agent import EnhancedAgentBase, Tool
+from ..base_classes import EnhancedAgentBase, Tool
 
 class DeveloperAgent(EnhancedAgentBase):
     """AI Agent specialized in software development tasks"""

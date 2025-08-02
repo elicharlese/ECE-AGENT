@@ -4,7 +4,7 @@ import re
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 import logging
-from ..enhanced_agent import EnhancedAgentBase
+from ..base_classes import EnhancedAgentBase
 
 class ResearcherAgent(EnhancedAgentBase):
     """AI Agent specialized in research and intelligence analysis"""

@@ -13,7 +13,9 @@ from .domains.lawyer import LawyerAgent
 from .rust_integration import (
     get_integration_manager, 
     get_cache_manager, 
-    get_string_processor
+    get_string_processor,
+    get_performance_metrics,
+    RUST_AVAILABLE
 )
 
 class AGENTCore:
@@ -55,7 +57,7 @@ class AGENTCore:
             "domain_usage": {"developer": 0, "trader": 0, "lawyer": 0},
             "last_training": None,
             "model_version": "1.0.0",
-            "rust_enabled": is_rust_available(),
+            "rust_enabled": RUST_AVAILABLE,
             "cache_hits": 0,
             "cache_misses": 0
         }
@@ -229,7 +231,7 @@ class AGENTCore:
             "model_name": self.model_name,
             "metrics": self.metrics,
             "domains_available": ["developer", "trader", "lawyer"],
-            "rust_enabled": is_rust_available(),
+            "rust_enabled": RUST_AVAILABLE,
             "performance_metrics": {
                 "total_operations": len(rust_performance_metrics),
                 "average_response_time_ms": sum(m.duration_ms for m in rust_performance_metrics[-100:]) / min(len(rust_performance_metrics), 100) if rust_performance_metrics else 0,
@@ -326,7 +328,7 @@ class AGENTCore:
                         "hash_generation_ms": hash_time,
                         "processed_strings": len(processed),
                         "generated_hashes": len(hashes),
-                        "rust_enabled": is_rust_available()
+                        "rust_enabled": RUST_AVAILABLE
                     }
                 }
             

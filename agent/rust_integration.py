@@ -81,6 +81,17 @@ class FastCacheManager:
         if key in self.fallback_cache:
             del self.fallback_cache[key]
     
+    def clear(self):
+        """Clear all cache entries"""
+        if self.rust_cache:
+            try:
+                return self.rust_cache.clear()
+            except Exception:
+                pass
+                
+        # Fallback - clear Python dict
+        self.fallback_cache.clear()
+    
     def cleanup(self):
         """Clean up expired entries"""
         if self.rust_cache:
@@ -101,18 +112,23 @@ class FastStringProcessor:
     def __init__(self, rust_processor=None):
         self.rust_processor = rust_processor
     
-    def process_parallel(self, strings: List[str]) -> List[str]:
+    def parallel_process(self, strings: List[str], operation: str = "uppercase") -> List[str]:
         """Process strings in parallel"""
         if self.rust_processor:
             try:
-                return self.rust_processor.parallel_process_strings(strings, "uppercase")
+                return self.rust_processor.parallel_process_strings(strings, operation)
             except Exception as e:
                 logging.warning(f"Rust string processing failed: {e}")
         
         # Fallback to Python processing
-        return [s.upper() for s in strings]
+        if operation == "uppercase":
+            return [s.upper() for s in strings]
+        elif operation == "lowercase":
+            return [s.lower() for s in strings]
+        else:
+            return strings
         
-    def extract_keywords(self, text: str, count: int = 10) -> List[str]:
+    def extract_keywords(self, text: str, min_length: int = 3, count: int = 10) -> List[str]:
         """Extract keywords from text"""
         if self.rust_processor:
             try:
@@ -120,9 +136,26 @@ class FastStringProcessor:
             except Exception as e:
                 logging.warning(f"Rust keyword extraction failed: {e}")
         
-        # Simple fallback
-        words = text.lower().split()
-        return list(set(words))[:count]
+        # Simple fallback - extract words longer than min_length
+        import re
+        words = re.findall(r'\b\w+\b', text.lower())
+        filtered_words = [w for w in words if len(w) >= min_length]
+        # Return unique words, sorted by frequency
+        from collections import Counter
+        word_counts = Counter(filtered_words)
+        return [word for word, _ in word_counts.most_common(count)]
+    
+    def fast_hash(self, text: str) -> str:
+        """Generate fast hash of text"""
+        if self.rust_processor:
+            try:
+                return self.rust_processor.fast_hash(text)
+            except Exception as e:
+                logging.warning(f"Rust hash generation failed: {e}")
+        
+        # Fallback to Python hash
+        import hashlib
+        return hashlib.md5(text.encode()).hexdigest()
     
     def calculate_similarity(self, text1: str, text2: str) -> float:
         """Calculate text similarity"""
@@ -314,3 +347,11 @@ def get_cache_manager() -> FastCacheManager:
 def get_string_processor() -> FastStringProcessor:
     """Get the global string processor"""
     return get_integration_manager().get_string_processor()
+
+def get_performance_metrics() -> List[PerformanceMetrics]:
+    """Get performance metrics from the integration manager"""
+    return get_integration_manager().metrics
+
+def is_rust_available() -> bool:
+    """Check if Rust components are available"""
+    return RUST_AVAILABLE
