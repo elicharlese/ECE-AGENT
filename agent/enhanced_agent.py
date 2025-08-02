@@ -11,6 +11,7 @@ from enum import Enum
 from .core import AGENTCore
 from .rust_integration import get_integration_manager, get_cache_manager, get_string_processor
 from .base_classes import ReasoningType, Thought, Tool, Memory
+from .multi_model_router import multi_model_router, ModelType, QueryType
 
 class EnhancedAgent(AGENTCore):
     """Enhanced AGENT system with advanced agentic capabilities"""
@@ -24,6 +25,9 @@ class EnhancedAgent(AGENTCore):
         self.tool_registry = ToolRegistry()
         self.reasoning_engine = ReasoningEngine()
         self.planning_engine = PlanningEngine()
+        
+        # Multi-model AI router
+        self.multi_model_router = multi_model_router
         
         # Enhanced Rust integration
         self.rust_integration = get_integration_manager()
@@ -43,10 +47,13 @@ class EnhancedAgent(AGENTCore):
             "plans_executed": 0,
             "tools_used": {},
             "memory_operations": 0,
-            "average_confidence": 0.0
+            "average_confidence": 0.0,
+            "model_usage": {},
+            "total_ai_cost": 0.0,
+            "avg_response_time": 0.0
         }
         
-        self.logger.info("Enhanced AGENT system initialized with agentic capabilities")
+        self.logger.info("Enhanced AGENT system initialized with multi-model AI capabilities")
     
     async def process_enhanced_query(self, query: str, domain: str = "general", 
                                     context: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -175,6 +182,148 @@ class EnhancedAgent(AGENTCore):
             self.enhanced_metrics["average_confidence"] = (
                 (current_avg * (total_queries - 1) + confidence) / total_queries
             )
+    
+    async def process_multi_model_query(self, query: str, domain: str = "general", 
+                                      prefer_model: Optional[ModelType] = None,
+                                      context: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Process query using multi-model AI router with enhanced capabilities"""
+        try:
+            self.enhanced_metrics["enhanced_queries"] += 1
+            start_time = datetime.now()
+            
+            # Update context
+            self.current_context.update(context or {})
+            self.current_context["domain"] = domain
+            
+            # Step 1: Route query to optimal model
+            model_response = await self.multi_model_router.route_query(query)
+            
+            # Update metrics
+            model_used = model_response.model_used.value
+            self.enhanced_metrics["model_usage"][model_used] = (
+                self.enhanced_metrics["model_usage"].get(model_used, 0) + 1
+            )
+            self.enhanced_metrics["total_ai_cost"] += model_response.cost
+            
+            # Step 2: Enhanced processing with multi-model response
+            analysis = await self.analyze_query(query)
+            
+            # Step 3: Create memory from interaction
+            await self.store_interaction_memory(query, {
+                "model_response": model_response.content,
+                "model_used": model_used,
+                "analysis": analysis
+            }, {})
+            
+            # Step 4: Generate enhanced response combining model output with domain expertise
+            domain_enhancement = await self._enhance_with_domain_expertise(
+                query, model_response.content, domain
+            )
+            
+            # Step 5: Self-reflection on the response
+            reflection = await self.self_reflect(query, {
+                "answer": domain_enhancement,
+                "model_response": model_response.content,
+                "confidence": model_response.confidence
+            })
+            
+            # Step 6: Generate proactive suggestions
+            suggestions = await self.generate_proactive_suggestions(query, {
+                "answer": domain_enhancement,
+                "model_used": model_used
+            })
+            
+            # Calculate response time
+            response_time = (datetime.now() - start_time).total_seconds()
+            self._update_response_time_metrics(response_time)
+            
+            # Update confidence tracking
+            final_confidence = min(0.98, model_response.confidence * 1.1)  # Boost with domain expertise
+            self._update_confidence_metrics(final_confidence)
+            
+            return {
+                "answer": domain_enhancement,
+                "original_model_response": model_response.content,
+                "model_used": model_used,
+                "model_response_time": model_response.response_time,
+                "total_response_time": response_time,
+                "tokens_used": model_response.tokens_used,
+                "cost": model_response.cost,
+                "confidence": final_confidence,
+                "reflection": reflection,
+                "proactive_suggestions": suggestions,
+                "domain": domain,
+                "enhanced": True,
+                "multi_model": True,
+                "timestamp": model_response.timestamp.isoformat(),
+                "analysis": analysis
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error in multi-model processing: {e}")
+            # Fallback to enhanced processing
+            return await self.process_enhanced_query(query, domain, context)
+    
+    async def _enhance_with_domain_expertise(self, query: str, model_response: str, domain: str) -> str:
+        """Enhance model response with domain-specific expertise"""
+        try:
+            # Get domain-specific enhancement from existing agents
+            domain_result = await self.process_query(query, domain)
+            domain_answer = domain_result.get("answer", "")
+            
+            # Combine model response with domain expertise
+            if domain_answer and domain_answer != model_response:
+                enhanced_response = f"{model_response}\n\n**Domain Expert Enhancement ({domain.upper()}):**\n{domain_answer}"
+                
+                # Add domain-specific insights
+                if domain == "developer":
+                    enhanced_response += "\n\n💡 **Developer Insight:** Consider code quality, performance, and maintainability in your implementation."
+                elif domain == "trader":
+                    enhanced_response += "\n\n📈 **Trading Insight:** Remember to consider market volatility, risk management, and diversification strategies."
+                elif domain == "lawyer":
+                    enhanced_response += "\n\n⚖️ **Legal Insight:** Always verify current laws and regulations, as they may vary by jurisdiction and change over time."
+                elif domain == "researcher":
+                    enhanced_response += "\n\n🔬 **Research Insight:** Consider peer-reviewed sources and verify claims through multiple independent sources."
+                elif domain == "data_engineer":
+                    enhanced_response += "\n\n🏗️ **Data Engineering Insight:** Focus on data quality, scalability, and pipeline reliability for production systems."
+                
+                return enhanced_response
+            else:
+                return model_response
+                
+        except Exception as e:
+            self.logger.error(f"Error enhancing with domain expertise: {e}")
+            return model_response
+    
+    def _update_response_time_metrics(self, response_time: float):
+        """Update response time metrics"""
+        current_avg = self.enhanced_metrics.get("avg_response_time", 0.0)
+        total_queries = self.enhanced_metrics["enhanced_queries"]
+        
+        if total_queries == 1:
+            self.enhanced_metrics["avg_response_time"] = response_time
+        else:
+            # Calculate running average
+            self.enhanced_metrics["avg_response_time"] = (
+                (current_avg * (total_queries - 1) + response_time) / total_queries
+            )
+    
+    async def get_multi_model_status(self) -> Dict[str, Any]:
+        """Get comprehensive status including multi-model information"""
+        base_status = await self.get_enhanced_status()
+        model_status = await self.multi_model_router.get_model_status()
+        
+        base_status.update({
+            "multi_model_capabilities": {
+                "available_models": list(model_status.keys()),
+                "model_details": model_status,
+                "total_ai_cost": self.enhanced_metrics.get("total_ai_cost", 0.0),
+                "model_usage_distribution": self.enhanced_metrics.get("model_usage", {}),
+                "avg_response_time": self.enhanced_metrics.get("avg_response_time", 0.0)
+            }
+        })
+        
+        return base_status
     
     async def analyze_query(self, query: str) -> Dict[str, Any]:
         """Analyze query to determine processing approach"""

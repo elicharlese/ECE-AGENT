@@ -145,6 +145,18 @@
                     </div>
                 </div>
                 
+                <!-- Multi-Model Toggle -->
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-white/80 text-sm">
+                        <i class="fas fa-brain mr-2"></i>Multi-Model AI Router
+                    </span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="multiModelToggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                        <span class="ml-3 text-sm font-medium text-white/60" id="multiModelStatus">Basic Mode</span>
+                    </label>
+                </div>
+                
                 <!-- Domain Tags -->
                 <div class="flex flex-wrap gap-2">
                     <button class="domain-tag active px-4 py-2 rounded-full text-sm font-medium transition-all" data-domain="general">
@@ -245,6 +257,27 @@
     <script>
         let currentDomain = 'general';
         let queryCount = 0;
+        let multiModelEnabled = false;
+
+        // Multi-model toggle
+        const multiModelToggle = document.getElementById('multiModelToggle');
+        const multiModelStatus = document.getElementById('multiModelStatus');
+        
+        multiModelToggle.addEventListener('change', function() {
+            multiModelEnabled = this.checked;
+            multiModelStatus.textContent = multiModelEnabled ? 'Multi-Model AI' : 'Basic Mode';
+            
+            // Show notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg z-50 transition-all';
+            notification.innerHTML = `<i class="fas fa-brain mr-2"></i>${multiModelEnabled ? 'Multi-Model AI Enabled' : 'Basic Mode Enabled'}`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        });
 
         // Domain selection
         document.querySelectorAll('.domain-tag').forEach(tag => {
@@ -288,8 +321,11 @@
             // Show typing indicator
             showTypingIndicator();
 
+            // Choose endpoint based on multi-model toggle
+            const endpoint = multiModelEnabled ? '/multi-model-query' : '/query';
+            
             // Send to API
-            fetch('/query', {
+            fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: message, domain: currentDomain })
@@ -340,8 +376,25 @@
                                 <span class="font-semibold ${isError ? 'text-red-600' : 'text-green-600'}">${currentDomain.toUpperCase()} Agent</span>
                                 <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
                                 ${metadata ? `<span class="text-xs text-blue-500">Confidence: ${(metadata.confidence * 100).toFixed(1)}%</span>` : ''}
+                                ${metadata && metadata.multi_model ? `<span class="text-xs text-purple-500 bg-purple-100 px-2 py-1 rounded-full">Multi-Model: ${metadata.model_used}</span>` : ''}
                             </div>
                             <p class="${isError ? 'text-red-700' : 'text-gray-700'}">${content}</p>
+                            ${metadata && metadata.multi_model ? `
+                                <div class="mt-2 text-xs text-gray-500 space-y-1">
+                                    <div class="flex justify-between">
+                                        <span>Model Response Time:</span>
+                                        <span>${metadata.model_response_time?.toFixed(2)}s</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Tokens Used:</span>
+                                        <span>${metadata.tokens_used}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Cost:</span>
+                                        <span>$${metadata.cost?.toFixed(6)}</span>
+                                    </div>
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 `;

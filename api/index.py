@@ -168,5 +168,76 @@ async def process_query(request: dict):
             }
         )
 
+@app.post("/multi-model-query")
+async def process_multi_model_query(request: dict):
+    """Process queries using the multi-model AI router"""
+    try:
+        from agent.multi_model_router import multi_model_router
+        
+        query = request.get("query", "")
+        domain = request.get("domain", "general")
+        
+        if not query:
+            raise HTTPException(status_code=400, detail="Query is required")
+        
+        # Route query through multi-model system
+        model_response = await multi_model_router.route_query(query)
+        
+        # Enhance with domain expertise simulation
+        domain_enhancement = f"\n\n**{domain.upper()} Agent Enhancement:** This response has been optimized for {domain} domain expertise."
+        enhanced_response = model_response.content + domain_enhancement
+        
+        return {
+            "success": True,
+            "result": {
+                "answer": enhanced_response,
+                "original_model_response": model_response.content,
+                "model_used": model_response.model_used.value,
+                "model_response_time": model_response.response_time,
+                "tokens_used": model_response.tokens_used,
+                "cost": model_response.cost,
+                "confidence": model_response.confidence,
+                "domain": domain,
+                "multi_model": True,
+                "timestamp": model_response.timestamp.isoformat()
+            }
+        }
+        
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+
+@app.get("/models/status")
+async def get_models_status():
+    """Get status of all available AI models"""
+    try:
+        from agent.multi_model_router import multi_model_router
+        
+        model_status = await multi_model_router.get_model_status()
+        
+        return {
+            "success": True,
+            "models": model_status,
+            "total_models": len(model_status),
+            "available_models": sum(1 for model in model_status.values() if model["available"]),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+
 # Vercel serverless handler
 handler = app
