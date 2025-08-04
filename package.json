@@ -1,10 +1,12 @@
 {
   "name": "agent-system",
   "version": "2.0.0",
-  "description": "Enhanced AGENT System - Multi-Domain AI Platform",
+  "description": "Enhanced AGENT System - Unified iMessage Interface",
   "main": "api/index.py",
   "scripts": {
-    "start": "uvicorn api/index:app --host 0.0.0.0 --port 8000"
+    "start": "uvicorn api.index:app --host 0.0.0.0 --port 8000 --reload",
+    "dev": "uvicorn api.index:app --host 0.0.0.0 --port 8000 --reload",
+    "prod": "uvicorn api.index:app --host 0.0.0.0 --port 8000"
   },
   "dependencies": {},
   "devDependencies": {},

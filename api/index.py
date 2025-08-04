@@ -49,6 +49,16 @@ try:
     
     log.info("CORS middleware added successfully")
 
+    # Add video training capabilities (optional)
+    try:
+        from agent.video_api import add_video_routes
+        add_video_routes(app)
+        log.info("Video training routes added successfully")
+    except ImportError:
+        log.info("Video training not available - dependencies not installed")
+    except Exception as e:
+        log.warning(f"Could not add video training routes: {e}")
+
     @app.get("/", response_class=HTMLResponse)
     async def root():
         """Root endpoint - serve iMessage-style interface"""

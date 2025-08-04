@@ -1,38 +1,5 @@
 {
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.9"
-    }
-  },
   "rewrites": [
-    {
-      "source": "/static/(.*)",
-      "destination": "/static/$1"
-    },
-    {
-      "source": "/docs",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/status",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/query",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/multi-model-query",
-      "destination": "/api/index.py"
-    },
-    {
-      "source": "/models/status",
-      "destination": "/api/index.py"
-    },
     {
       "source": "/(.*)",
       "destination": "/api/index.py"
