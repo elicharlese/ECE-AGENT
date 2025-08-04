@@ -172,36 +172,71 @@ async def process_query(request: dict):
 async def process_multi_model_query(request: dict):
     """Process queries using the multi-model AI router"""
     try:
-        from agent.multi_model_router import multi_model_router
-        
-        query = request.get("query", "")
-        domain = request.get("domain", "general")
-        
-        if not query:
-            raise HTTPException(status_code=400, detail="Query is required")
-        
-        # Route query through multi-model system
-        model_response = await multi_model_router.route_query(query)
-        
-        # Enhance with domain expertise simulation
-        domain_enhancement = f"\n\n**{domain.upper()} Agent Enhancement:** This response has been optimized for {domain} domain expertise."
-        enhanced_response = model_response.content + domain_enhancement
-        
-        return {
-            "success": True,
-            "result": {
-                "answer": enhanced_response,
-                "original_model_response": model_response.content,
-                "model_used": model_response.model_used.value,
-                "model_response_time": model_response.response_time,
-                "tokens_used": model_response.tokens_used,
-                "cost": model_response.cost,
-                "confidence": model_response.confidence,
-                "domain": domain,
-                "multi_model": True,
-                "timestamp": model_response.timestamp.isoformat()
+        # Import safely with fallback
+        try:
+            from agent.multi_model_router import multi_model_router, ModelType, QueryType, Priority
+            
+            query = request.get("query", "")
+            domain = request.get("domain", "general")
+            
+            if not query:
+                raise HTTPException(status_code=400, detail="Query is required")
+            
+            # Map domain to query type
+            domain_query_map = {
+                "developer": QueryType.CODE_GENERATION,
+                "data_engineer": QueryType.DATA_ANALYSIS,
+                "trader": QueryType.DATA_ANALYSIS,
+                "researcher": QueryType.RESEARCH,
+                "lawyer": QueryType.LEGAL_ANALYSIS,
+                "general": QueryType.GENERAL_QA
             }
-        }
+            
+            query_type = domain_query_map.get(domain, QueryType.GENERAL_QA)
+            
+            # Create query request
+            from agent.multi_model_router import QueryRequest
+            model_request = QueryRequest(
+                content=query,
+                query_type=query_type,
+                priority=Priority.MEDIUM
+            )
+            
+            # Route query through multi-model system
+            model_response = await multi_model_router.route_query(model_request)
+            
+            # Enhance with domain expertise simulation
+            domain_enhancement = f"\n\n**{domain.upper()} Agent Enhancement:** This response has been optimized for {domain} domain expertise."
+            enhanced_response = model_response.content + domain_enhancement
+            
+            return {
+                "success": True,
+                "result": {
+                    "answer": enhanced_response,
+                    "original_model_response": model_response.content,
+                    "model_used": model_response.model_used.value,
+                    "latency": model_response.latency,
+                    "tokens_used": model_response.tokens_used,
+                    "cost": model_response.cost,
+                    "confidence": model_response.confidence,
+                    "domain": domain,
+                    "multi_model": True,
+                    "timestamp": model_response.timestamp.isoformat()
+                }
+            }
+            
+        except ImportError:
+            # Fallback if multi-model router is not available
+            return {
+                "success": True,
+                "result": {
+                    "answer": f"Enhanced AGENT response for {domain} domain: {query}. Multi-model router not available in serverless environment, using fallback response.",
+                    "model_used": "fallback",
+                    "domain": domain,
+                    "multi_model": False,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                }
+            }
         
     except Exception as e:
         return JSONResponse(
@@ -217,17 +252,41 @@ async def process_multi_model_query(request: dict):
 async def get_models_status():
     """Get status of all available AI models"""
     try:
-        from agent.multi_model_router import multi_model_router
-        
-        model_status = await multi_model_router.get_model_status()
-        
-        return {
-            "success": True,
-            "models": model_status,
-            "total_models": len(model_status),
-            "available_models": sum(1 for model in model_status.values() if model["available"]),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        # Import safely with fallback
+        try:
+            from agent.multi_model_router import multi_model_router
+            
+            stats = multi_model_router.get_model_stats()
+            
+            return {
+                "success": True,
+                "models": stats["models"],
+                "total_models": len(stats["models"]),
+                "total_requests": stats["total_requests"],
+                "total_cost": stats["total_cost"],
+                "cache_size": stats["cache_size"],
+                "active_requests": stats["active_requests"],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+        except ImportError:
+            # Fallback if multi-model router is not available
+            return {
+                "success": True,
+                "models": {
+                    "fallback": {
+                        "enabled": True,
+                        "available": True,
+                        "total_requests": 0,
+                        "success_rate": 1.0,
+                        "avg_latency": 0.1,
+                        "specializations": ["general"]
+                    }
+                },
+                "total_models": 1,
+                "fallback_mode": True,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
         
     except Exception as e:
         return JSONResponse(

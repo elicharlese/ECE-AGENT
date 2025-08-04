@@ -11,12 +11,14 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
+from fastapi import WebSocket, WebSocketDisconnect
 
 # Add agent module to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Core imports
 from agent.knowledge_base_v2 import KnowledgeBase, KnowledgeEntry, CrawlerBackdoor
+
 
 # Web framework imports
 try:
@@ -25,24 +27,71 @@ try:
     from fastapi.staticfiles import StaticFiles
     from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
     from pydantic import BaseModel
-    import uvicorn
-    # GraphQL imports
-    import graphene
-    from graphene import ObjectType, String, Int, List, DateTime, Float, Field, Mutation, Schema
-    print("✅ All required modules imported successfully")
 except ImportError as e:
     print(f"❌ Import error: {e}")
     print("Please install required dependencies: pip install fastapi uvicorn graphene")
     sys.exit(1)
 
-# Initialize logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
-# Pydantic models for API
+# Initialize FastAPI app
+app = FastAPI(
+    title="Enhanced AGENT System - Knowledge Base",
+    description="Knowledge Base with GraphQL Integration - Batch 2 Patch 4",
+    version="2.0.4"
+)
+
+# --- Batch 3: WebSocket Real-Time Streaming Endpoint ---
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
+
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
+
+manager = ConnectionManager()
+
+@app.websocket("/ws/ai-stream")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    WebSocket endpoint for real-time AI streaming responses.
+    Accepts a JSON message: {"query": "...", "domain": "..."}
+    Streams back partial responses as text.
+    """
+    await manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            try:
+                payload = json.loads(data)
+                query = payload.get("query", "")
+                domain = payload.get("domain", "general")
+            except Exception:
+                await manager.send_personal_message("Invalid input format. Send JSON with 'query' and 'domain' fields.", websocket)
+                continue
+
+            # Simulate streaming AI response (replace with real model integration)
+            await manager.send_personal_message(f"[AI] Processing query: {query[:50]}...", websocket)
+            for i in range(1, 6):
+                await asyncio.sleep(0.5)
+                await manager.send_personal_message(f"[AI] Partial response {i}/5 for: {query[:30]}...", websocket)
+            await manager.send_personal_message(f"[AI] Complete response for: {query[:30]}...", websocket)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        logging.getLogger(__name__).info("WebSocket client disconnected.")
+
+
 class QueryRequest(BaseModel):
     query: str
     domain: str = "general"
