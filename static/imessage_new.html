@@ -22,17 +22,21 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         
-        /* Header */
+        /* Header - Minimal */
         .header {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            padding: 16px 24px;
+            padding: 12px 24px;
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 100;
+            border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
         }
         
         .logo {
@@ -55,164 +59,150 @@
         }
         
         /* Chat Area */
+        /* Chat Container - iMessage Style - Fixed at Bottom */
         .chat-container {
-            flex: 1;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 74.5px;
+            max-height: 300px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            overflow: hidden;
-        }
-        
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .welcome {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.9);
-            padding: 40px 20px;
-        }
-        
-        .welcome h1 {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        
-        .welcome p {
-            font-size: 18px;
-            opacity: 0.8;
-            margin-bottom: 24px;
-        }
-        
-        .notice {
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px;
-            text-align: center;
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        /* iMessage-Style Input Container */
-        .input-container {
-            background: rgba(255, 255, 255, 0.95);
+            background: #FFFFFF;
+            border-radius: 32px;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
         }
         
-        /* App Bar - Horizontal Scrolling - VERY VISIBLE */
-        .app-bar {
+        .messages-container {
+            flex: 1;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }        /* iMessage-Style Input Container */
+        .input-container {
+            background: rgba(247, 247, 247, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 8px 16px 12px 16px;
+            box-shadow: none;
+            border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* App Drawer - Smooth Slide Animation */
+        .app-drawer {
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px 12px 0 0;
+            backdrop-filter: blur(10px);
+            transform: translateY(100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.1);
+            z-index: 5;
+        }
+
+        .app-drawer.open {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .app-icons {
             display: flex;
             gap: 12px;
             overflow-x: auto;
-            padding: 16px;
-            margin-bottom: 16px;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-            border-radius: 16px;
-            border: 2px solid #007AFF;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            padding: 20px 16px;
+            animation: breathe 2s ease-in-out infinite;
         }
-        
-        .app-bar::-webkit-scrollbar {
-            display: none;
+
+        @keyframes breathe {
+            0%, 100% { 
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.02);
+            }
         }
-        
-        .app-bar-title {
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: #007AFF;
-            margin-bottom: 12px;
-            padding: 8px;
-            background: rgba(0, 122, 255, 0.1);
-            border-radius: 8px;
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: rotate(45deg) scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4);
+            }
+            50% { 
+                transform: rotate(45deg) scale(1.1);
+                box-shadow: 0 0 0 8px rgba(255, 59, 48, 0);
+            }
         }
-        
-        .app-item {
-            flex-shrink: 0;
-            width: 80px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
+
+        .app-icons::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .app-icons::-webkit-scrollbar-track {
             background: transparent;
-            border: none;
-            padding: 12px;
-            border-radius: 12px;
-            border: 2px solid transparent;
         }
-        
-        .app-item:hover {
-            background: rgba(0, 122, 255, 0.1);
-            transform: scale(1.05);
-            border-color: rgba(0, 122, 255, 0.3);
+
+        .app-icons::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 1.5px;
         }
-        
-        .app-item.active {
-            background: rgba(0, 122, 255, 0.2);
-            border-color: #007AFF;
-            transform: scale(1.1);
-        }
-        
+
         .app-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
             color: white;
-            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .app-icon:hover {
+            transform: scale(1.1);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
         }
-        
-        .app-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: #374151;
-            text-align: center;
-            line-height: 1.2;
+
+        .app-icon.active {
+            box-shadow: 0 0 0 2px #007AFF;
         }
-        
-        /* App Icons - Enhanced Colors */
-        .general { background: linear-gradient(135deg, #007AFF, #5856D6); }
-        .developer { background: linear-gradient(135deg, #10b981, #059669); }
-        .trader { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .lawyer { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-        .researcher { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-        .data-engineer { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .drawing { background: linear-gradient(135deg, #ec4899, #be185d); }
-        .terminal { background: linear-gradient(135deg, #1f2937, #374151); }
-        .vm { background: linear-gradient(135deg, #06b6d4, #0891b2); }
-        .multi-model { background: linear-gradient(135deg, #84cc16, #65a30d); }
-        
-        /* Input Row */
+
+        .app-icon.general { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .app-icon.developer { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .app-icon.trader { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .app-icon.lawyer { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .app-icon.researcher { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .app-icon.data-engineer { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .app-icon.drawing { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .app-icon.terminal { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+        .app-icon.vm { background: linear-gradient(135deg, #fad0c4 0%, #ffd1ff 100%); }
+        .app-icon.multi-model { background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); }
+        /* Input Row - iMessage Style */
         .input-row {
             display: flex;
-            align-items: center;
+            align-items: flex-end;
             gap: 8px;
             background: white;
             border-radius: 20px;
-            padding: 8px 16px;
-            border: 2px solid #007AFF;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            padding: 6px 12px 6px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: none;
+            margin-top: 8px;
         }
         
         .message-input {
@@ -220,13 +210,22 @@
             border: none;
             outline: none;
             font-size: 16px;
-            padding: 8px 0;
+            padding: 6px 0;
+            resize: none;
+            max-height: 100px;
+            min-height: 20px;
+            line-height: 20px;
+            background: transparent;
+        }
+        
+        .message-input::placeholder {
+            color: #8E8E93;
         }
         
         .send-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 18px;
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
             background: #007AFF;
             border: none;
             color: white;
@@ -234,52 +233,63 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 16px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            flex-shrink: 0;
         }
         
         .send-btn:hover {
             background: #0056CC;
-            transform: scale(1.1);
         }
         
-        /* Message Styles */
+        .send-btn:disabled {
+            background: #C7C7CC;
+            cursor: not-allowed;
+        }
+        
+        /* Message Styles - iMessage Look */
         .message {
-            max-width: 80%;
-            margin-bottom: 16px;
+            max-width: 75%;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
         }
         
         .message.user {
             align-self: flex-end;
+            align-items: flex-end;
         }
         
         .message.agent {
             align-self: flex-start;
+            align-items: flex-start;
         }
         
         .message-content {
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-radius: 18px;
             word-wrap: break-word;
+            font-size: 16px;
+            line-height: 1.4;
         }
         
         .message.user .message-content {
-            background: linear-gradient(135deg, #007AFF, #5856D6);
+            background: #007AFF;
             color: white;
             border-bottom-right-radius: 4px;
         }
         
         .message.agent .message-content {
-            background: white;
-            color: #374151;
+            background: #E5E5EA;
+            color: #000000;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
         .message-meta {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-top: 4px;
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 2px;
+            padding: 0 8px;
         }
         
         /* Pulse animation for emphasis */
@@ -291,6 +301,162 @@
         
         .app-bar {
             animation: pulse 2s infinite;
+        }
+        
+        /* App Toasts - Horizontal, Thin & Small */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(15px);
+            color: white;
+            padding: 5px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 6px;
+            transform: translateY(-80px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-width: 180px;
+            max-width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.25);
+            height: 28px;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast.hide {
+            transform: translateY(-80px);
+            opacity: 0;
+        }
+        
+        .toast-icon {
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: white;
+            flex-shrink: 0;
+        }
+        
+        .toast-text {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1;
+        }
+        
+        /* Toast colors for different modes */
+        .toast.general .toast-icon { background: linear-gradient(135deg, #007AFF, #5856D6); }
+        .toast.developer .toast-icon { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.trader .toast-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .toast.lawyer .toast-icon { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .toast.researcher .toast-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .toast.data-engineer .toast-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.drawing .toast-icon { background: linear-gradient(135deg, #ec4899, #be185d); }
+        .toast.terminal .toast-icon { background: linear-gradient(135deg, #1f2937, #374151); }
+        .toast.vm .toast-icon { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .toast.multi-model .toast-icon { background: linear-gradient(135deg, #84cc16, #65a30d); }
+        
+        /* App Drawer Toggle */
+        .app-drawer-toggle {
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            background: #007AFF;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-right: 8px;
+        }
+        
+        .app-drawer-toggle:hover {
+            background: #0056CC;
+            transform: scale(1.1);
+        }
+        
+        .app-drawer-toggle.active {
+            background: #FF3B30;
+            transform: rotate(45deg);
+        }
+        
+        /* App Drawer */
+        .app-drawer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .app-drawer.open {
+            max-height: 120px;
+        }
+        
+        /* Loading Indicator - iMessage Typing Dots */
+        .loading {
+            display: none;
+            align-self: flex-start;
+            max-width: 75px;
+            margin-bottom: 12px;
+            margin-left: 16px;
+        }
+        
+        .loading-content {
+            background: #E5E5EA;
+            padding: 12px 18px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #8E8E93;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.3; }
+            30% { transform: scale(1.2); opacity: 1; }
         }
     </style>
 </head>
@@ -308,108 +474,75 @@
         </a>
     </div>
 
-    <!-- Notice -->
-    <div class="notice">
-        🎉 SUCCESS! This is the NEW iMessage-style interface! 🎉<br>
-        <strong>Look below - horizontal app bar is now visible!</strong>
-    </div>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <!-- Chat Container -->
     <div class="chat-container">
-        <div class="messages" id="messages">
-            <div class="welcome">
-                <h1>Welcome to AGENT</h1>
-                <p>Your intelligent AI assistant with specialized capabilities.</p>
-                <div style="font-size: 14px; opacity: 0.7; background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 20px; display: inline-block; margin-top: 20px;">
-                    <i class="fas fa-rocket"></i> NEW: Horizontal app bar below! Scroll through the apps!
+        <!-- Loading indicator for typing -->
+        <div class="loading" id="loadingIndicator">
+            <div class="loading-content">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
             </div>
         </div>
 
         <!-- iMessage-style Input Container -->
         <div class="input-container">
-            <div class="app-bar-title">
-                📱 iMessage-Style App Bar - Scroll Horizontally ➡️
-            </div>
-            
-            <!-- Horizontal App Bar - Enhanced Visibility -->
-            <div class="app-bar" id="appBar">
-                <!-- Domain Agents -->
-                <button class="app-item active" data-app="general">
-                    <div class="app-icon general">
+            <!-- App Drawer (Initially Hidden) -->
+            <div class="app-drawer" id="appDrawer">
+                <div class="app-icons" id="appIcons">
+                    <!-- Domain Agents -->
+                    <button class="app-icon general active" data-app="general" title="General AI">
                         <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="app-name">General</div>
-                </button>
-                <button class="app-item" data-app="developer">
-                    <div class="app-icon developer">
+                    </button>
+                    <button class="app-icon developer" data-app="developer" title="Developer Mode">
                         <i class="fas fa-code"></i>
-                    </div>
-                    <div class="app-name">Developer</div>
-                </button>
-                <button class="app-item" data-app="trader">
-                    <div class="app-icon trader">
+                    </button>
+                    <button class="app-icon trader" data-app="trader" title="Trading Assistant">
                         <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="app-name">Trader</div>
-                </button>
-                <button class="app-item" data-app="lawyer">
-                    <div class="app-icon lawyer">
+                    </button>
+                    <button class="app-icon lawyer" data-app="lawyer" title="Legal Advisor">
                         <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <div class="app-name">Lawyer</div>
-                </button>
-                <button class="app-item" data-app="researcher">
-                    <div class="app-icon researcher">
+                    </button>
+                    <button class="app-icon researcher" data-app="researcher" title="Research Mode">
                         <i class="fas fa-microscope"></i>
-                    </div>
-                    <div class="app-name">Researcher</div>
-                </button>
-                <button class="app-item" data-app="data-engineer">
-                    <div class="app-icon data-engineer">
+                    </button>
+                    <button class="app-icon data-engineer" data-app="data-engineer" title="Data Engineering">
                         <i class="fas fa-database"></i>
-                    </div>
-                    <div class="app-name">Data Eng</div>
-                </button>
-                
-                <!-- New Interactive Tools -->
-                <button class="app-item" data-app="drawing">
-                    <div class="app-icon drawing">
+                    </button>
+                    <button class="app-icon drawing" data-app="drawing" title="Creative Assistant">
                         <i class="fas fa-paint-brush"></i>
-                    </div>
-                    <div class="app-name">Drawing</div>
-                </button>
-                <button class="app-item" data-app="terminal">
-                    <div class="app-icon terminal">
+                    </button>
+                    <button class="app-icon terminal" data-app="terminal" title="Terminal Helper">
                         <i class="fas fa-terminal"></i>
-                    </div>
-                    <div class="app-name">Terminal</div>
-                </button>
-                <button class="app-item" data-app="vm">
-                    <div class="app-icon vm">
+                    </button>
+                    <button class="app-icon vm" data-app="vm" title="VM/Docker Manager">
                         <i class="fas fa-server"></i>
-                    </div>
-                    <div class="app-name">VM/Docker</div>
-                </button>
-                <button class="app-item" data-app="multi-model">
-                    <div class="app-icon multi-model">
+                    </button>
+                    <button class="app-icon multi-model" data-app="multi-model" title="Multi-AI Mode">
                         <i class="fas fa-brain"></i>
-                    </div>
-                    <div class="app-name">Multi-AI</div>
-                </button>
+                    </button>
+                </div>
             </div>
 
-            <!-- Input Row -->
+            <!-- Input Row with App Toggle -->
             <div class="input-row">
+                <button class="app-drawer-toggle" id="appToggle">
+                    <i class="fas fa-plus"></i>
+                </button>
                 <input 
                     type="text" 
                     class="message-input" 
                     id="messageInput"
-                    placeholder="Ask me anything..."
+                    placeholder="Message..."
                     onkeypress="handleKeyPress(event)"
                 >
                 <button class="send-btn" onclick="sendMessage()">
-                    <i class="fas fa-paper-plane"></i>
+                    <i class="fas fa-arrow-up"></i>
                 </button>
             </div>
         </div>
@@ -418,22 +551,118 @@
     <script>
         let currentApp = 'general';
         
-        // App selection
-        document.querySelectorAll('.app-item').forEach(item => {
+        // App drawer toggle functionality with smooth slide animation
+        const appToggle = document.getElementById('appToggle');
+        const appDrawer = document.getElementById('appDrawer');
+        let isDrawerOpen = false;
+
+        appToggle.addEventListener('click', () => {
+            isDrawerOpen = !isDrawerOpen;
+            
+            if (isDrawerOpen) {
+                appDrawer.classList.add('open');
+                appToggle.style.transform = 'rotate(45deg)';
+                appToggle.style.backgroundColor = '#FF3B30';
+                
+                // Add breathing animation to toggle button
+                appToggle.style.animation = 'pulse 1.5s ease-in-out infinite';
+            } else {
+                appDrawer.classList.remove('open');
+                appToggle.style.transform = 'rotate(0deg)';
+                appToggle.style.backgroundColor = '#007AFF';
+                appToggle.style.animation = 'none';
+            }
+        });
+
+        // App selection - Updated for new structure with smooth animations
+        document.querySelectorAll('.app-icon').forEach(item => {
             item.addEventListener('click', () => {
                 // Remove active from all
-                document.querySelectorAll('.app-item').forEach(app => app.classList.remove('active'));
+                document.querySelectorAll('.app-icon').forEach(app => app.classList.remove('active'));
                 // Add active to clicked
                 item.classList.add('active');
                 
                 currentApp = item.dataset.app;
                 updatePlaceholder();
                 
-                // Visual feedback
-                item.style.transform = 'scale(1.2)';
-                setTimeout(() => item.style.transform = '', 300);
+                // Show toast notification
+                showAppToast(currentApp);
+                
+                // Visual feedback with bounce
+                item.style.transform = 'scale(1.3)';
+                item.style.transition = 'transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                    item.style.transition = '';
+                }, 300);
+                
+                // Close drawer after selection with smooth animation
+                setTimeout(() => {
+                    if (isDrawerOpen) {
+                        appDrawer.classList.remove('open');
+                        appToggle.style.transform = 'rotate(0deg)';
+                        appToggle.style.backgroundColor = '#007AFF';
+                        appToggle.style.animation = 'none';
+                        isDrawerOpen = false;
+                    }
+                }, 700);
             });
         });
+        
+        // Toast notification system
+        function showAppToast(appMode) {
+            const modeNames = {
+                'general': 'General AI',
+                'developer': 'Developer Mode',
+                'trader': 'Trading Assistant',
+                'lawyer': 'Legal Advisor',
+                'researcher': 'Research Mode',
+                'data-engineer': 'Data Engineering',
+                'drawing': 'Creative Assistant',
+                'terminal': 'Terminal Helper',
+                'vm': 'VM/Docker Manager',
+                'multi-model': 'Multi-AI Mode'
+            };
+            
+            const modeIcons = {
+                'general': 'fas fa-robot',
+                'developer': 'fas fa-code',
+                'trader': 'fas fa-chart-line',
+                'lawyer': 'fas fa-balance-scale',
+                'researcher': 'fas fa-microscope',
+                'data-engineer': 'fas fa-database',
+                'drawing': 'fas fa-paint-brush',
+                'terminal': 'fas fa-terminal',
+                'vm': 'fas fa-server',
+                'multi-model': 'fas fa-brain'
+            };
+            
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${appMode}`;
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="${modeIcons[appMode]}"></i>
+                </div>
+                <div class="toast-text">Switched to ${modeNames[appMode]}</div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => toast.classList.add('show'), 50);
+            
+            // Auto remove after 2 seconds
+            setTimeout(() => {
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    if (toastContainer.contains(toast)) {
+                        toastContainer.removeChild(toast);
+                    }
+                }, 300);
+            }, 2000);
+        }
         
         function updatePlaceholder() {
             const input = document.getElementById('messageInput');
@@ -472,6 +701,9 @@
             addMessage(message, 'user');
             input.value = '';
             
+            // Show typing indicator
+            showTypingIndicator();
+            
             try {
                 const response = await fetch('/query', {
                     method: 'POST',
@@ -485,18 +717,86 @@
                 
                 const data = await response.json();
                 
+                // Hide typing indicator
+                hideTypingIndicator();
+                
                 if (data.success) {
                     addMessage(`🤖 **${currentApp.toUpperCase()} Response:**\n\n${data.result.answer}`, 'agent');
                 } else {
                     addMessage('Sorry, I encountered an error: ' + data.error, 'agent');
                 }
             } catch (error) {
+                hideTypingIndicator();
                 addMessage('Network error: ' + error.message, 'agent');
             }
         }
         
+        function showTypingIndicator() {
+            const loading = document.getElementById('loadingIndicator');
+            const chatContainer = document.querySelector('.chat-container');
+            let messagesContainer = document.getElementById('messagesContainer');
+            
+            // Create messages container if it doesn't exist
+            if (!messagesContainer) {
+                messagesContainer = document.createElement('div');
+                messagesContainer.id = 'messagesContainer';
+                messagesContainer.className = 'messages-container';
+                messagesContainer.style.cssText = `
+                    padding: 10px 14px;
+                    background: #E5E5EA;
+                    border-radius: 18px;
+                    margin: 16px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                `;
+                
+                // Insert before the input container
+                const inputContainer = document.querySelector('.input-container');
+                chatContainer.insertBefore(messagesContainer, inputContainer);
+            }
+            
+            loading.style.display = 'flex';
+            messagesContainer.appendChild(loading);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            const loading = document.getElementById('loadingIndicator');
+            const chatContainer = document.querySelector('.chat-container');
+            loading.style.display = 'none';
+            // Move loading back to chat container
+            chatContainer.appendChild(loading);
+        }
+        
         function addMessage(content, type) {
-            const messages = document.getElementById('messages');
+            const chatContainer = document.querySelector('.chat-container');
+            let messagesContainer = document.getElementById('messagesContainer');
+            
+            // Create messages container if it doesn't exist
+            if (!messagesContainer) {
+                messagesContainer = document.createElement('div');
+                messagesContainer.id = 'messagesContainer';
+                messagesContainer.className = 'messages-container';
+                messagesContainer.style.cssText = `
+                    padding: 10px 14px;
+                    background: #E5E5EA;
+                    border-radius: 18px;
+                    margin: 16px;
+                    max-height: 200px;
+                    overflow-y: auto;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                `;
+                
+                // Insert before the input container
+                const inputContainer = document.querySelector('.input-container');
+                chatContainer.insertBefore(messagesContainer, inputContainer);
+            }
+            
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
             
@@ -511,12 +811,8 @@
                 </div>
             `;
             
-            // Hide welcome message on first message
-            const welcome = document.querySelector('.welcome');
-            if (welcome) welcome.style.display = 'none';
-            
-            messages.appendChild(messageDiv);
-            messages.scrollTop = messages.scrollHeight;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
         
         function formatMessage(text) {
