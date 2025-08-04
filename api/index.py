@@ -1,302 +1,249 @@
 #!/usr/bin/env python3
 """
 Vercel Serverless Function Entry Point for Enhanced AGENT System
-Simplified version for reliable deployment
+Using iMessage-style interface with chat bar and different modes
 """
 
-import os
 import sys
-from pathlib import Path
+import traceback
 
-# Add the project root to Python path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+try:
+    from fastapi import FastAPI, HTTPException
+    from fastapi.responses import HTMLResponse, JSONResponse
+    from fastapi.middleware.cors import CORSMiddleware
+    from datetime import datetime, timezone
+    import logging
 
-# Set environment variables for serverless
-os.environ.setdefault('AGENT_ENV', 'production')
+    # Configure logging
+    logging.basicConfig(level=logging.INFO)
+    log = logging.getLogger(__name__)
+    
+    log.info("Starting imports and app initialization...")
 
-from fastapi import FastAPI, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timezone
-import asyncio
+    # Create the main app
+    app = FastAPI(
+        title="Enhanced AGENT System",
+        description="Production deployment of the Enhanced AGENT System with iMessage interface",
+        version="2.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc"
+    )
+    
+    log.info("FastAPI app created successfully")
 
-# Create the main app
-app = FastAPI(
-    title="Enhanced AGENT System",
-    description="Production deployment of the Enhanced AGENT System",
-    version="2.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
+except Exception as e:
+    # If we can't even import or create the app, log the error
+    print(f"CRITICAL: Failed to initialize app: {str(e)}", file=sys.stderr)
+    print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+    raise
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+try:
+    # Configure CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    log.info("CORS middleware added successfully")
 
-# Mount static files
-static_path = project_root / "static"
-if static_path.exists():
-    app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
-
-@app.get("/", response_class=HTMLResponse)
-async def root():
-    """Root endpoint - serve main interface"""
-    try:
-        with open(project_root / "static" / "index.html", "r") as f:
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return HTMLResponse(f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Enhanced AGENT System</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }}
-                .container {{ max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; backdrop-filter: blur(10px); }}
-                h1 {{ text-align: center; font-size: 3rem; margin-bottom: 20px; }}
-                .status {{ padding: 20px; background: rgba(34, 197, 94, 0.2); border-radius: 10px; margin: 20px 0; }}
-                .links {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }}
-                .links a {{ display: block; padding: 15px; background: rgba(59, 130, 246, 0.2); color: white; text-decoration: none; border-radius: 10px; text-align: center; transition: all 0.3s; }}
-                .links a:hover {{ background: rgba(59, 130, 246, 0.4); transform: translateY(-2px); }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>🚀 Enhanced AGENT System</h1>
-                <div class="status">
-                    <h3>✅ System Status: Operational</h3>
-                    <p><strong>Version:</strong> 2.0.0</p>
-                    <p><strong>Platform:</strong> Vercel Serverless</p>
-                    <p><strong>Timestamp:</strong> {datetime.now(timezone.utc).isoformat()}</p>
-                </div>
-                <div class="links">
-                    <a href="/docs">📚 API Documentation</a>
-                    <a href="/health">💚 Health Check</a>
-                    <a href="/status">📊 System Status</a>
-                </div>
-                <h3>🎯 Available Features:</h3>
-                <ul>
-                    <li>Multi-Domain AI Agents</li>
-                    <li>Knowledge Base System</li>
-                    <li>Real-time Processing</li>
-                    <li>GraphQL API</li>
-                    <li>Comprehensive Documentation</li>
-                </ul>
-            </div>
-        </body>
-        </html>
-        """)
-
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "2.0.0",
-        "environment": "production",
-        "platform": "vercel",
-        "components": {
-            "api": True,
-            "static_files": static_path.exists(),
-            "documentation": True
-        }
-    }
-
-@app.get("/status")
-async def system_status():
-    """Get system status"""
-    return {
-        "system_name": "Enhanced AGENT System",
-        "version": "2.0.0",
-        "status": "operational",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "environment": "production",
-        "platform": "vercel",
-        "features": {
-            "domain_agents": ["developer", "trader", "lawyer", "researcher", "data_engineer"],
-            "knowledge_base": True,
-            "graphql_api": True,
-            "static_ui": True,
-            "health_monitoring": True
-        },
-        "deployment": {
-            "ready": True,
-            "all_batches_complete": True,
-            "patches_implemented": 7
-        }
-    }
-
-@app.post("/query")
-async def process_query(request: dict):
-    """Process simple queries - basic implementation for demo"""
-    try:
-        query = request.get("query", "")
-        domain = request.get("domain", "general")
-        
-        if not query:
-            raise HTTPException(status_code=400, detail="Query is required")
-        
-        # Simple response for demo purposes
-        response = f"Hello! I'm the {domain.upper()} agent. You asked: '{query}'. This is a simplified response for the production demo. The full Enhanced AGENT System with all domain specialists, knowledge base, and advanced features is deployed and operational."
-        
-        return {
-            "success": True,
-            "result": {
-                "answer": response,
-                "domain": domain,
-                "confidence": 0.95,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "cached": False
-            }
-        }
-        
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-        )
-
-@app.post("/multi-model-query")
-async def process_multi_model_query(request: dict):
-    """Process queries using the multi-model AI router"""
-    try:
-        # Import safely with fallback
+    @app.get("/", response_class=HTMLResponse)
+    async def root():
+        """Root endpoint - serve iMessage-style interface"""
         try:
-            from agent.multi_model_router import multi_model_router, ModelType, QueryType, Priority
+            # Try multiple paths for the iMessage interface HTML file
+            import os
+            possible_paths = [
+                'static/imessage_new.html',
+                '../static/imessage_new.html',
+                '/workspaces/AGENT/static/imessage_new.html',
+                './static/imessage_new.html'
+            ]
             
+            html_content = None
+            for path in possible_paths:
+                try:
+                    if os.path.exists(path):
+                        with open(path, 'r') as f:
+                            html_content = f.read()
+                        log.info(f"Successfully loaded iMessage interface from: {path}")
+                        break
+                except Exception as e:
+                    log.debug(f"Could not load from {path}: {e}")
+                    continue
+            
+            if html_content:
+                return HTMLResponse(html_content)
+            else:
+                raise FileNotFoundError("iMessage interface file not found in any expected location")
+                
+        except FileNotFoundError:
+            # Fallback to simple interface if static file not found
+            return HTMLResponse("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Enhanced AGENT System</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+                    .container { max-width: 800px; margin: 0 auto; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; backdrop-filter: blur(10px); }
+                    h1 { text-align: center; font-size: 3rem; margin-bottom: 20px; }
+                    .status { padding: 20px; background: rgba(34, 197, 94, 0.2); border-radius: 10px; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🚀 Enhanced AGENT System</h1>
+                    <div class="status">
+                        <h3>✅ System Status: Operational (Fallback Mode)</h3>
+                        <p><strong>Note:</strong> iMessage interface file not found, using fallback.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """)
+        except Exception as e:
+            log.error(f"Error serving root: {str(e)}")
+            return HTMLResponse(f"<h1>Error: {str(e)}</h1>", status_code=500)
+
+    @app.get("/health")
+    async def health_check():
+        """Health check endpoint"""
+        try:
+            return JSONResponse(
+                content={
+                    "status": "healthy",
+                    "service": "Enhanced AGENT System",
+                    "version": "2.0.0",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "environment": "production",
+                    "interface": "iMessage-style"
+                }
+            )
+        except Exception as e:
+            return JSONResponse(
+                content={
+                    "status": "error",
+                    "error": str(e),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                status_code=500
+            )
+
+    @app.post("/query")
+    async def process_query(request: dict):
+        """Process general queries - Enhanced for different modes"""
+        try:
             query = request.get("query", "")
             domain = request.get("domain", "general")
+            app_mode = request.get("app", "general")
             
             if not query:
                 raise HTTPException(status_code=400, detail="Query is required")
-            
-            # Map domain to query type
-            domain_query_map = {
-                "developer": QueryType.CODE_GENERATION,
-                "data_engineer": QueryType.DATA_ANALYSIS,
-                "trader": QueryType.DATA_ANALYSIS,
-                "researcher": QueryType.RESEARCH,
-                "lawyer": QueryType.LEGAL_ANALYSIS,
-                "general": QueryType.GENERAL_QA
+
+            # Enhanced response based on the selected app/mode
+            mode_responses = {
+                "general": f"🤖 **General AI Response:**\n\nI understand you're asking: '{query}'\n\nThis is a simplified response for serverless deployment. In a full deployment, I would process this query using advanced AI models and provide detailed assistance.",
+                "developer": f"💻 **Developer Mode Response:**\n\nQuery: '{query}'\n\nAs your development assistant, I would help with coding, debugging, architecture design, and technical problem-solving. This simplified version shows the structure for developer-focused responses.",
+                "trader": f"📈 **Trader Mode Response:**\n\nMarket Query: '{query}'\n\nIn full deployment, I would provide real-time market analysis, trading strategies, risk assessment, and financial insights. This is a preview of trading-focused responses.",
+                "lawyer": f"⚖️ **Legal Mode Response:**\n\nLegal Query: '{query}'\n\nI would provide legal analysis, document review, compliance guidance, and legal research assistance. This simplified version demonstrates legal-focused response structure.",
+                "researcher": f"🔬 **Research Mode Response:**\n\nResearch Topic: '{query}'\n\nI would conduct comprehensive research, analyze sources, provide citations, and deliver detailed findings. This shows the research-focused response format.",
+                "data-engineer": f"🗄️ **Data Engineering Response:**\n\nData Query: '{query}'\n\nI would help with data pipeline design, ETL processes, database optimization, and data architecture. This demonstrates data engineering assistance structure.",
+                "drawing": f"🎨 **Creative Mode Response:**\n\nCreative Request: '{query}'\n\nI would help with artistic concepts, design ideas, and creative problem-solving. This shows creative assistance capabilities.",
+                "terminal": f"⌨️ **Terminal Mode Response:**\n\nCommand Context: '{query}'\n\nI would provide command-line assistance, script generation, and system administration help. This demonstrates terminal-focused responses.",
+                "vm": f"🖥️ **VM/Docker Mode Response:**\n\nInfrastructure Query: '{query}'\n\nI would assist with containerization, virtual machine management, and deployment strategies. This shows infrastructure assistance format.",
+                "multi-model": f"🧠 **Multi-AI Mode Response:**\n\nAdvanced Query: '{query}'\n\nI would utilize multiple AI models for comprehensive analysis, cross-referencing different AI perspectives. This demonstrates advanced multi-model capabilities."
             }
             
-            query_type = domain_query_map.get(domain, QueryType.GENERAL_QA)
+            response_text = mode_responses.get(app_mode, mode_responses["general"])
             
-            # Create query request
-            from agent.multi_model_router import QueryRequest
-            model_request = QueryRequest(
-                content=query,
-                query_type=query_type,
-                priority=Priority.MEDIUM
-            )
-            
-            # Route query through multi-model system
-            model_response = await multi_model_router.route_query(model_request)
-            
-            # Enhance with domain expertise simulation
-            domain_enhancement = f"\n\n**{domain.upper()} Agent Enhancement:** This response has been optimized for {domain} domain expertise."
-            enhanced_response = model_response.content + domain_enhancement
-            
-            return {
-                "success": True,
-                "result": {
-                    "answer": enhanced_response,
-                    "original_model_response": model_response.content,
-                    "model_used": model_response.model_used.value,
-                    "latency": model_response.latency,
-                    "tokens_used": model_response.tokens_used,
-                    "cost": model_response.cost,
-                    "confidence": model_response.confidence,
+            return JSONResponse(
+                content={
+                    "success": True,
+                    "query": query,
                     "domain": domain,
-                    "multi_model": True,
-                    "timestamp": model_response.timestamp.isoformat()
-                }
-            }
-            
-        except ImportError:
-            # Fallback if multi-model router is not available
-            return {
-                "success": True,
-                "result": {
-                    "answer": f"Enhanced AGENT response for {domain} domain: {query}. Multi-model router not available in serverless environment, using fallback response.",
-                    "model_used": "fallback",
-                    "domain": domain,
-                    "multi_model": False,
+                    "app": app_mode,
+                    "result": {
+                        "answer": response_text
+                    },
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 }
-            }
-        
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "success": False,
-                "error": str(e),
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-        )
-
-@app.get("/models/status")
-async def get_models_status():
-    """Get status of all available AI models"""
-    try:
-        # Import safely with fallback
-        try:
-            from agent.multi_model_router import multi_model_router
+            )
             
-            stats = multi_model_router.get_model_stats()
-            
-            return {
-                "success": True,
-                "models": stats["models"],
-                "total_models": len(stats["models"]),
-                "total_requests": stats["total_requests"],
-                "total_cost": stats["total_cost"],
-                "cache_size": stats["cache_size"],
-                "active_requests": stats["active_requests"],
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-            
-        except ImportError:
-            # Fallback if multi-model router is not available
-            return {
-                "success": True,
-                "models": {
-                    "fallback": {
-                        "enabled": True,
-                        "available": True,
-                        "total_requests": 0,
-                        "success_rate": 1.0,
-                        "avg_latency": 0.1,
-                        "specializations": ["general"]
-                    }
+        except Exception as e:
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "error": f"Query processing error: {str(e)}",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 },
-                "total_models": 1,
-                "fallback_mode": True,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            }
-        
-    except Exception as e:
+                status_code=500
+            )
+
+    @app.get("/api/models/status")
+    async def models_status():
+        """Get status of available AI models - Enhanced for different modes"""
         return JSONResponse(
-            status_code=500,
             content={
-                "success": False,
-                "error": str(e),
+                "status": "operational",
+                "interface": "iMessage-style with horizontal app bar",
+                "available_modes": {
+                    "general": {"status": "active", "description": "General AI assistance"},
+                    "developer": {"status": "active", "description": "Code and development help"},
+                    "trader": {"status": "active", "description": "Trading and financial analysis"},
+                    "lawyer": {"status": "active", "description": "Legal analysis and research"},
+                    "researcher": {"status": "active", "description": "Research and information gathering"},
+                    "data-engineer": {"status": "active", "description": "Data engineering and ETL"},
+                    "drawing": {"status": "active", "description": "Creative and artistic assistance"},
+                    "terminal": {"status": "active", "description": "Command-line and scripting help"},
+                    "vm": {"status": "active", "description": "VM and container management"},
+                    "multi-model": {"status": "active", "description": "Advanced multi-AI processing"}
+                },
+                "total_modes": 10,
+                "active_modes": 10,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
         )
 
-# Vercel serverless handler
-handler = app
+    @app.get("/admin", response_class=HTMLResponse)
+    async def admin_panel():
+        """Admin panel interface"""
+        try:
+            # Read the admin interface HTML file
+            with open('/workspaces/AGENT/static/admin.html', 'r') as f:
+                html_content = f.read()
+            
+            return HTMLResponse(html_content)
+        except FileNotFoundError:
+            return HTMLResponse("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Admin Panel</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🛠️ Admin Panel</h1>
+                    <p><strong>Status:</strong> Admin interface file not found</p>
+                    <a href="/">← Back to Main Interface</a>
+                </div>
+            </body>
+            </html>
+            """)
+        except Exception as e:
+            log.error(f"Error serving admin: {str(e)}")
+            return HTMLResponse(f"<h1>Admin Error: {str(e)}</h1>", status_code=500)
+
+    log.info("AGENT API serverless function initialized successfully with iMessage interface")
+
+except Exception as e:
+    log.error(f"Failed to configure app: {str(e)}")
+    print(f"ERROR: Failed to configure app: {str(e)}", file=sys.stderr)
+    print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+    raise
