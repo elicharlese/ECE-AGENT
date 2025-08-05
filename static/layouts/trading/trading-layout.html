@@ -1,0 +1,99 @@
+<div class="trading-layout">
+    <!-- Trading Sidebar -->
+    <div class="trading-sidebar">
+        <div class="trading-header">
+            <h3>🚀 AGENT Trading</h3>
+            <div class="trading-status">
+                <div class="status-indicator" id="tradingStatus">
+                    <div class="status-dot offline"></div>
+                    <span>Initializing...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Trading Quick Controls -->
+        <div class="trading-controls">
+            <button class="trading-btn start-btn" id="startTradingBtn" onclick="startTrading()">
+                <i class="fas fa-play"></i>
+                Start Trading
+            </button>
+            <button class="trading-btn stop-btn" id="stopTradingBtn" onclick="stopTrading()" disabled>
+                <i class="fas fa-stop"></i>
+                Stop Trading
+            </button>
+            <button class="trading-btn emergency-btn" id="emergencyStopBtn" onclick="emergencyStop()">
+                <i class="fas fa-exclamation-triangle"></i>
+                Emergency Stop
+            </button>
+        </div>
+        
+        <!-- Portfolio Summary -->
+        <div class="portfolio-summary">
+            <h4>Portfolio</h4>
+            <div class="portfolio-item">
+                <span>Total Value</span>
+                <span id="totalValue">$0.00</span>
+            </div>
+            <div class="portfolio-item">
+                <span>P&L Today</span>
+                <span id="dailyPnL" class="neutral">$0.00</span>
+            </div>
+            <div class="portfolio-item">
+                <span>Active Positions</span>
+                <span id="activePositions">0</span>
+            </div>
+        </div>
+        
+        <!-- Strategy Status -->
+        <div class="strategy-status">
+            <h4>Strategies</h4>
+            <div class="strategy-item">
+                <span>Cross Exchange</span>
+                <div class="strategy-toggle">
+                    <input type="checkbox" id="crossExchangeToggle" onchange="toggleStrategy('cross_exchange', this.checked)">
+                    <label for="crossExchangeToggle"></label>
+                </div>
+            </div>
+            <div class="strategy-item">
+                <span>Triangular</span>
+                <div class="strategy-toggle">
+                    <input type="checkbox" id="triangularToggle" onchange="toggleStrategy('triangular', this.checked)">
+                    <label for="triangularToggle"></label>
+                </div>
+            </div>
+            <div class="strategy-item">
+                <span>Statistical</span>
+                <div class="strategy-toggle">
+                    <input type="checkbox" id="statisticalToggle" onchange="toggleStrategy('statistical', this.checked)">
+                    <label for="statisticalToggle"></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Trading Main Area -->
+    <div class="trading-main">
+        <!-- Trading Panels Container -->
+        <div class="trading-panels">
+            <!-- Arbitrage Panel -->
+            <div class="arbitrage-panel-container">
+                <!-- Will be populated by arbitrage-panel.html -->
+            </div>
+            
+            <!-- Portfolio Panel -->
+            <div class="portfolio-panel-container">
+                <!-- Will be populated by portfolio-panel.html -->
+            </div>
+            
+            <!-- Risk Panel -->
+            <div class="risk-panel-container">
+                <!-- Will be populated by risk-panel.html -->
+            </div>
+            
+            <!-- Charts Panel -->
+            <div class="charts-panel-container">
+                <!-- Will be populated by charts-panel.html -->
+            </div>
+        </div>
+    </div>
+</div>

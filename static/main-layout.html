@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT - Advanced AI Trading Platform</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/layouts/base.css">
+    
+    <!-- Chart.js for trading visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- WebSocket connection for real-time updates -->
+    <script src="/static/js/websocket.js"></script>
+    
+    <style>
+        /* Main Layout Styles */
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e4e4e7;
+            overflow-x: hidden;
+        }
+        
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* Top Navigation with Megamenu */
+        .top-nav {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        /* Logo Section */
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-badge {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .nav-item {
+            position: relative;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: #e4e4e7;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #00ff88;
+        }
+        
+        .nav-button.active {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+        
+        .nav-button .icon {
+            font-size: 16px;
+        }
+        
+        .nav-button .arrow {
+            font-size: 12px;
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-item.open .nav-button .arrow {
+            transform: rotate(180deg);
+        }
+        
+        /* Megamenu */
+        .megamenu {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 15, 35, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 600px;
+            max-width: 800px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-50%) translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-top: 8px;
+        }
+        
+        .megamenu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .megamenu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        
+        .megamenu-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00ff88;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .megamenu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .megamenu-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            color: #d1d5db;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+        
+        .megamenu-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #00ff88;
+            transform: translateX(4px);
+        }
+        
+        .megamenu-link .icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .megamenu-link .desc {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        
+        /* Trading Mode Toggle */
+        .trading-mode-toggle {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .trading-mode-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .trading-mode-toggle.active {
+            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 100%);
+        }
+        
+        /* User Menu */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Layout Container */
+        .layout-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .layout {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        
+        .layout.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            height: 32px;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        
+        .status-left, .status-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.warning { background: #f59e0b; }
+        .status-dot.error { background: #ef4444; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #e4e4e7;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(15, 15, 35, 0.98);
+                backdrop-filter: blur(20px);
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                flex-direction: column;
+                padding: 20px;
+                gap: 12px;
+            }
+            
+            .nav-menu.open {
+                display: flex;
+            }
+            
+            .mobile-nav-toggle {
+                display: block;
+            }
+            
+            .megamenu {
+                position: fixed;
+                top: 64px;
+                left: 0;
+                right: 0;
+                transform: none;
+                border-radius: 0;
+                min-width: auto;
+                max-width: none;
+            }
+            
+            .megamenu-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+        
+        /* Loading States */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Top Navigation -->
+        <nav class="top-nav">
+            <!-- Logo -->
+            <div class="nav-logo">
+                <div class="logo-text">AGENT</div>
+                <div class="logo-badge">AI</div>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-nav-toggle" id="mobileNavToggle">
+                <span>☰</span>
+            </button>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-menu" id="navMenu">
+                <!-- Chat -->
+                <div class="nav-item">
+                    <button class="nav-button active" data-app="chat">
+                        <span class="icon">💬</span>
+                        <span>Chat</span>
+                    </button>
+                </div>
+                
+                <!-- Apps Megamenu -->
+                <div class="nav-item" id="appsNavItem">
+                    <button class="nav-button" id="appsMenuBtn">
+                        <span class="icon">🚀</span>
+                        <span>Apps</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    
+                    <div class="megamenu" id="appsMegamenu">
+                        <div class="megamenu-grid">
+                            <!-- Trading & Finance -->
+                            <div class="megamenu-section">
+                                <h3>Trading & Finance</h3>
+                                <div class="megamenu-links">
+                                    <a href="#" class="megamenu-link" data-app="trading">
+                                        <span class="icon">📊</span>
+                                        <div>
+                                            <div>Trading Dashboard</div>
+                                            <div class="desc">Real-time arbitrage opportunities</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="portfolio">
+                                        <span class="icon">💼</span>
+                                        <div>
+                                            <div>Portfolio Manager</div>
+                                            <div class="desc">Track assets & performance</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="analytics">
+                                        <span class="icon">📈</span>
+                                        <div>
+                                            <div>Analytics Suite</div>
+                                            <div class="desc">Deep market insights</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- AI & Automation -->
+                            <div class="megamenu-section">
+                                <h3>AI & Automation</h3>
+                                <div class="megamenu-links">
+                                    <a href="#" class="megamenu-link" data-app="training">
+                                        <span class="icon">🧠</span>
+                                        <div>
+                                            <div>AI Training</div>
+                                            <div class="desc">Model learning & optimization</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="strategies">
+                                        <span class="icon">⚡</span>
+                                        <div>
+                                            <div>Strategy Builder</div>
+                                            <div class="desc">Create custom algorithms</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="backtesting">
+                                        <span class="icon">🔄</span>
+                                        <div>
+                                            <div>Backtesting Lab</div>
+                                            <div class="desc">Test strategies historically</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Tools & Settings -->
+                            <div class="megamenu-section">
+                                <h3>Tools & Settings</h3>
+                                <div class="megamenu-links">
+                                    <a href="#" class="megamenu-link" data-app="alerts">
+                                        <span class="icon">🔔</span>
+                                        <div>
+                                            <div>Alert Center</div>
+                                            <div class="desc">Notifications & triggers</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="reports">
+                                        <span class="icon">📋</span>
+                                        <div>
+                                            <div>Reports</div>
+                                            <div class="desc">Generate detailed reports</div>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="megamenu-link" data-app="settings">
+                                        <span class="icon">⚙️</span>
+                                        <div>
+                                            <div>Settings</div>
+                                            <div class="desc">Configuration & preferences</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help -->
+                <div class="nav-item">
+                    <button class="nav-button" data-app="help">
+                        <span class="icon">❓</span>
+                        <span>Help</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- User Menu -->
+            <div class="user-menu">
+                <!-- Trading Mode Toggle -->
+                <button class="trading-mode-toggle" id="tradingModeToggle">
+                    <span class="icon">📊</span>
+                    <span>Trading Mode</span>
+                </button>
+                
+                <!-- User Avatar -->
+                <div class="user-avatar" title="Admin User">A</div>
+            </div>
+        </nav>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Layout Container -->
+            <div class="layout-container" id="layoutContainer">
+                <!-- Chat Layout -->
+                <div class="layout active" id="chatLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading Chat Interface...</div>
+                    </div>
+                </div>
+                
+                <!-- Trading Layout -->
+                <div class="layout" id="tradingLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading Trading Dashboard...</div>
+                    </div>
+                </div>
+                
+                <!-- Portfolio Layout -->
+                <div class="layout" id="portfolioLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading Portfolio...</div>
+                    </div>
+                </div>
+                
+                <!-- Analytics Layout -->
+                <div class="layout" id="analyticsLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading Analytics...</div>
+                    </div>
+                </div>
+                
+                <!-- Training Layout -->
+                <div class="layout" id="trainingLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading AI Training...</div>
+                    </div>
+                </div>
+                
+                <!-- Settings Layout -->
+                <div class="layout" id="settingsLayout">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div>Loading Settings...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div class="status-left">
+                    <div class="status-indicator">
+                        <div class="status-dot" id="connectionStatus"></div>
+                        <span id="connectionText">Connected</span>
+                    </div>
+                    
+                    <div class="status-indicator">
+                        <span id="activeUsersText">1 user online</span>
+                    </div>
+                    
+                    <div class="status-indicator">
+                        <span id="currentAppText">Chat</span>
+                    </div>
+                </div>
+                
+                <div class="status-right">
+                    <div class="status-indicator">
+                        <span id="mcpStatusText">MCP: Disconnected</span>
+                    </div>
+                    
+                    <div class="status-indicator">
+                        <span id="tradingStatusText">Trading: Active</span>
+                    </div>
+                    
+                    <div class="status-indicator">
+                        <span id="systemTimeText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Layout Manager Script -->
+    <script src="/static/layouts/layout-manager.js"></script>
+    
+    <script>
+        // Initialize the layout system
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize layout manager
+            if (window.LayoutManager) {
+                window.layoutManager = new LayoutManager();
+                window.layoutManager.initialize();
+            }
+            
+            // Megamenu functionality
+            const appsMenuBtn = document.getElementById('appsMenuBtn');
+            const appsMegamenu = document.getElementById('appsMegamenu');
+            const appsNavItem = document.getElementById('appsNavItem');
+            
+            if (appsMenuBtn && appsMegamenu) {
+                appsMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpen = appsNavItem.classList.contains('open');
+                    
+                    // Close all other menus
+                    document.querySelectorAll('.nav-item.open').forEach(item => {
+                        item.classList.remove('open');
+                    });
+                    document.querySelectorAll('.megamenu.open').forEach(menu => {
+                        menu.classList.remove('open');
+                    });
+                    
+                    if (!isOpen) {
+                        appsNavItem.classList.add('open');
+                        appsMegamenu.classList.add('open');
+                    }
+                });
+                
+                // Close megamenu when clicking outside
+                document.addEventListener('click', function() {
+                    appsNavItem.classList.remove('open');
+                    appsMegamenu.classList.remove('open');
+                });
+                
+                // Prevent closing when clicking inside megamenu
+                appsMegamenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+            
+            // Mobile navigation toggle
+            const mobileNavToggle = document.getElementById('mobileNavToggle');
+            const navMenu = document.getElementById('navMenu');
+            
+            if (mobileNavToggle && navMenu) {
+                mobileNavToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('open');
+                });
+            }
+            
+            // Trading mode toggle
+            const tradingModeToggle = document.getElementById('tradingModeToggle');
+            if (tradingModeToggle) {
+                tradingModeToggle.addEventListener('click', function() {
+                    const isActive = tradingModeToggle.classList.contains('active');
+                    
+                    if (isActive) {
+                        tradingModeToggle.classList.remove('active');
+                        tradingModeToggle.innerHTML = '<span class="icon">📊</span><span>Trading Mode</span>';
+                        
+                        // Switch back to chat
+                        if (window.layoutManager) {
+                            window.layoutManager.switchToApp('chat');
+                        }
+                    } else {
+                        tradingModeToggle.classList.add('active');
+                        tradingModeToggle.innerHTML = '<span class="icon">⚡</span><span>Live Trading</span>';
+                        
+                        // Switch to trading
+                        if (window.layoutManager) {
+                            window.layoutManager.switchToApp('trading');
+                        }
+                    }
+                });
+            }
+            
+            // Navigation button handlers
+            document.querySelectorAll('.nav-button[data-app]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const appName = button.dataset.app;
+                    if (appName && window.layoutManager) {
+                        window.layoutManager.switchToApp(appName);
+                    }
+                });
+            });
+            
+            // Megamenu link handlers
+            document.querySelectorAll('.megamenu-link[data-app]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const appName = link.dataset.app;
+                    if (appName && window.layoutManager) {
+                        window.layoutManager.switchToApp(appName);
+                        
+                        // Close megamenu
+                        appsNavItem.classList.remove('open');
+                        appsMegamenu.classList.remove('open');
+                    }
+                });
+            });
+            
+            // Update system time
+            function updateSystemTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                const timeElement = document.getElementById('systemTimeText');
+                if (timeElement) {
+                    timeElement.textContent = timeString;
+                }
+            }
+            
+            // Update time every second
+            setInterval(updateSystemTime, 1000);
+            updateSystemTime();
+            
+            // Listen for app switches to update navigation
+            document.addEventListener('app:switched', function(event) {
+                const appName = event.detail.appName;
+                
+                // Update active nav button
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                const activeBtn = document.querySelector(`.nav-button[data-app="${appName}"]`);
+                if (activeBtn) {
+                    activeBtn.classList.add('active');
+                }
+                
+                // Update trading mode toggle
+                const tradingModeToggle = document.getElementById('tradingModeToggle');
+                if (tradingModeToggle) {
+                    if (appName === 'trading') {
+                        tradingModeToggle.classList.add('active');
+                        tradingModeToggle.innerHTML = '<span class="icon">⚡</span><span>Live Trading</span>';
+                    } else {
+                        tradingModeToggle.classList.remove('active');
+                        tradingModeToggle.innerHTML = '<span class="icon">📊</span><span>Trading Mode</span>';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

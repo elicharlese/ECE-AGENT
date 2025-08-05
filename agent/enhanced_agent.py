@@ -12,6 +12,7 @@ from .core import AGENTCore
 from .rust_integration import get_integration_manager, get_cache_manager, get_string_processor
 from .base_classes import ReasoningType, Thought, Tool, Memory
 from .multi_model_router import multi_model_router, ModelType, QueryType
+from .self_training import SelfTrainer
 
 class EnhancedAgent(AGENTCore):
     """Enhanced AGENT system with advanced agentic capabilities"""
@@ -25,6 +26,9 @@ class EnhancedAgent(AGENTCore):
         self.tool_registry = ToolRegistry()
         self.reasoning_engine = ReasoningEngine()
         self.planning_engine = PlanningEngine()
+        
+        # Initialize self-training system
+        self.self_trainer = SelfTrainer()
         
         # Multi-model AI router
         self.multi_model_router = multi_model_router
@@ -50,7 +54,14 @@ class EnhancedAgent(AGENTCore):
             "average_confidence": 0.0,
             "model_usage": {},
             "total_ai_cost": 0.0,
-            "avg_response_time": 0.0
+            "avg_response_time": 0.0,
+            # Self-training metrics
+            "bias_detections": 0,
+            "pattern_analyses": 0,
+            "self_improvements": 0,
+            "feedback_processed": 0,
+            "bias_score": 0.0,
+            "consistency_score": 1.0
         }
         
         self.logger.info("Enhanced AGENT system initialized with multi-model AI capabilities")
@@ -492,6 +503,103 @@ class EnhancedAgent(AGENTCore):
         }
         
         return enhanced_status
+    
+    async def process_feedback(self, query: str, response: str, feedback: Dict[str, Any]) -> Dict[str, Any]:
+        """Process user feedback to improve future responses"""
+        try:
+            # Store the interaction for training
+            interaction_data = {
+                "query": query,
+                "response": response,
+                "feedback": feedback,
+                "timestamp": datetime.now().isoformat(),
+                "context": self.current_context.copy()
+            }
+            
+            # Process feedback through self-trainer
+            feedback_result = await self.self_trainer.process_feedback(interaction_data)
+            
+            # Update metrics
+            self.enhanced_metrics["feedback_processed"] += 1
+            
+            # If bias detected, increment counter
+            if feedback_result.get("bias_detected"):
+                self.enhanced_metrics["bias_detections"] += 1
+            
+            # Update bias score
+            self.enhanced_metrics["bias_score"] = feedback_result.get("bias_score", self.enhanced_metrics["bias_score"])
+            
+            self.logger.info(f"Processed feedback with result: {feedback_result}")
+            
+            return {
+                "feedback_processed": True,
+                "improvements_identified": feedback_result.get("improvements", []),
+                "bias_score": feedback_result.get("bias_score", 0.0),
+                "training_data_updated": feedback_result.get("training_updated", False)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error processing feedback: {e}")
+            return {"feedback_processed": False, "error": str(e)}
+    
+    async def analyze_self_patterns(self) -> Dict[str, Any]:
+        """Analyze patterns in the agent's responses for bias and consistency"""
+        try:
+            # Get recent responses for analysis
+            recent_interactions = self.memory_manager.get_recent_memories(limit=50)
+            
+            # Run pattern analysis
+            pattern_result = await self.self_trainer.analyze_patterns(recent_interactions)
+            
+            # Update metrics
+            self.enhanced_metrics["pattern_analyses"] += 1
+            self.enhanced_metrics["consistency_score"] = pattern_result.get("consistency_score", 1.0)
+            
+            if pattern_result.get("bias_detected"):
+                self.enhanced_metrics["bias_detections"] += 1
+            
+            self.logger.info(f"Pattern analysis completed: {pattern_result}")
+            
+            return pattern_result
+            
+        except Exception as e:
+            self.logger.error(f"Error in pattern analysis: {e}")
+            return {"analysis_completed": False, "error": str(e)}
+    
+    async def trigger_self_improvement(self) -> Dict[str, Any]:
+        """Trigger self-improvement based on accumulated feedback and patterns"""
+        try:
+            # Run self-improvement cycle
+            improvement_result = await self.self_trainer.improve_responses()
+            
+            # Update metrics
+            if improvement_result.get("improvements_made"):
+                self.enhanced_metrics["self_improvements"] += 1
+            
+            self.logger.info(f"Self-improvement cycle completed: {improvement_result}")
+            
+            return improvement_result
+            
+        except Exception as e:
+            self.logger.error(f"Error in self-improvement: {e}")
+            return {"improvement_completed": False, "error": str(e)}
+    
+    async def get_bias_report(self) -> Dict[str, Any]:
+        """Get comprehensive bias analysis report"""
+        try:
+            bias_report = await self.self_trainer.generate_bias_report()
+            
+            return {
+                "current_bias_score": self.enhanced_metrics["bias_score"],
+                "bias_detections_count": self.enhanced_metrics["bias_detections"],
+                "pattern_analyses_count": self.enhanced_metrics["pattern_analyses"],
+                "consistency_score": self.enhanced_metrics["consistency_score"],
+                "detailed_analysis": bias_report
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error generating bias report: {e}")
+            return {"report_generated": False, "error": str(e)}
 
 class MemoryManager:
     """Manages agent memory for context retention and learning"""

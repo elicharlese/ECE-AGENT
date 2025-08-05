@@ -222,7 +222,7 @@ class RustIntegrationManager:
     def _init_fallback_components(self):
         """Initialize Python fallback components"""
         try:
-            from .enhanced_agent import EnhancedAgentBase
+            from .base_classes import EnhancedAgentBase
             
             # Create a simple fallback agent instance
             class SimpleFallbackAgent(EnhancedAgentBase):

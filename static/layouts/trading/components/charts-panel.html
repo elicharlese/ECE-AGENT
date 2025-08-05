@@ -1,0 +1,149 @@
+<div class="charts-panel">
+    <div class="panel-header">
+        <h4 class="panel-title">
+            <i class="fas fa-chart-line"></i>
+            Performance Charts
+        </h4>
+        <div class="panel-actions">
+            <select class="chart-timeframe" id="chartTimeframe" onchange="updateChartTimeframe(this.value)">
+                <option value="1h">1H</option>
+                <option value="4h">4H</option>
+                <option value="1d" selected>1D</option>
+                <option value="1w">1W</option>
+            </select>
+            <button class="panel-btn" onclick="refreshChartData()">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+    </div>
+    <div class="panel-content">
+        <div class="chart-tabs">
+            <button class="chart-tab active" onclick="switchChart('performance')" data-chart="performance">
+                Performance
+            </button>
+            <button class="chart-tab" onclick="switchChart('trades')" data-chart="trades">
+                Trades
+            </button>
+            <button class="chart-tab" onclick="switchChart('opportunities')" data-chart="opportunities">
+                Opportunities
+            </button>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="performanceChart" width="400" height="200"></canvas>
+        </div>
+        
+        <div class="chart-stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Trades</span>
+                <span class="stat-value" id="totalTrades">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Win Rate</span>
+                <span class="stat-value" id="winRate">0%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Avg Profit</span>
+                <span class="stat-value" id="avgProfit">$0.00</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Sharpe Ratio</span>
+                <span class="stat-value" id="sharpeRatio">0.00</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.charts-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-timeframe {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: white;
+    padding: 4px 8px;
+    font-size: 11px;
+    margin-right: 8px;
+}
+
+.chart-timeframe option {
+    background: #1a1a2e;
+    color: white;
+}
+
+.chart-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+}
+
+.chart-tab {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 12px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chart-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.chart-tab.active {
+    background: rgba(0, 255, 136, 0.2);
+    border-color: rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+}
+
+.chart-container {
+    flex: 1;
+    position: relative;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    padding: 8px;
+    min-height: 120px;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.chart-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.stat-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px;
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+}
+</style>

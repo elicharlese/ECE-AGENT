@@ -1,0 +1,102 @@
+<div class="arbitrage-panel">
+    <div class="panel-header">
+        <h4 class="panel-title">
+            <i class="fas fa-exchange-alt"></i>
+            Arbitrage Opportunities
+        </h4>
+        <div class="panel-actions">
+            <button class="panel-btn" onclick="refreshArbitrageData()">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+    </div>
+    <div class="panel-content">
+        <div class="opportunities-list" id="opportunitiesList">
+            <div class="opportunity-item loading">
+                <div class="loading-spinner"></div>
+                <span>Scanning for opportunities...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.arbitrage-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.opportunities-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.opportunity-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+}
+
+.opportunity-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(0, 255, 136, 0.3);
+}
+
+.opportunity-item.loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+}
+
+.opportunity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.opportunity-type {
+    font-weight: 600;
+    color: #00ff88;
+    font-size: 13px;
+}
+
+.opportunity-profit {
+    font-weight: 600;
+    color: #34c759;
+}
+
+.opportunity-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+.loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>

@@ -120,3 +120,6 @@ celerybeat.pid
 .dmypy.json
 dmypy.json
 .vercel
+
+.cursor/rules/nx-rules.mdc
+.github/instructions/nx.instructions.md

@@ -1,0 +1,11 @@
+# Self-Training System Dependencies
+textstat>=0.7.3
+scikit-learn>=1.3.0
+nltk>=3.8.1
+transformers>=4.35.0
+torch>=2.0.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+pandas>=2.0.0
+wandb>=0.15.0

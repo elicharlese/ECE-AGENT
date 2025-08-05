@@ -1,0 +1,169 @@
+<div class="risk-panel">
+    <div class="panel-header">
+        <h4 class="panel-title">
+            <i class="fas fa-shield-alt"></i>
+            Risk Management
+        </h4>
+        <div class="panel-actions">
+            <button class="panel-btn" onclick="refreshRiskData()">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+    </div>
+    <div class="panel-content">
+        <div class="risk-gauges">
+            <div class="gauge-item">
+                <div class="gauge-label">Exposure</div>
+                <div class="gauge-container">
+                    <div class="gauge-bg">
+                        <div class="gauge-fill" id="exposureGauge" style="width: 0%"></div>
+                    </div>
+                    <span class="gauge-value" id="exposureValue">0%</span>
+                </div>
+            </div>
+            
+            <div class="gauge-item">
+                <div class="gauge-label">Drawdown</div>
+                <div class="gauge-container">
+                    <div class="gauge-bg">
+                        <div class="gauge-fill" id="drawdownGauge" style="width: 0%"></div>
+                    </div>
+                    <span class="gauge-value" id="drawdownValue">0%</span>
+                </div>
+            </div>
+            
+            <div class="gauge-item">
+                <div class="gauge-label">Risk Score</div>
+                <div class="gauge-container">
+                    <div class="gauge-bg">
+                        <div class="gauge-fill" id="riskScoreGauge" style="width: 0%"></div>
+                    </div>
+                    <span class="gauge-value" id="riskScoreValue">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="risk-limits">
+            <h5>Risk Limits</h5>
+            <div class="limit-item">
+                <span>Max Exposure</span>
+                <span>$50,000</span>
+            </div>
+            <div class="limit-item">
+                <span>Max Drawdown</span>
+                <span>10%</span>
+            </div>
+            <div class="limit-item">
+                <span>Position Size</span>
+                <span>$5,000</span>
+            </div>
+        </div>
+        
+        <div class="risk-alerts" id="riskAlerts">
+            <!-- Risk alerts will be populated here -->
+        </div>
+    </div>
+</div>
+
+<style>
+.risk-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.risk-gauges {
+    margin-bottom: 16px;
+}
+
+.gauge-item {
+    margin-bottom: 12px;
+}
+
+.gauge-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gauge-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gauge-bg {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #34c759, #ff9500, #ff3b30);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.gauge-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    min-width: 40px;
+    text-align: right;
+}
+
+.risk-limits {
+    margin-bottom: 16px;
+}
+
+.risk-limits h5 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.limit-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.limit-item:last-child {
+    border-bottom: none;
+}
+
+.risk-alerts {
+    flex: 1;
+}
+
+.alert-item {
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: #ff6961;
+}
+
+.alert-item.warning {
+    background: rgba(255, 149, 0, 0.1);
+    border-color: rgba(255, 149, 0, 0.3);
+    color: #ff9500;
+}
+
+.alert-item.info {
+    background: rgba(0, 122, 255, 0.1);
+    border-color: rgba(0, 122, 255, 0.3);
+    color: #007aff;
+}
+</style>

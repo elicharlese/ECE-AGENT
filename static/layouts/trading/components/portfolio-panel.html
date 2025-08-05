@@ -1,0 +1,143 @@
+<div class="portfolio-panel">
+    <div class="panel-header">
+        <h4 class="panel-title">
+            <i class="fas fa-wallet"></i>
+            Portfolio Overview
+        </h4>
+        <div class="panel-actions">
+            <button class="panel-btn" onclick="refreshPortfolioData()">
+                <i class="fas fa-sync"></i>
+            </button>
+        </div>
+    </div>
+    <div class="panel-content">
+        <div class="portfolio-metrics">
+            <div class="metric-row">
+                <div class="metric-item">
+                    <span class="metric-label">Total Value</span>
+                    <span class="metric-value" id="portfolioTotal">$0.00</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Available Cash</span>
+                    <span class="metric-value" id="availableCash">$0.00</span>
+                </div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-item">
+                    <span class="metric-label">P&L Today</span>
+                    <span class="metric-value neutral" id="dailyPnLDetailed">$0.00</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">P&L Total</span>
+                    <span class="metric-value neutral" id="totalPnL">$0.00</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="positions-list">
+            <h5>Active Positions</h5>
+            <div id="positionsList">
+                <div class="no-positions">
+                    <i class="fas fa-chart-line"></i>
+                    <span>No active positions</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.portfolio-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.portfolio-metrics {
+    margin-bottom: 16px;
+}
+
+.metric-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.metric-item {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.metric-label {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+}
+
+.positions-list h5 {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    margin: 0 0 8px 0;
+    font-weight: 600;
+}
+
+.no-positions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}
+
+.no-positions i {
+    font-size: 24px;
+    opacity: 0.5;
+}
+
+.position-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.position-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.position-symbol {
+    font-weight: 600;
+    color: white;
+    font-size: 13px;
+}
+
+.position-pnl {
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.position-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+</style>
