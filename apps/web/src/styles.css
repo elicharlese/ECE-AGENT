@@ -1,4 +1,62 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    /* Radius */
+    --radius-8: 8px;
+    --radius-12: 12px;
+
+    /* Elevation (shadows) */
+    --elev-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06), 0 1px 1px -1px rgb(0 0 0 / 0.1);
+    --elev-md: 0 2px 6px -1px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+    --elev-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Spacing aliases (based on 4/8 baseline) */
+    --space-s: 0.5rem;   /* 8px */
+    --space-m: 1rem;     /* 16px */
+    --space-l: 1.5rem;   /* 24px */
+  }
+}
+
+@layer utilities {
+  /* Radius utilities */
+  .radius-8 { border-radius: var(--radius-8); }
+  .radius-12 { border-radius: var(--radius-12); }
+
+  /* Elevation utilities */
+  .elev-sm { box-shadow: var(--elev-sm); }
+  .elev-md { box-shadow: var(--elev-md); }
+  .elev-lg { box-shadow: var(--elev-lg); }
+
+  /* Spacing alias utilities */
+  .gap-s { gap: var(--space-s); }
+  .gap-m { gap: var(--space-m); }
+  .gap-l { gap: var(--space-l); }
+
+  .p-s { padding: var(--space-s); }
+  .p-m { padding: var(--space-m); }
+  .p-l { padding: var(--space-l); }
+
+  .px-s { padding-left: var(--space-s); padding-right: var(--space-s); }
+  .px-m { padding-left: var(--space-m); padding-right: var(--space-m); }
+  .px-l { padding-left: var(--space-l); padding-right: var(--space-l); }
+
+  .py-s { padding-top: var(--space-s); padding-bottom: var(--space-s); }
+  .py-m { padding-top: var(--space-m); padding-bottom: var(--space-m); }
+  .py-l { padding-top: var(--space-l); padding-bottom: var(--space-l); }
+
+  .m-s { margin: var(--space-s); }
+  .m-m { margin: var(--space-m); }
+  .m-l { margin: var(--space-l); }
+
+  .mx-s { margin-left: var(--space-s); margin-right: var(--space-s); }
+  .mx-m { margin-left: var(--space-m); margin-right: var(--space-m); }
+  .mx-l { margin-left: var(--space-l); margin-right: var(--space-l); }
+
+  .my-s { margin-top: var(--space-s); margin-bottom: var(--space-s); }
+  .my-m { margin-top: var(--space-m); margin-bottom: var(--space-m); }
+  .my-l { margin-top: var(--space-l); margin-bottom: var(--space-l); }
+}
 /* You can add global styles to this file, and also import other style files */
