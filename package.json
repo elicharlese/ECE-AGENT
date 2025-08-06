@@ -6,9 +6,42 @@
   "scripts": {
     "start": "uvicorn api/index:app --host 0.0.0.0 --port 8000"
   },
-  "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@nx/devkit": "21.3.11",
+    "@nx/eslint-plugin": "^21.3.11",
+    "@nx/js": "21.3.11",
+    "@nx/playwright": "21.3.11",
+    "@nx/react": "^21.3.11",
+    "@nx/vite": "^21.3.11",
+    "@nx/web": "21.3.11",
+    "@playwright/test": "^1.36.0",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "@types/node": "^20.0.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/ui": "^3.0.0",
+    "autoprefixer": "^10.4.21",
+    "jiti": "2.4.2",
+    "jsdom": "~22.1.0",
+    "nx": "^21.3.11",
+    "postcss": "^8.5.6",
+    "prettier": "^2.6.2",
+    "tailwindcss": "^4.1.11",
+    "tslib": "^2.3.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-router-dom": "6.29.0",
+    "zod": "^4.0.15"
   }
 }

@@ -1,5 +1,44 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Header
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Header, WebSocket
+from fastapi.responses import HTMLResponse
+from typing import Dict, List, Optional
+import json
+import asyncio
+from datetime import datetime
+import logging
+import time
+import psutil
+from pydantic import BaseModel
+
+# Import ConnectionManager
+from websocket_manager import ConnectionManager
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 from fastapi.middleware.cors import CORSMiddleware
+
+# Initialize FastAPI app
+app = FastAPI(title="Agent Server",
+    description="Advanced AI agent with multi-domain expertise and real-time chat",
+    version="1.0.0"
+)
+
+# Initialize ConnectionManager
+manager = ConnectionManager()
+
+# CORS for Nx/Vite dev and local usage
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import uvicorn
@@ -17,26 +56,19 @@ from agent.knowledge_base import CyberSecurityKnowledgeBase
 from agent.container_orchestrator import ContainerOrchestrator
 from agent.security_tools import SecurityToolsManager
 from agent.auth import auth_manager
-import psutil
-import time
-from datetime import datetime
-
-# Set up logging
-logger = logging.getLogger(__name__)
-
-app = FastAPI(title="AGENT - AI Developer, Trader & Lawyer", version="1.0.0")
-
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+from agent.enhanced_agent import EnhancedAgent  # unified backend
 
 # Initialize AGENT components
-agent_core = AGENTCore()
+USE_ENHANCED = os.environ.get("USE_ENHANCED_AGENT", "1") not in ("0", "false", "False")
+if USE_ENHANCED:
+    try:
+        agent_core = EnhancedAgent()
+        logger.info("Initialized EnhancedAgent as primary agent core")
+    except Exception as e:
+        logger.warning(f"Failed to initialize EnhancedAgent, falling back to AGENTCore: {e}")
+        agent_core = AGENTCore()
+else:
+    agent_core = AGENTCore()
 agent_trainer = AGENTTrainer()
 web_scraper = WebScraper()
 knowledge_base = CyberSecurityKnowledgeBase()
@@ -156,23 +188,43 @@ async def get_current_user_info(user_session=Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to get user info")
 
-# Main AGENT endpoint (now requires authentication)
-@app.post("/agent/query")
-async def query_agent(request: QueryRequest, user_session=Depends(get_current_user)):
-    """Main endpoint for querying the AGENT"""
+# WebSocket endpoint for real-time chat
+@app.websocket("/ws/chat")
+async def websocket_chat(websocket: WebSocket):
+    await manager.connect(websocket)
     try:
-        # Get internet data if requested
-        web_context = []
-        if request.use_internet:
-            web_context = await web_scraper.search_and_scrape(request.query, request.domain)
-        
-        # Process query through AGENT
-        response = await agent_core.process_query(
-            query=request.query,
-            domain=request.domain,
-            web_context=web_context
-        )
-        
+        while True:
+            data = await websocket.receive_text()
+            message_data = json.loads(data)
+            
+            # Handle different message types
+            if message_data.get("type") == "public":
+                # Broadcast public message to all users
+                await manager.broadcast(
+                    message_data.get("content", ""), 
+                    message_data.get("sender", "Anonymous"),
+                    "public"
+                )
+            elif message_data.get("type") == "private":
+                # Process private message with AGENT
+                domain = message_data.get("domain", "general")
+                use_internet = message_data.get("use_internet", True)
+                response = await agent_core.process_query(
+                    message_data.get("content", ""), 
+                    domain, 
+                    use_internet
+                )
+                await manager.broadcast(response, "AGENT", "private")
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
+
+# Main AGENT endpoint (now requires authentication)
+@app.post("/agent/query", response_model=dict)
+async def query_agent(request: QueryRequest, user_session=Depends(get_current_user)):
+    try:
+        logger.info(f"Processing query for domain {request.domain}: {request.query}")
+        response = await agent_core.process_query(request.query, request.domain, request.use_internet)
         return {
             "success": True,
             "response": response,
@@ -455,19 +507,22 @@ async def health_check():
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         
-        # Test AI model responsiveness
-        ai_healthy = True
+        # Test AI model responsiveness (optional to avoid heavy init on dev)
+        skip_ai = os.environ.get("SKIP_AI_HEALTH", "0") in ("1", "true", "True")
+        ai_healthy = not skip_ai
         ai_response_time = 0
-        try:
-            start_time = time.time()
-            test_response = await agent_core.process_query(
-                "Health check test", "developer", use_internet=False
-            )
-            ai_response_time = (time.time() - start_time) * 1000
-            ai_healthy = test_response.get("success", False)
-        except Exception as e:
-            ai_healthy = False
-            ai_response_time = 0
+        if not skip_ai:
+            try:
+                start_time = time.time()
+                test_response = await agent_core.process_query(
+                    "Health check test", "developer", use_internet=False
+                )
+                ai_response_time = (time.time() - start_time) * 1000
+                # agent_core returns dicts in various shapes; treat absence as healthy if call succeeded
+                ai_healthy = True if test_response is not None else False
+            except Exception:
+                ai_healthy = False
+                ai_response_time = 0
         
         # Test database connectivity
         db_healthy = True

@@ -120,3 +120,6 @@ celerybeat.pid
 .dmypy.json
 dmypy.json
 .vercel
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

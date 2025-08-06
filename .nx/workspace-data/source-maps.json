@@ -1,0 +1,582 @@
+{
+  "apps/web": {
+    "root": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.options": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.cache": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.dependsOn": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.inputs": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.outputs": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.executor": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.options.cwd": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.options.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.technologies": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.technologies.0": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.description": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.help": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.help.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build.metadata.help.example": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.continuous": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.options": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.executor": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.options.cwd": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.options.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.technologies": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.technologies.0": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.description": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.help": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.help.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.dev.metadata.help.example": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.continuous": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.dependsOn": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.options": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.executor": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.options.cwd": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.options.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.technologies": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.technologies.0": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.description": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.help": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.help.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.preview.metadata.help.example": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.cache": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.inputs": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.options": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.executor": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.options.cwd": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.options.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.description": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.technologies": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.technologies.0": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.help": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.help.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.typecheck.metadata.help.example": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build-deps": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.build-deps.dependsOn": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps.continuous": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps.dependsOn": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps.executor": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps.options": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "targets.watch-deps.options.command": [
+      "apps/web/vite.config.ts",
+      "@nx/vite/plugin"
+    ],
+    "name": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "$schema": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "// targets": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.executor": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.port": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.open": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.buildTarget": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.options.hmr": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.withApiLocal": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ],
+    "targets.serve.configurations.withApiLocal.env": [
+      "apps/web/project.json",
+      "nx/core/project-json"
+    ]
+  },
+  "apps/web-e2e": {
+    "root": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "metadata.targetGroups": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "metadata.targetGroups.E2E (CI)": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "metadata.targetGroups.E2E (CI).0": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "metadata.targetGroups.E2E (CI).1": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.options": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.dependsOn": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.cache": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.inputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.outputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.executor": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.options.cwd": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.options.command": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.technologies": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.technologies.0": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.description": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.help": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.help.command": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e.metadata.help.example": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.options": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.dependsOn": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.cache": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.inputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.outputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.executor": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.options.cwd": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.options.env": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.options.command": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.technologies": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.technologies.0": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.description": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.help": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.help.command": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci--src/example.spec.ts.metadata.help.example": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.executor": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.cache": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.inputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.outputs": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.dependsOn": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.technologies": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.technologies.0": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.description": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.nonAtomizedTarget": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.help": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.help.command": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "targets.e2e-ci.metadata.help.example": [
+      "apps/web-e2e/playwright.config.ts",
+      "@nx/playwright/plugin"
+    ],
+    "name": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "$schema": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "projectType": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "sourceRoot": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "// targets": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "tags": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "implicitDependencies": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ],
+    "implicitDependencies.web": [
+      "apps/web-e2e/project.json",
+      "nx/core/project-json"
+    ]
+  }
+}

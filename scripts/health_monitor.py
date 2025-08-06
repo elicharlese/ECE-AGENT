@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+t#!/usr/bin/env python3
 """
 AGENT Health Monitor
 Comprehensive health monitoring system for the AGENT platform
@@ -13,8 +13,8 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import os
 from pathlib import Path
 
@@ -326,43 +326,60 @@ class HealthMonitor:
             await self.send_webhook_alert(alert, health_data)
     
     async def send_email_alert(self, alert: Dict, health_data: Dict):
-        """Send email alert"""
+        """Send email alert with robust guards; no-op if disabled or misconfigured."""
+        email_config = self.notification_config.get("email", {})
+        # Early exits
+        if not email_config.get("enabled", False):
+            return
+        recipients = email_config.get("recipients")
+        if not recipients or not isinstance(recipients, (list, tuple)):
+            logger.warning("Email alerts enabled but 'recipients' not configured; skipping email send")
+            return
         try:
-            email_config = self.notification_config["email"]
-            
-            msg = MimeMultipart()
-            msg['From'] = email_config["username"]
-            msg['To'] = ", ".join(email_config["recipients"])
-            msg['Subject'] = f"AGENT Health Alert - {alert['severity'].upper()}"
-            
-            body = f"""
-AGENT Health Alert
-
-Alert Type: {alert['type']}
-Severity: {alert['severity']}
-Message: {alert['message']}
-Timestamp: {health_data['timestamp']}
-
-System Status:
-- Overall Healthy: {health_data['overall_healthy']}
-- Endpoint Health: {health_data['endpoint_health']['health_percent']:.1f}%
-- CPU Usage: {health_data['system_health'].get('cpu_percent', 'N/A')}%
-- Memory Usage: {health_data['system_health'].get('memory_percent', 'N/A')}%
-- Disk Usage: {health_data['system_health'].get('disk_percent', 'N/A')}%
-
-Please check the AGENT platform immediately.
-            """
-            
-            msg.attach(MimeText(body, 'plain'))
-            
-            server = smtplib.SMTP(email_config["smtp_server"], email_config["smtp_port"])
-            server.starttls()
-            server.login(email_config["username"], email_config["password"])
-            server.send_message(msg)
-            server.quit()
-            
+            msg = MIMEMultipart()
+            msg["From"] = email_config.get("username", "agent@localhost")
+            msg["To"] = ", ".join([str(r) for r in recipients])
+            subject_sev = str(alert.get("severity", "")).upper()
+            msg["Subject"] = f"AGENT Health Alert{(' - ' + subject_sev) if subject_sev else ''}"
++
+            endpoint_health = health_data.get("endpoint_health", {}) or {}
+            system_health = health_data.get("system_health", {}) or {}
+            body_lines = [
+                "AGENT Health Alert",
+                "",
+                f"Alert Type: {alert.get('type')}",
+                f"Severity: {alert.get('severity')}",
+                f"Message: {alert.get('message')}",
+                f"Timestamp: {health_data.get('timestamp', '')}",
+                "",
+                "System Status:",
+                f"- Overall Healthy: {health_data.get('overall_healthy')}",
+                f"- Endpoint Health: {endpoint_health.get('health_percent', 'N/A')}%",
+                f"- CPU Usage: {system_health.get('cpu_percent', 'N/A')}%",
+                f"- Memory Usage: {system_health.get('memory_percent', 'N/A')}%",
+                f"- Disk Usage: {system_health.get('disk_percent', 'N/A')}%",
+                "",
+                "Please check the AGENT platform immediately.",
+            ]
+            msg.attach(MIMEText("\n".join(body_lines), "plain"))
++
+            smtp_server = email_config.get("smtp_server", "localhost")
+            smtp_port = int(email_config.get("smtp_port", 25))
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                # TLS if requested
+                if email_config.get("use_tls", True):
+                    try:
+                        server.starttls()
+                    except Exception as tls_err:
+                        logger.warning(f"SMTP TLS not available or failed: {tls_err}")
+                # Login if credentials provided
+                if email_config.get("username") and email_config.get("password"):
+                    try:
+                        server.login(email_config["username"], email_config["password"])
+                    except Exception as login_err:
+                        logger.warning(f"SMTP login failed (continuing without auth): {login_err}")
+                server.send_message(msg)
             logger.info("Email alert sent successfully")
-            
         except Exception as e:
             logger.error(f"Failed to send email alert: {e}")
     

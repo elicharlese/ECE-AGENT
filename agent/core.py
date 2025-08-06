@@ -234,8 +234,8 @@ class AGENTCore:
             "rust_enabled": RUST_AVAILABLE,
             "performance_metrics": {
                 "total_operations": len(rust_performance_metrics),
-                "average_response_time_ms": sum(m.duration_ms for m in rust_performance_metrics[-100:]) / min(len(rust_performance_metrics), 100) if rust_performance_metrics else 0,
-                "cache_hit_rate": self.metrics["cache_hits"] / max(self.metrics["cache_hits"] + self.metrics["cache_misses"], 1) * 100,
+                "average_response_time_ms": sum(m.duration_ms for m in rust_performance_metrics[-100:]) / min(len(rust_performance_metrics), 100) if rust_performance_metrics and len(rust_performance_metrics) > 0 else 0,
+                "cache_hit_rate": (self.metrics["cache_hits"] / max(self.metrics["cache_hits"] + self.metrics["cache_misses"], 1)) * 100 if (self.metrics["cache_hits"] + self.metrics["cache_misses"]) > 0 else 0,
                 "recent_operations": [
                     {
                         "operation": m.operation,

@@ -1,0 +1,757 @@
+{
+  "version": "6.0",
+  "nxVersion": "21.3.11",
+  "pathMappings": {},
+  "nxJsonPlugins": [
+    {
+      "name": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "name": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
+    },
+    {
+      "name": "@nx/playwright/plugin",
+      "options": {
+        "targetName": "e2e"
+      }
+    }
+  ],
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeSourceFiles": false
+    }
+  },
+  "fileMap": {
+    "nonProjectFiles": [
+      {
+        "file": "rust/agent-container-orchestrator/src/lib.rs",
+        "hash": "15420142072700616968"
+      },
+      {
+        "file": "scripts/health_monitor.py",
+        "hash": "10845049459841083732"
+      },
+      {
+        "file": "scripts/performance_benchmark.sh",
+        "hash": "12013815919554814325"
+      },
+      {
+        "file": "scripts/deploy.sh",
+        "hash": "14750000671439927377"
+      },
+      {
+        "file": "tests/test_auth.py",
+        "hash": "7822416683752735491"
+      },
+      {
+        "file": "templates/data-science.json",
+        "hash": "14729924917889610274"
+      },
+      {
+        "file": "config/health_config.json",
+        "hash": "8560579218803225220"
+      },
+      {
+        "file": "config/agent_config.json",
+        "hash": "609872587924917473"
+      },
+      {
+        "file": "agent/model_manager.py",
+        "hash": "4482223565950110239"
+      },
+      {
+        "file": "requirements.txt",
+        "hash": "11966666960547298174"
+      },
+      {
+        "file": "docs/patches/patch-1/MIGRATION_ROADMAP.md",
+        "hash": "9127147379232269998"
+      },
+      {
+        "file": "agent/multi_model_router.py",
+        "hash": "3950438227405241818"
+      },
+      {
+        "file": "docs/patches/patch-1/END_GOAL_MAPPING.md",
+        "hash": "4054747491472754078"
+      },
+      {
+        "file": "agent/knowledge_base_v2.py",
+        "hash": "1297821377291620914"
+      },
+      {
+        "file": "BATCH2_PATCH4_COMPLETION.md",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "agent/security_tools.py",
+        "hash": "12370251901545900924"
+      },
+      {
+        "file": "apps/api/src/main.ts",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "agent/rust_integration.py",
+        "hash": "18309103934790265995"
+      },
+      {
+        "file": "scripts/uptime_monitor.py",
+        "hash": "7433767526444122171"
+      },
+      {
+        "file": "docs/architecture/domain_agents.md",
+        "hash": "4381682453905184334"
+      },
+      {
+        "file": "docs/PROJECT_STRUCTURE.md",
+        "hash": "12560541151699113344"
+      },
+      {
+        "file": "scripts/tests/test_layouts.py",
+        "hash": "1169889534023181789"
+      },
+      {
+        "file": "tests/test_websocket.py",
+        "hash": "13985908047915640467"
+      },
+      {
+        "file": "agent/domains/developer.py",
+        "hash": "17168982976494240401"
+      },
+      {
+        "file": ".prettierrc",
+        "hash": "16267754514737964994"
+      },
+      {
+        "file": "README.md",
+        "hash": "9481025105361952133"
+      },
+      {
+        "file": "api/index.js",
+        "hash": "3125175935063071972"
+      },
+      {
+        "file": "agent/enhanced_agent.py",
+        "hash": "2851136869133184443"
+      },
+      {
+        "file": "docs/_archive/static/imessage_new.html",
+        "hash": "13284965538775933549"
+      },
+      {
+        "file": "maintenance/cleanup_agent.py",
+        "hash": "5293413281732413389"
+      },
+      {
+        "file": "rust/agent-container-orchestrator/Cargo.toml",
+        "hash": "8983538965862609301"
+      },
+      {
+        "file": "docs/_archive/static/admin.html",
+        "hash": "16688866270331341914"
+      },
+      {
+        "file": "static/index_complete_imessage.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "package.json",
+        "hash": "9507184129177291385"
+      },
+      {
+        "file": "docs/batches/batch-3/BATCH3_SUMMARY.md",
+        "hash": "4261616476741793371"
+      },
+      {
+        "file": "rust/agent-security-tools/src/lib.rs",
+        "hash": "4158564141422083473"
+      },
+      {
+        "file": "tsconfig.base.json",
+        "hash": "16936441711144470533"
+      },
+      {
+        "file": "docs/_archive/static/index.html",
+        "hash": "4317952212885892180"
+      },
+      {
+        "file": "rust/agent-core-utils/src/lib.rs",
+        "hash": "2392367611328087093"
+      },
+      {
+        "file": "scripts/test_integration.sh",
+        "hash": "18038704821586713349"
+      },
+      {
+        "file": "Dockerfile",
+        "hash": "13310502446401864451"
+      },
+      {
+        "file": "run_agent.py",
+        "hash": "8597545188211661286"
+      },
+      {
+        "file": "docs/README.md",
+        "hash": "11466801784863107057"
+      },
+      {
+        "file": "maintenance/alert_agent.py",
+        "hash": "16833934663775968782"
+      },
+      {
+        "file": "tests/test_agent_integration.py",
+        "hash": "1420041093948803407"
+      },
+      {
+        "file": "scripts/cleanup.sh",
+        "hash": "9794530629558343893"
+      },
+      {
+        "file": ".vercelignore",
+        "hash": "15680783266428507889"
+      },
+      {
+        "file": "tests/test_core.py",
+        "hash": "13120224816014402130"
+      },
+      {
+        "file": "tests/test_enhanced_agent.py",
+        "hash": "15582859539617943553"
+      },
+      {
+        "file": "scripts/performance_monitor.py",
+        "hash": "4827517427559612346"
+      },
+      {
+        "file": "agent/domains/data_engineer.py",
+        "hash": "18311629645731240129"
+      },
+      {
+        "file": "agent/domains/lawyer.py",
+        "hash": "10767471120128207918"
+      },
+      {
+        "file": "DEPLOYMENT_SUMMARY.md",
+        "hash": "18247630921026506443"
+      },
+      {
+        "file": "api/test.py",
+        "hash": "10611906324625224431"
+      },
+      {
+        "file": "docs/patches/batch-1/BATCH1_STATUS.md",
+        "hash": "9918061993109818341"
+      },
+      {
+        "file": "scripts/tests/test_ai_chat.py",
+        "hash": "4563606655987017069"
+      },
+      {
+        "file": "docs/batches/batch-3/BATCH3_CHECKLIST.md",
+        "hash": "4902399557380164435"
+      },
+      {
+        "file": "agent/performance_monitor.py",
+        "hash": "17590940552429724036"
+      },
+      {
+        "file": "requirements-vercel.txt",
+        "hash": "2161257622556320417"
+      },
+      {
+        "file": "static/app.js",
+        "hash": "6852659370332832658"
+      },
+      {
+        "file": "rust/Cargo.toml",
+        "hash": "1419124716814225769"
+      },
+      {
+        "file": "docs/architecture/overview.md",
+        "hash": "14750968004568186568"
+      },
+      {
+        "file": "scripts/test_all.sh",
+        "hash": "8250668414018949166"
+      },
+      {
+        "file": "test_system.sh",
+        "hash": "4300240265089008725"
+      },
+      {
+        "file": "package-lock.json",
+        "hash": "6801485641136432455"
+      },
+      {
+        "file": "scripts/stop_health_monitoring.sh",
+        "hash": "11491881304636386336"
+      },
+      {
+        "file": "docker-compose.yml",
+        "hash": "17678720075798215263"
+      },
+      {
+        "file": "docs/_archive/static/admin_backup.html",
+        "hash": "12361298628383770914"
+      },
+      {
+        "file": "docs/_archive/static/index_imessage.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "docs/batches/BATCH_GUIDELINES.md",
+        "hash": "9701793399538783028"
+      },
+      {
+        "file": "Makefile",
+        "hash": "14046367927163875082"
+      },
+      {
+        "file": "scripts/tests/test_tools.py",
+        "hash": "3991638650155833116"
+      },
+      {
+        "file": "static/imessage_new_backup.html",
+        "hash": "13284965538775933549"
+      },
+      {
+        "file": "docs/_archive/static/index_new.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "agent/container_orchestrator.py",
+        "hash": "7792256897222884976"
+      },
+      {
+        "file": "static/index_new.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "templates/cybersec-lab.json",
+        "hash": "10871452293980666504"
+      },
+      {
+        "file": ".prettierignore",
+        "hash": "14688272390704683536"
+      },
+      {
+        "file": "templates/dev-environment.json",
+        "hash": "2384972470732999666"
+      },
+      {
+        "file": "agent/auth.py",
+        "hash": "12867861476069607124"
+      },
+      {
+        "file": "start_agent.sh",
+        "hash": "14716101041660538432"
+      },
+      {
+        "file": "agent/script_generator.py",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "rust/agent-security-tools/Cargo.toml",
+        "hash": "12719552018255348621"
+      },
+      {
+        "file": "rust/Cargo.lock",
+        "hash": "692620094066478927"
+      },
+      {
+        "file": "apps/api/src/middleware/AuthMiddleware.ts",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "scripts/health_dashboard.py",
+        "hash": "18416412518950340292"
+      },
+      {
+        "file": "static/admin.html",
+        "hash": "16688866270331341914"
+      },
+      {
+        "file": "scripts/backup.sh",
+        "hash": "8724919072896342462"
+      },
+      {
+        "file": "static/imessage_new.html",
+        "hash": "13284965538775933549"
+      },
+      {
+        "file": "nx.json",
+        "hash": "11970201138885964688"
+      },
+      {
+        "file": "agent/__init__.py",
+        "hash": "11194660121644618679"
+      },
+      {
+        "file": "scripts/tests/test_admin.py",
+        "hash": "2866095184382719867"
+      },
+      {
+        "file": ".gitignore",
+        "hash": "7619619753624788297"
+      },
+      {
+        "file": "scripts/tests/test_websocket_chat.py",
+        "hash": "8055010120934189612"
+      },
+      {
+        "file": "test_websocket.html",
+        "hash": "4330049389240676097"
+      },
+      {
+        "file": "docs/plan.kilo.md",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "maintenance/README.md",
+        "hash": "7425377575260123382"
+      },
+      {
+        "file": "agent/core.py",
+        "hash": "1442444100013916346"
+      },
+      {
+        "file": "rust/agent-performance-monitor/Cargo.toml",
+        "hash": "2739770215271940617"
+      },
+      {
+        "file": "vercel.json",
+        "hash": "13258517545886587138"
+      },
+      {
+        "file": "agent/base_classes.py",
+        "hash": "5554288223617509782"
+      },
+      {
+        "file": "agent/web_scraper.py",
+        "hash": "17106498501210863234"
+      },
+      {
+        "file": "apps/api/src/security/SecurityManager.ts",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "DEPLOYMENT_GUIDE.md",
+        "hash": "13789637155487830250"
+      },
+      {
+        "file": "scripts/README.md",
+        "hash": "1469701554338220747"
+      },
+      {
+        "file": "docs/BATCH_COMPLETION_SUMMARY.md",
+        "hash": "9576042121830437274"
+      },
+      {
+        "file": "websocket_manager.py",
+        "hash": "11728536306632821107"
+      },
+      {
+        "file": "docs/_archive/static/app.js",
+        "hash": "6852659370332832658"
+      },
+      {
+        "file": "agent/knowledge_base.py",
+        "hash": "5897364522731585094"
+      },
+      {
+        "file": "docs/patches/patch-1/IMPROVEMENT_PLAN.md",
+        "hash": "1438534058957839603"
+      },
+      {
+        "file": "static/admin_backup.html",
+        "hash": "12361298628383770914"
+      },
+      {
+        "file": "docs/architecture/maintenance_agents.md",
+        "hash": "14060552888178043775"
+      },
+      {
+        "file": "agent/domains/trader.py",
+        "hash": "7357134188687118357"
+      },
+      {
+        "file": "docs/batches/batch-1/BATCH1_SUMMARY.md",
+        "hash": "15158123289913009951"
+      },
+      {
+        "file": "knowledge_server.py",
+        "hash": "17888036474855010088"
+      },
+      {
+        "file": "enhanced_server.py",
+        "hash": "12180822460660738557"
+      },
+      {
+        "file": "tests/test_client.py",
+        "hash": "14273766023130749932"
+      },
+      {
+        "file": "static/index_imessage.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "docs/architecture/knowledge_base.md",
+        "hash": "8333743788969920525"
+      },
+      {
+        "file": "docs/_archive/static/imessage_new_backup.html",
+        "hash": "13284965538775933549"
+      },
+      {
+        "file": "scripts/build_rust.sh",
+        "hash": "9211436559071726155"
+      },
+      {
+        "file": "rust/agent-performance-monitor/src/lib.rs",
+        "hash": "10034072975565200601"
+      },
+      {
+        "file": "scripts/start_health_monitoring.sh",
+        "hash": "10362835441583065612"
+      },
+      {
+        "file": "END_GOAL.md",
+        "hash": "6441529438859439818"
+      },
+      {
+        "file": "tests/simple_test.py",
+        "hash": "14227119181489947586"
+      },
+      {
+        "file": "docs/plan.md",
+        "hash": "15546261687394385397"
+      },
+      {
+        "file": "agent/legal_fiscal_optimizer.py",
+        "hash": "9458530415521424477"
+      },
+      {
+        "file": "static/index_test.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "api/index.py",
+        "hash": "2397787775448515710"
+      },
+      {
+        "file": "agent/domains/researcher.py",
+        "hash": "6107967413141130558"
+      },
+      {
+        "file": "final_status_check.py",
+        "hash": "114141286766897167"
+      },
+      {
+        "file": "scripts/run_all_tests.py",
+        "hash": "10364873921286181593"
+      },
+      {
+        "file": "STARTUP_GUIDE.md",
+        "hash": "12859491769918548332"
+      },
+      {
+        "file": "maintenance/platform_monitor.py",
+        "hash": "14914464827301782190"
+      },
+      {
+        "file": "agent/domains/__init__.py",
+        "hash": "13660889308622648372"
+      },
+      {
+        "file": "docs/_archive/static/admin_new.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "scripts/clean_build.sh",
+        "hash": "18164363582905698109"
+      },
+      {
+        "file": "agent/knowledge_base.py.bak",
+        "hash": "5897364522731585094"
+      },
+      {
+        "file": "docs/_archive/static/README.md",
+        "hash": "14554697345360255493"
+      },
+      {
+        "file": "docs/patches/patch-1/PATCH1_CHECKLIST.md",
+        "hash": "3530297265410927680"
+      },
+      {
+        "file": "docs/_archive/static/index_test.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "docs/batches/batch-1/BATCH1_CHECKLIST.md",
+        "hash": "18079994741969165775"
+      },
+      {
+        "file": "main.py",
+        "hash": "10470824920849565466"
+      },
+      {
+        "file": "apps/api/package.json",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "config/auth_config.json",
+        "hash": "13717368229189082580"
+      },
+      {
+        "file": "docs/patches/patch-1/PATCH1_SUMMARY.md",
+        "hash": "15778173615789899716"
+      },
+      {
+        "file": "rust/agent-core-utils/Cargo.toml",
+        "hash": "14100428750346490040"
+      },
+      {
+        "file": "scripts/health_check.sh",
+        "hash": "11055662236324621985"
+      },
+      {
+        "file": "static/index.html",
+        "hash": "4317952212885892180"
+      },
+      {
+        "file": "static/admin_new.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "docs/_archive/static/index_complete_imessage.html",
+        "hash": "3244421341483603138"
+      },
+      {
+        "file": "docs/architecture/README.md",
+        "hash": "3393455199914407815"
+      },
+      {
+        "file": "docs/patches/PATCH_GUIDELINES.md",
+        "hash": "11823568649047336343"
+      },
+      {
+        "file": "maintenance/monitor_agent.py",
+        "hash": "9118654934831045623"
+      },
+      {
+        "file": "agent/trainer.py",
+        "hash": "12920839465516788976"
+      }
+    ],
+    "projectFileMap": {
+      "web": [
+        {
+          "file": "apps/web/index.html",
+          "hash": "4649019085324453432"
+        },
+        {
+          "file": "apps/web/postcss.config.js",
+          "hash": "2759402739052110475"
+        },
+        {
+          "file": "apps/web/project.json",
+          "hash": "9389150766451715719"
+        },
+        {
+          "file": "apps/web/public/favicon.ico",
+          "hash": "9303420814833116677"
+        },
+        {
+          "file": "apps/web/public/manifest.webmanifest",
+          "hash": "6930805336874782555"
+        },
+        {
+          "file": "apps/web/src/app/app.module.css",
+          "hash": "8887387885984320532"
+        },
+        {
+          "file": "apps/web/src/app/app.tsx",
+          "hash": "6450205514001309096"
+        },
+        {
+          "file": "apps/web/src/app/nx-welcome.tsx",
+          "hash": "2348102959109701629"
+        },
+        {
+          "file": "apps/web/src/assets/.gitkeep",
+          "hash": "3244421341483603138"
+        },
+        {
+          "file": "apps/web/src/db/db_config.ts",
+          "hash": "5223821863527729711"
+        },
+        {
+          "file": "apps/web/src/main.tsx",
+          "hash": "12349696355986566823"
+        },
+        {
+          "file": "apps/web/src/shared/api-client.ts",
+          "hash": "1192616438426292626"
+        },
+        {
+          "file": "apps/web/src/styles.css",
+          "hash": "9540575453073076294"
+        },
+        {
+          "file": "apps/web/tailwind.config.js",
+          "hash": "735813478554033478"
+        },
+        {
+          "file": "apps/web/tsconfig.app.json",
+          "hash": "7232119452847825095"
+        },
+        {
+          "file": "apps/web/tsconfig.json",
+          "hash": "2843773793157498944"
+        },
+        {
+          "file": "apps/web/vite.config.ts",
+          "hash": "17546183896277493107"
+        }
+      ],
+      "web-e2e": [
+        {
+          "file": "apps/web-e2e/playwright.config.ts",
+          "hash": "3014261020544714599"
+        },
+        {
+          "file": "apps/web-e2e/project.json",
+          "hash": "3329403435189996647"
+        },
+        {
+          "file": "apps/web-e2e/src/example.spec.ts",
+          "hash": "10905404376608393927"
+        },
+        {
+          "file": "apps/web-e2e/tsconfig.json",
+          "hash": "18107275616570252607"
+        }
+      ]
+    }
+  }
+}

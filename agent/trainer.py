@@ -339,6 +339,32 @@ class AGENTTrainer:
             self.logger.error(f"Error getting performance for {domain}: {e}")
             return {}
             
+    async def train_model(self, domain: str, data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Train model for specific domain with provided data"""
+        try:
+            if domain not in self.domains:
+                raise ValueError(f"Invalid domain: {domain}")
+            
+            # Add data to training set
+            self.training_data[domain].extend(data)
+            self.training_stats["domain_training_counts"][domain] += len(data)
+            
+            # Trigger retraining
+            result = await self.retrain_domain_model(domain)
+            
+            self.save_training_data()
+            
+            return {
+                "success": True,
+                "domain": domain,
+                "data_points_added": len(data),
+                "retrain_result": result
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error training model for {domain}: {e}")
+            return {"success": False, "error": str(e)}
+            
     async def rollback_model(self, domain: str, version_id: str = None):
         """Rollback domain model to previous version"""
         try:

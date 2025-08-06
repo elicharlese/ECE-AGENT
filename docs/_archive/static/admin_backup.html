@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENT Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #374151;
+        }
+        
+        /* Glass morphism effects */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-white {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Status indicators */
+        .status-online {
+            background: #10b981;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .status-warning {
+            background: #f59e0b;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+        }
+        
+        .status-error {
+            background: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .animate-pulse-custom {
+            animation: pulse 2s infinite;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* GraphQL Query Editor */
+        .query-editor {
+            font-family: 'Fira Code', 'Monaco', 'Cascadia Code', 'Consolas', monospace;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 200px;
+            resize: vertical;
+        }
+        
+        .query-editor:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Log terminal */
+        .log-terminal {
+            background: #0f172a;
+            color: #00ff41;
+            font-family: 'Monaco', 'Cascadia Code', 'Consolas', monospace;
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .log-entry {
+            margin-bottom: 4px;
+        }
+        
+        .log-entry.error {
+            color: #ff6b6b;
+        }
+        
+        .log-entry.warning {
+            color: #ffd93d;
+        }
+        
+        .log-entry.success {
+            color: #6bcf7f;
+        }
+        
+        /* Responsive grid */
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .admin-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+        
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Floating action button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .fab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="glass sticky top-0 z-50 border-b border-white/20">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-cog text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-white">AGENT Admin Panel</h1>
+                        <p class="text-blue-100 text-sm">System Management & Monitoring</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="glass px-4 py-2 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-white text-sm font-medium" id="systemStatus">System Online</span>
+                        </div>
+                    </div>
+                    <a href="/" class="glass p-2 rounded-lg hover:bg-white/20 transition-colors">
+                        <i class="fas fa-home text-white"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Key Metrics Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Domain Agents -->
+            <div class="glass-white rounded-xl p-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Domain Agents</p>
+                        <p class="text-3xl font-bold text-gray-900" id="domainAgentsCount">6</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 status-online rounded-full"></div>
+                    <span class="text-sm text-green-600 font-medium">All Active</span>
+                </div>
+            </div>
+
+            <!-- System Health -->
+            <div class="glass-white rounded-xl p-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">System Health</p>
+                        <p class="text-3xl font-bold text-gray-900" id="systemHealthPercent">98%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-heartbeat text-green-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-green-600 h-2 rounded-full" style="width: 98%" id="healthBar"></div>
+                </div>
+            </div>
+
+            <!-- Queries Today -->
+            <div class="glass-white rounded-xl p-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">Queries Today</p>
+                        <p class="text-3xl font-bold text-gray-900" id="queriesToday">847</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-comment-dots text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-arrow-up text-green-600 text-sm"></i>
+                    <span class="text-sm text-green-600 font-medium">+12% from yesterday</span>
+                </div>
+            </div>
+
+            <!-- System Uptime -->
+            <div class="glass-white rounded-xl p-6 animate-fade-in">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600 font-medium">System Uptime</p>
+                        <p class="text-3xl font-bold text-gray-900" id="systemUptime">99.8%</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-600" id="uptimeDetails">142 days, 18 hours</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard Grid -->
+        <div class="admin-grid-2 mb-8">
+            <!-- API Status Panel -->
+            <div class="glass-white rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">API Endpoints</h2>
+                    <button onclick="refreshApiStatus()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+                
+                <div class="space-y-4" id="apiEndpoints">
+                    <!-- API endpoints will be populated here -->
+                </div>
+            </div>
+
+            <!-- Health Check System -->
+            <div class="glass-white rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Health Monitoring</h2>
+                    <button onclick="runHealthCheck()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-stethoscope mr-2"></i>Run Check
+                    </button>
+                </div>
+                
+                <div class="space-y-4" id="healthChecks">
+                    <!-- Health checks will be populated here -->
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">System Metrics</h3>
+                    <div class="chart-container">
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GraphQL & System Status -->
+        <div class="admin-grid mb-8">
+            <!-- GraphQL Interface -->
+            <div class="glass-white rounded-xl p-6 lg:col-span-2">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">GraphQL Explorer</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="formatQuery()" class="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-code mr-2"></i>Format
+                        </button>
+                        <button onclick="executeQuery()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-play mr-2"></i>Execute
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Query</label>
+                        <textarea 
+                            id="graphqlQuery" 
+                            class="query-editor w-full"
+                            placeholder="Enter your GraphQL query here...">{
+  knowledgeBase {
+    domains {
+      name
+      agentCount
+      lastUpdated
+    }
+    totalEntries
+    searchIndex {
+      status
+      lastIndexed
+    }
+  }
+  systemStatus {
+    uptime
+    health
+    version
+    activeConnections
+  }
+}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Response</label>
+                        <div id="graphqlResponse" class="query-editor w-full min-h-[200px] overflow-auto">
+                            <em class="text-gray-400">Execute a query to see results...</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="glass-white rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">System Status</h2>
+                
+                <div class="space-y-4" id="systemStatusDetails">
+                    <!-- System status details will be populated here -->
+                </div>
+                
+                <div class="mt-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-3">Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Logs & Agent Status -->
+        <div class="admin-grid">
+            <!-- Live System Logs -->
+            <div class="glass-white rounded-xl p-6 lg:col-span-2">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">Live System Logs</h2>
+                    <div class="flex space-x-2">
+                        <button onclick="clearLogs()" class="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Clear
+                        </button>
+                        <button onclick="pauseLogs()" class="px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors" id="pauseBtn">
+                            <i class="fas fa-pause mr-2"></i>Pause
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="liveLogs" class="log-terminal">
+                    <div class="log-entry">[12:34:56] System initialized</div>
+                    <div class="log-entry success">[12:35:01] All agents online</div>
+                    <div class="log-entry">[12:35:15] Health check passed</div>
+                    <div class="log-entry warning">[12:35:30] High memory usage detected</div>
+                </div>
+            </div>
+
+            <!-- Agent Status -->
+            <div class="glass-white rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Agent Status</h2>
+                
+                <div class="space-y-3" id="agentStatuses">
+                    <!-- Agent statuses will be populated here -->
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <button onclick="restartAllAgents()" class="w-full px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
+                        <i class="fas fa-redo mr-2"></i>Restart All Agents
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <div class="fab" onclick="toggleFullscreen()">
+        <i class="fas fa-expand-arrows-alt"></i>
+    </div>
+
+    <script>
+        class AdminDashboard {
+            constructor() {
+                this.logsPaused = false;
+                this.updateInterval = null;
+                this.charts = {};
+                
+                this.init();
+            }
+
+            async init() {
+                await this.loadInitialData();
+                this.setupCharts();
+                this.startRealTimeUpdates();
+                this.populateApiEndpoints();
+                this.populateHealthChecks();
+                this.populateAgentStatuses();
+                this.populateSystemStatus();
+            }
+
+            async loadInitialData() {
+                try {
+                    // Load system stats
+                    const response = await fetch('/health');
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        this.updateSystemHealth(100);
+                    } else {
+                        this.updateSystemHealth(75);
+                    }
+                } catch (error) {
+                    console.error('Failed to load initial data:', error);
+                    this.updateSystemHealth(0);
+                }
+            }
+
+            setupCharts() {
+                // Metrics Chart
+                const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+                this.charts.metrics = new Chart(metricsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1h', '2h', '3h', '4h', '5h', '6h'],
+                        datasets: [{
+                            label: 'Response Time (ms)',
+                            data: [120, 110, 140, 130, 125, 135],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Performance Chart
+                const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+                this.charts.performance = new Chart(performanceCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['CPU', 'Memory', 'Disk', 'Network'],
+                        datasets: [{
+                            data: [45, 62, 28, 35],
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            populateApiEndpoints() {
+                const endpoints = [
+                    { name: '/health', status: 'online', responseTime: '12ms' },
+                    { name: '/query', status: 'online', responseTime: '145ms' },
+                    { name: '/multi-model-query', status: 'online', responseTime: '234ms' },
+                    { name: '/docs', status: 'online', responseTime: '8ms' },
+                    { name: '/knowledge/graphql', status: 'online', responseTime: '67ms' },
+                    { name: '/training/stats', status: 'online', responseTime: '89ms' }
+                ];
+
+                const container = document.getElementById('apiEndpoints');
+                container.innerHTML = endpoints.map(endpoint => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 ${endpoint.status === 'online' ? 'status-online' : 'status-error'} rounded-full"></div>
+                            <span class="font-medium text-gray-900">${endpoint.name}</span>
+                            <span class="text-sm text-gray-500">${endpoint.responseTime}</span>
+                        </div>
+                        <span class="text-sm font-medium ${endpoint.status === 'online' ? 'text-green-600' : 'text-red-600'}">${endpoint.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            populateHealthChecks() {
+                const healthChecks = [
+                    { name: 'Database Connection', status: 'healthy', lastCheck: '2 minutes ago' },
+                    { name: 'API Response Times', status: 'healthy', lastCheck: '1 minute ago' },
+                    { name: 'Memory Usage', status: 'warning', lastCheck: '30 seconds ago' },
+                    { name: 'Disk Space', status: 'healthy', lastCheck: '5 minutes ago' },
+                    { name: 'WebSocket Connections', status: 'healthy', lastCheck: '1 minute ago' }
+                ];
+
+                const container = document.getElementById('healthChecks');
+                container.innerHTML = healthChecks.map(check => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 ${
+                                check.status === 'healthy' ? 'status-online' : 
+                                check.status === 'warning' ? 'status-warning' : 'status-error'
+                            } rounded-full"></div>
+                            <span class="font-medium text-gray-900">${check.name}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-medium ${
+                                check.status === 'healthy' ? 'text-green-600' : 
+                                check.status === 'warning' ? 'text-yellow-600' : 'text-red-600'
+                            }">${check.status}</div>
+                            <div class="text-xs text-gray-500">${check.lastCheck}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            populateAgentStatuses() {
+                const agents = [
+                    { name: 'General Agent', status: 'active', queries: 156, avgResponse: '120ms' },
+                    { name: 'Developer Agent', status: 'active', queries: 234, avgResponse: '180ms' },
+                    { name: 'Trader Agent', status: 'active', queries: 89, avgResponse: '95ms' },
+                    { name: 'Lawyer Agent', status: 'active', queries: 67, avgResponse: '200ms' },
+                    { name: 'Researcher Agent', status: 'active', queries: 145, avgResponse: '160ms' },
+                    { name: 'Data Engineer Agent', status: 'active', queries: 156, avgResponse: '140ms' }
+                ];
+
+                const container = document.getElementById('agentStatuses');
+                container.innerHTML = agents.map(agent => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-3 h-3 status-online rounded-full"></div>
+                            <div>
+                                <div class="font-medium text-gray-900">${agent.name}</div>
+                                <div class="text-xs text-gray-500">${agent.queries} queries • ${agent.avgResponse}</div>
+                            </div>
+                        </div>
+                        <span class="text-sm font-medium text-green-600">${agent.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            populateSystemStatus() {
+                const statusItems = [
+                    { name: 'API Server', status: 'Running', value: 'Port 8000' },
+                    { name: 'WebSocket Server', status: 'Running', value: '15 connections' },
+                    { name: 'Multi-Model Router', status: 'Active', value: '5 models' },
+                    { name: 'Vector Database', status: 'Connected', value: '1.2M vectors' },
+                    { name: 'Redis Cache', status: 'Connected', value: '98% hit rate' },
+                    { name: 'Plugin System', status: 'Loaded', value: '8 plugins' }
+                ];
+
+                const container = document.getElementById('systemStatusDetails');
+                container.innerHTML = statusItems.map(item => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-900">${item.name}</div>
+                            <div class="text-sm text-gray-500">${item.value}</div>
+                        </div>
+                        <span class="text-sm font-medium text-green-600">${item.status}</span>
+                    </div>
+                `).join('');
+            }
+
+            updateSystemHealth(percentage) {
+                document.getElementById('systemHealthPercent').textContent = `${percentage}%`;
+                document.getElementById('healthBar').style.width = `${percentage}%`;
+                
+                const healthBar = document.getElementById('healthBar');
+                if (percentage >= 90) {
+                    healthBar.className = 'bg-green-600 h-2 rounded-full';
+                } else if (percentage >= 70) {
+                    healthBar.className = 'bg-yellow-600 h-2 rounded-full';
+                } else {
+                    healthBar.className = 'bg-red-600 h-2 rounded-full';
+                }
+            }
+
+            startRealTimeUpdates() {
+                this.updateInterval = setInterval(() => {
+                    this.updateQueriesToday();
+                    this.updateUptime();
+                    this.addRandomLogEntry();
+                }, 5000);
+            }
+
+            updateQueriesToday() {
+                const current = parseInt(document.getElementById('queriesToday').textContent);
+                document.getElementById('queriesToday').textContent = current + Math.floor(Math.random() * 5);
+            }
+
+            updateUptime() {
+                const uptimeElement = document.getElementById('uptimeDetails');
+                const current = uptimeElement.textContent;
+                // In a real implementation, this would be calculated from server start time
+            }
+
+            addRandomLogEntry() {
+                if (this.logsPaused) return;
+
+                const logTypes = ['info', 'success', 'warning', 'error'];
+                const messages = [
+                    'Query processed successfully',
+                    'New agent connection established',
+                    'Cache hit ratio: 98.2%',
+                    'Model inference completed',
+                    'WebSocket connection opened',
+                    'Health check passed',
+                    'Memory usage: 76%',
+                    'Database query executed'
+                ];
+
+                const logType = logTypes[Math.floor(Math.random() * logTypes.length)];
+                const message = messages[Math.floor(Math.random() * messages.length)];
+                const timestamp = new Date().toLocaleTimeString();
+
+                const logsContainer = document.getElementById('liveLogs');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${logType}`;
+                logEntry.textContent = `[${timestamp}] ${message}`;
+
+                logsContainer.appendChild(logEntry);
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+
+                // Keep only last 100 entries
+                const entries = logsContainer.children;
+                if (entries.length > 100) {
+                    logsContainer.removeChild(entries[0]);
+                }
+            }
+        }
+
+        // Global functions
+        async function refreshApiStatus() {
+            // Simulate API refresh
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i>Refreshing...';
+            button.disabled = true;
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                dashboard.populateApiEndpoints();
+            }, 2000);
+        }
+
+        async function runHealthCheck() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i>Checking...';
+            button.disabled = true;
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                dashboard.populateHealthChecks();
+            }, 3000);
+        }
+
+        function executeQuery() {
+            const query = document.getElementById('graphqlQuery').value;
+            const responseDiv = document.getElementById('graphqlResponse');
+            
+            responseDiv.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i>Executing query...';
+            
+            // Simulate GraphQL execution
+            setTimeout(() => {
+                const mockResponse = {
+                    data: {
+                        knowledgeBase: {
+                            domains: [
+                                { name: "general", agentCount: 1, lastUpdated: "2024-01-15T12:30:00Z" },
+                                { name: "developer", agentCount: 1, lastUpdated: "2024-01-15T12:25:00Z" },
+                                { name: "trader", agentCount: 1, lastUpdated: "2024-01-15T12:20:00Z" }
+                            ],
+                            totalEntries: 15420,
+                            searchIndex: {
+                                status: "active",
+                                lastIndexed: "2024-01-15T12:00:00Z"
+                            }
+                        },
+                        systemStatus: {
+                            uptime: "142 days, 18 hours",
+                            health: "healthy",
+                            version: "3.0.0",
+                            activeConnections: 15
+                        }
+                    }
+                };
+                
+                responseDiv.textContent = JSON.stringify(mockResponse, null, 2);
+            }, 1500);
+        }
+
+        function formatQuery() {
+            const queryTextarea = document.getElementById('graphqlQuery');
+            try {
+                // Basic formatting - in real implementation, use a proper GraphQL formatter
+                const formatted = queryTextarea.value
+                    .replace(/\s+/g, ' ')
+                    .replace(/{\s*/g, '{\n  ')
+                    .replace(/}\s*/g, '\n}')
+                    .replace(/,\s*/g, ',\n  ');
+                queryTextarea.value = formatted;
+            } catch (error) {
+                console.error('Failed to format query:', error);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('liveLogs').innerHTML = '';
+        }
+
+        function pauseLogs() {
+            const button = document.getElementById('pauseBtn');
+            dashboard.logsPaused = !dashboard.logsPaused;
+            
+            if (dashboard.logsPaused) {
+                button.innerHTML = '<i class="fas fa-play mr-2"></i>Resume';
+                button.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                button.innerHTML = '<i class="fas fa-pause mr-2"></i>Pause';
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+            }
+        }
+
+        function restartAllAgents() {
+            if (confirm('Are you sure you want to restart all agents? This may cause temporary service interruption.')) {
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-sync-alt fa-spin mr-2"></i>Restarting...';
+                button.disabled = true;
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                    dashboard.populateAgentStatuses();
+                }, 5000);
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Initialize dashboard
+        const dashboard = new AdminDashboard();
+    </script>
+</body>
+</html>

@@ -162,7 +162,7 @@ class EnhancedAgentBase(ABC):
         
         # Determine complexity
         complexity = "simple"
-        if len(query.split()) > 20 or "?" in query.count("?") > 1:
+        if len(query.split()) > 20 or query.count("?") > 1:
             complexity = "complex"
         elif any(word in query_lower for word in ["comprehensive", "detailed", "thorough"]):
             complexity = "detailed"

@@ -28,10 +28,27 @@ app = FastAPI(
     description="Production deployment of the Enhanced AGENT System",
     version="2.0.0",
     docs_url="/docs",
+    openapi_url="/openapi.json",
     redoc_url="/redoc"
 )
 
-# Configure CORS
+# Mount static files directory
+app.mount("/static", StaticFiles(directory=str(project_root / "static")), name="static")
+
+# Serve static files from root
+@app.get("/{full_path:path}")
+async def serve_static(full_path: str):
+    # Try to serve the requested file
+    static_path = project_root / "static" / full_path
+    if static_path.is_file():
+        with open(static_path, 'r') as f:
+            return Response(content=f.read(), media_type="text/html")
+    
+    # For any other path, serve the main index.html (SPA support)
+    with open(project_root / "static" / "index.html", 'r') as f:
+        return HTMLResponse(content=f.read())
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

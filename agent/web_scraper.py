@@ -130,6 +130,10 @@ class WebScraper:
         
         return text.strip()
     
+    async def scrape_url(self, url: str) -> Optional[Dict[str, Any]]:
+        """Scrape content from a single URL"""
+        return await self._scrape_url(url)
+    
     async def close(self):
         """Close the aiohttp session"""
         if self.session and not self.session.closed:
