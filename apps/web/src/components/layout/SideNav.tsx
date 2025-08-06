@@ -14,21 +14,24 @@ const defaultItems: SideNavProps['items'] = [
 
 export const SideNav: React.FC<SideNavProps> = ({ items = defaultItems, footer }) => {
   return (
-    <nav className="h-[calc(100vh-3.5rem)] overflow-y-auto p-3 bg-white">
+    <nav className="h-[calc(100vh-3.5rem)] overflow-y-auto p-s bg-white">
       <ul className="space-y-1">
         {items.map((it) => (
           <li key={it.href}>
             <a
               href={it.href}
-              className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 radius-8"
+              className="flex items-center justify-between px-s py-s text-sm-var text-gray-700 hover:bg-gray-50 radius-8"
             >
-              <span>{it.label}</span>
-              <span aria-hidden className="text-gray-400">›</span>
+              <span className="flex items-center gap-s">
+                {it.icon ?? null}
+                {it.label}
+              </span>
+              {it.trailing ?? null}
             </a>
           </li>
         ))}
       </ul>
-      {footer ? <div className="mt-4">{footer}</div> : null}
+      {footer ? <div className="mt-s">{footer}</div> : null}
     </nav>
   );
 };
