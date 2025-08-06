@@ -1,9 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
+import Alert from '../components/ui/Alert';
+import Skeleton from '../components/ui/Skeleton';
+import LoadingOverlay from '../components/ui/LoadingOverlay';
 import { Shell } from '../components/layout/Shell';
 import { PageHeader } from '../components/layout/PageHeader';
 
-const Auth: React.FC = () => {
-  const [mode, setMode] = React.useState<'signin' | 'signup' | 'reset'>('signin');
+export default function Auth() {
+  const [mode, setMode] = useState<'signin' | 'signup' | 'reset'>('signin');
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setErrorMsg(null);
+    setInfoMsg(null);
+    setTimeout(() => {
+      setSubmitting(false);
+      if (mode === 'reset') {
+        setInfoMsg('If an account exists for that email, a reset link has been sent.');
+      } else {
+        // Simulate random failure for demo
+        const ok = Math.random() > 0.4;
+        if (!ok) {
+          setErrorMsg('Invalid credentials or network error. Please try again.');
+        } else {
+          setInfoMsg(mode === 'signup' ? 'Account created. You can now sign in.' : 'Signed in successfully.');
+        }
+      }
+    }, 1200);
+  }
 
   return (
     <Shell title="Auth">
@@ -13,86 +40,105 @@ const Auth: React.FC = () => {
         breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Auth' }]}
       />
 
-      <div className="mx-auto max-w-md bg-white radius-8 elev-sm border border-gray-100 p-6">
-        <div className="flex items-center gap-2 mb-4">
+      <div className="relative max-w-md mx-auto">
+        {/* Mode switches */}
+        <div className="mb-4 flex items-center gap-2">
           <button
-            className={`px-3 py-2 text-sm radius-8 ${mode === 'signin' ? 'bg-gray-900 text-white elev-sm' : 'border border-gray-300 bg-white'}`}
+            className={`px-3 py-1.5 rounded-md text-sm ${mode === 'signin' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
             onClick={() => setMode('signin')}
+            disabled={submitting}
           >
             Sign in
           </button>
           <button
-            className={`px-3 py-2 text-sm radius-8 ${mode === 'signup' ? 'bg-gray-900 text-white elev-sm' : 'border border-gray-300 bg-white'}`}
+            className={`px-3 py-1.5 rounded-md text-sm ${mode === 'signup' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
             onClick={() => setMode('signup')}
+            disabled={submitting}
           >
             Sign up
           </button>
           <button
-            className={`px-3 py-2 text-sm radius-8 ${mode === 'reset' ? 'bg-gray-900 text-white elev-sm' : 'border border-gray-300 bg-white'}`}
+            className={`px-3 py-1.5 rounded-md text-sm ${mode === 'reset' ? 'bg-blue-600 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
             onClick={() => setMode('reset')}
+            disabled={submitting}
           >
             Reset
           </button>
         </div>
 
-        {mode === 'signin' && (
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Email</label>
-              <input type="email" className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="you@company.com" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Password</label>
-              <input type="password" className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="••••••••" />
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input type="checkbox" className="accent-gray-900" />
-                Remember me
-              </label>
-              <button type="button" className="text-sm text-gray-700 underline" onClick={() => setMode('reset')}>
-                Forgot password?
-              </button>
-            </div>
-            <button type="submit" className="w-full px-3 py-2 text-sm bg-gray-900 text-white radius-8 elev-sm">Sign in</button>
-          </form>
+        {/* Alerts */}
+        {infoMsg && (
+          <Alert
+            variant="success"
+            title="Success"
+            description={infoMsg}
+            className="mb-3"
+          />
+        )}
+        {errorMsg && (
+          <Alert
+            variant="error"
+            title="Authentication error"
+            description={errorMsg}
+            className="mb-3"
+          />
         )}
 
-        {mode === 'signup' && (
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Full name</label>
-              <input className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="Jane Doe" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Email</label>
-              <input type="email" className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="you@company.com" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Password</label>
-              <input type="password" className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="••••••••" />
-            </div>
-            <button type="submit" className="w-full px-3 py-2 text-sm bg-gray-900 text-white radius-8 elev-sm">Create account</button>
-          </form>
-        )}
+        {/* Auth card */}
+        <div className="relative border rounded-md radius-8 elev-sm bg-white p-4">
+          <LoadingOverlay show={submitting} label={mode === 'reset' ? 'Sending reset link…' : 'Signing in…'} />
 
-        {mode === 'reset' && (
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Email</label>
-              <input type="email" className="w-full px-3 py-2 text-sm border border-gray-300 bg-white radius-8" placeholder="you@company.com" />
+          {/* Use skeletons to indicate form loading */}
+          {submitting ? (
+            <div className="space-y-3">
+              <Skeleton lineHeightClass="h-6" />
+              <Skeleton lineHeightClass="h-10" rounded="radius-8" />
+              {mode !== 'reset' && (
+                <>
+                  <Skeleton lineHeightClass="h-6" />
+                  <Skeleton lineHeightClass="h-10" rounded="radius-8" />
+                </>
+              )}
+              {mode === 'signup' && (
+                <>
+                  <Skeleton lineHeightClass="h-6" />
+                  <Skeleton lineHeightClass="h-10" rounded="radius-8" />
+                </>
+              )}
+              <Skeleton lineHeightClass="h-10" rounded="radius-8" />
             </div>
-            <button type="submit" className="w-full px-3 py-2 text-sm bg-gray-900 text-white radius-8 elev-sm">Send reset link</button>
-            <div className="text-center">
-              <button type="button" className="text-sm text-gray-700 underline" onClick={() => setMode('signin')}>
-                Back to sign in
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input type="email" required className="w-full border rounded-md px-3 py-2" />
+              </div>
+
+              {mode !== 'reset' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Password</label>
+                  <input type="password" required className="w-full border rounded-md px-3 py-2" />
+                </div>
+              )}
+
+              {mode === 'signup' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Confirm password</label>
+                  <input type="password" required className="w-full border rounded-md px-3 py-2" />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full px-3 py-2 rounded-md bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {mode === 'reset' ? 'Send reset link' : mode === 'signup' ? 'Create account' : 'Sign in'}
               </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </Shell>
   );
-};
-
-export default Auth;
+}
