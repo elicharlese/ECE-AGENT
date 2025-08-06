@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spline Designer - AGENT</title>
+    <style>
+        .designer-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 250px;
+            grid-template-rows: 60px 1fr 40px;
+            height: 100vh;
+            gap: 1px;
+            background: #1a1a1a;
+        }
+        
+        .designer-header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+        }
+        
+        .designer-toolbar {
+            background: #2d2d2d;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .designer-canvas {
+            background: #1e1e1e;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .designer-properties {
+            background: #2d2d2d;
+            padding: 15px;
+            overflow-y: auto;
+        }
+        
+        .designer-status {
+            grid-column: 1 / -1;
+            background: #333;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: #ccc;
+            font-size: 12px;
+        }
+        
+        .tool-section {
+            margin-bottom: 20px;
+        }
+        
+        .tool-section h3 {
+            color: #00ff88;
+            font-size: 14px;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tool-button {
+            display: block;
+            width: 100%;
+            background: #444;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+        
+        .tool-button:hover {
+            background: #00ff88;
+            color: #1a1a1a;
+        }
+        
+        .tool-button.active {
+            background: #00ff88;
+            color: #1a1a1a;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas3d {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .canvas-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        
+        .canvas-controls {
+            background: rgba(45, 45, 45, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            pointer-events: auto;
+        }
+        
+        .prompt-input {
+            width: 100%;
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #1a1a1a;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .property-group {
+            margin-bottom: 20px;
+        }
+        
+        .property-group h4 {
+            color: #00d4ff;
+            font-size: 12px;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+        }
+        
+        .property-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .property-label {
+            color: #ccc;
+            font-size: 11px;
+            width: 80px;
+            flex-shrink: 0;
+        }
+        
+        .property-input {
+            flex: 1;
+            background: #444;
+            color: white;
+            border: 1px solid #666;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+        
+        .color-picker {
+            width: 30px;
+            height: 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .suggestions-panel {
+            background: rgba(45, 45, 45, 0.95);
+            border-radius: 8px;
+            padding: 15px;
+            max-width: 300px;
+        }
+        
+        .suggestion-item {
+            background: #444;
+            color: #ccc;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background: #00ff88;
+            color: #1a1a1a;
+        }
+        
+        .code-viewer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(30, 30, 30, 0.95);
+            color: #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 400px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            display: none;
+        }
+        
+        .quality-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        
+        .quality-high { background: #00ff88; }
+        .quality-medium { background: #ffd700; }
+        .quality-low { background: #ff6b6b; }
+        
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #444;
+            border-top: 2px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .scene-history {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            background: #444;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .history-item:hover {
+            background: #555;
+        }
+        
+        .history-item.active {
+            background: #00ff88;
+            color: #1a1a1a;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div class="designer-layout">
+        <!-- Header -->
+        <div class="designer-header">
+            <h1>🎨 Spline Designer</h1>
+            <div class="loading-spinner" id="loadingSpinner"></div>
+            <div style="margin-left: auto; display: flex; align-items: center;">
+                <span id="qualityIndicator">Quality Score: <span id="qualityScore">--</span></span>
+                <div class="quality-indicator quality-medium" id="qualityDot"></div>
+            </div>
+        </div>
+        
+        <!-- Left Toolbar -->
+        <div class="designer-toolbar">
+            <div class="tool-section">
+                <h3>🎯 Scene Generation</h3>
+                <textarea class="prompt-input" id="scenePrompt" placeholder="Describe your 3D scene... e.g., 'floating cube with neon lighting and smooth rotation'"></textarea>
+                <button class="generate-btn" onclick="generateScene()">
+                    ✨ Generate Scene
+                </button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🔧 Quick Tools</h3>
+                <button class="tool-button" onclick="addObject('cube')">📦 Add Cube</button>
+                <button class="tool-button" onclick="addObject('sphere')">⚪ Add Sphere</button>
+                <button class="tool-button" onclick="addObject('cylinder')">🔵 Add Cylinder</button>
+                <button class="tool-button" onclick="addObject('text')">📝 Add Text</button>
+                <button class="tool-button" onclick="addLighting()">💡 Add Lighting</button>
+                <button class="tool-button" onclick="addAnimation()">🔄 Add Animation</button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>🎨 Styles</h3>
+                <button class="tool-button" onclick="setStyle('modern')">Modern</button>
+                <button class="tool-button" onclick="setStyle('classic')">Classic</button>
+                <button class="tool-button" onclick="setStyle('neon')">Neon</button>
+                <button class="tool-button" onclick="setStyle('minimal')">Minimal</button>
+            </div>
+            
+            <div class="tool-section">
+                <h3>📚 History</h3>
+                <div class="scene-history" id="sceneHistory">
+                    <!-- Scene history will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Canvas -->
+        <div class="designer-canvas">
+            <div class="canvas-container">
+                <canvas id="canvas3d"></canvas>
+                
+                <!-- Canvas Overlay -->
+                <div class="canvas-overlay">
+                    <div class="suggestions-panel" id="suggestionsPanel" style="display: none;">
+                        <h4 style="color: #00ff88; margin: 0 0 10px 0;">💡 Suggestions</h4>
+                        <div id="suggestionsList"></div>
+                    </div>
+                    
+                    <div class="canvas-controls">
+                        <button onclick="resetCamera()" style="background: #444; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-right: 5px;">🎥 Reset Camera</button>
+                        <button onclick="toggleCodeViewer()" style="background: #444; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-right: 5px;">📄 View Code</button>
+                        <button onclick="exportScene()" style="background: #444; color: white; border: none; padding: 5px 10px; border-radius: 3px;">💾 Export</button>
+                    </div>
+                </div>
+                
+                <!-- Code Viewer -->
+                <div class="code-viewer" id="codeViewer">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h4 style="color: #00ff88; margin: 0;">Generated Code</h4>
+                        <button onclick="toggleCodeViewer()" style="background: none; border: none; color: #ccc; cursor: pointer;">✕</button>
+                    </div>
+                    <pre id="codeContent">// Code will appear here...</pre>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Properties Panel -->
+        <div class="designer-properties">
+            <div class="property-group">
+                <h4>🎯 Object Properties</h4>
+                <div class="property-item">
+                    <span class="property-label">Position X:</span>
+                    <input type="range" class="property-input" min="-10" max="10" value="0" step="0.1" onchange="updateObjectProperty('position', 'x', this.value)">
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Position Y:</span>
+                    <input type="range" class="property-input" min="-10" max="10" value="0" step="0.1" onchange="updateObjectProperty('position', 'y', this.value)">
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Position Z:</span>
+                    <input type="range" class="property-input" min="-10" max="10" value="0" step="0.1" onchange="updateObjectProperty('position', 'z', this.value)">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>🎨 Material Properties</h4>
+                <div class="property-item">
+                    <span class="property-label">Color:</span>
+                    <input type="color" class="color-picker" value="#00ff88" onchange="updateMaterialProperty('color', this.value)">
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Metalness:</span>
+                    <input type="range" class="property-input" min="0" max="1" value="0.5" step="0.01" onchange="updateMaterialProperty('metalness', this.value)">
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Roughness:</span>
+                    <input type="range" class="property-input" min="0" max="1" value="0.3" step="0.01" onchange="updateMaterialProperty('roughness', this.value)">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>💡 Lighting</h4>
+                <div class="property-item">
+                    <span class="property-label">Intensity:</span>
+                    <input type="range" class="property-input" min="0" max="2" value="1" step="0.1" onchange="updateLighting('intensity', this.value)">
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Light Color:</span>
+                    <input type="color" class="color-picker" value="#ffffff" onchange="updateLighting('color', this.value)">
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>🔄 Animation</h4>
+                <div class="property-item">
+                    <span class="property-label">Rotation Speed:</span>
+                    <input type="range" class="property-input" min="0" max="0.1" value="0.01" step="0.001" onchange="updateAnimation('rotationSpeed', this.value)">
+                </div>
+                <div class="property-item">
+                    <button class="tool-button" onclick="toggleAnimation()">⏯️ Toggle Animation</button>
+                </div>
+            </div>
+            
+            <div class="property-group">
+                <h4>📊 Training Stats</h4>
+                <div id="trainingStats" style="color: #ccc; font-size: 11px;">
+                    Loading stats...
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="designer-status">
+            <span id="statusText">Ready to create amazing 3D scenes...</span>
+            <div style="margin-left: auto;">
+                <span>Scenes Generated: <span id="sceneCount">0</span></span>
+                <span style="margin-left: 20px;">AGENT v2.0 - Spline Designer Mode</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Spline Designer Controller
+        class SplineDesignerController {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.animationId = null;
+                this.currentObjects = [];
+                this.currentStyle = 'modern';
+                this.sceneHistory = [];
+                this.currentCode = '';
+                this.animationEnabled = true;
+                this.rotationSpeed = 0.01;
+                
+                this.initThreeJS();
+                this.initEventListeners();
+                this.loadTrainingStats();
+                this.showWelcomeScene();
+            }
+            
+            initThreeJS() {
+                // Create scene
+                this.scene = new THREE.Scene();
+                this.scene.background = new THREE.Color(0x1a1a1a);
+                
+                // Create camera
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(5, 5, 5);
+                
+                // Create renderer
+                const canvas = document.getElementById('canvas3d');
+                this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                this.renderer.setSize(canvas.offsetWidth, canvas.offsetHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                
+                // Create controls
+                this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.minDistance = 2;
+                this.controls.maxDistance = 50;
+                
+                // Start animation loop
+                this.animate();
+                
+                // Handle resize
+                window.addEventListener('resize', () => this.handleResize());
+            }
+            
+            initEventListeners() {
+                // Prompt input suggestions
+                const promptInput = document.getElementById('scenePrompt');
+                promptInput.addEventListener('input', () => this.showSuggestions(promptInput.value));
+                promptInput.addEventListener('focus', () => this.showSuggestions(promptInput.value));
+                promptInput.addEventListener('blur', () => {
+                    setTimeout(() => document.getElementById('suggestionsPanel').style.display = 'none', 200);
+                });
+            }
+            
+            showWelcomeScene() {
+                // Create a simple welcome scene
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0x00ff88,
+                    metalness: 0.8,
+                    roughness: 0.2,
+                    clearcoat: 1.0
+                });
+                
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.y = 1;
+                cube.castShadow = true;
+                cube.userData = { type: 'cube', canRotate: true };
+                this.scene.add(cube);
+                this.currentObjects.push(cube);
+                
+                // Add ground
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x2c3e50 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                this.scene.add(ground);
+                
+                // Add lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                this.scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(10, 10, 5);
+                directionalLight.castShadow = true;
+                this.scene.add(directionalLight);
+                
+                this.updateStatus('Welcome to Spline Designer! Try generating a scene...');
+            }
+            
+            async generateScene() {
+                const prompt = document.getElementById('scenePrompt').value.trim();
+                if (!prompt) {
+                    this.updateStatus('Please enter a scene description');
+                    return;
+                }
+                
+                this.showLoading(true);
+                this.updateStatus('Generating 3D scene...');
+                
+                try {
+                    const response = await fetch('/api/spline/generate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            description: prompt,
+                            style: this.currentStyle
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        this.clearScene();
+                        this.executeSceneCode(result.scene.code);
+                        this.currentCode = result.scene.code;
+                        this.updateQualityScore(result.quality_score);
+                        this.addToHistory(prompt, result.scene.id, result.quality_score);
+                        this.updateStatus(`Scene generated successfully! Quality: ${(result.quality_score * 100).toFixed(0)}%`);
+                        document.getElementById('sceneCount').textContent = this.sceneHistory.length;
+                    } else {
+                        this.updateStatus(`Generation failed: ${result.error}`);
+                    }
+                } catch (error) {
+                    console.error('Generation error:', error);
+                    this.updateStatus('Failed to generate scene - check connection');
+                }
+                
+                this.showLoading(false);
+            }
+            
+            clearScene() {
+                // Remove all objects except lights and ground
+                const objectsToRemove = [];
+                this.scene.traverse((object) => {
+                    if (object.isMesh && object.userData.type !== 'ground') {
+                        objectsToRemove.push(object);
+                    }
+                });
+                
+                objectsToRemove.forEach(object => {
+                    this.scene.remove(object);
+                    if (object.geometry) object.geometry.dispose();
+                    if (object.material) {
+                        if (Array.isArray(object.material)) {
+                            object.material.forEach(mat => mat.dispose());
+                        } else {
+                            object.material.dispose();
+                        }
+                    }
+                });
+                
+                this.currentObjects = [];
+            }
+            
+            executeSceneCode(code) {
+                try {
+                    // This is a simplified execution - in production, you'd want a safer eval alternative
+                    // For demo purposes, we'll parse the code and extract object creation commands
+                    this.parseAndExecuteCode(code);
+                } catch (error) {
+                    console.error('Code execution error:', error);
+                    this.updateStatus('Error executing generated code');
+                }
+            }
+            
+            parseAndExecuteCode(code) {
+                // Simple parser for demo - in production, use a proper AST parser
+                const lines = code.split('\n');
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    
+                    // Parse object creation
+                    if (line.includes('new THREE.Mesh')) {
+                        // Extract geometry and material info
+                        if (line.includes('BoxGeometry')) {
+                            this.createCubeFromCode(line);
+                        } else if (line.includes('SphereGeometry')) {
+                            this.createSphereFromCode(line);
+                        } else if (line.includes('CylinderGeometry')) {
+                            this.createCylinderFromCode(line);
+                        }
+                    }
+                    
+                    // Parse lighting
+                    if (line.includes('new THREE.DirectionalLight') || line.includes('new THREE.PointLight')) {
+                        this.createLightFromCode(line);
+                    }
+                }
+            }
+            
+            createCubeFromCode(codeLine) {
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0x00ff88,
+                    metalness: 0.8,
+                    roughness: 0.2
+                });
+                
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.set(Math.random() * 4 - 2, 1, Math.random() * 4 - 2);
+                cube.castShadow = true;
+                cube.userData = { type: 'cube', canRotate: true };
+                this.scene.add(cube);
+                this.currentObjects.push(cube);
+            }
+            
+            createSphereFromCode(codeLine) {
+                const geometry = new THREE.SphereGeometry(1.5, 32, 32);
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: 0x00d4ff,
+                    metalness: 0.3,
+                    roughness: 0.4
+                });
+                
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(Math.random() * 4 - 2, 1.5, Math.random() * 4 - 2);
+                sphere.castShadow = true;
+                sphere.userData = { type: 'sphere', canFloat: true };
+                this.scene.add(sphere);
+                this.currentObjects.push(sphere);
+            }
+            
+            animate() {
+                this.animationId = requestAnimationFrame(() => this.animate());
+                
+                if (this.animationEnabled) {
+                    this.currentObjects.forEach(object => {
+                        if (object.userData.canRotate) {
+                            object.rotation.x += this.rotationSpeed;
+                            object.rotation.y += this.rotationSpeed;
+                        }
+                        
+                        if (object.userData.canFloat) {
+                            const time = Date.now() * 0.001;
+                            object.position.y = Math.sin(time) * 0.5 + 1.5;
+                        }
+                    });
+                }
+                
+                this.controls.update();
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            async showSuggestions(partial) {
+                if (partial.length < 2) {
+                    document.getElementById('suggestionsPanel').style.display = 'none';
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/spline/suggestions?partial=${encodeURIComponent(partial)}`);
+                    const suggestions = await response.json();
+                    
+                    const panel = document.getElementById('suggestionsPanel');
+                    const list = document.getElementById('suggestionsList');
+                    
+                    list.innerHTML = '';
+                    suggestions.slice(0, 5).forEach(suggestion => {
+                        const item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.textContent = suggestion;
+                        item.onclick = () => {
+                            document.getElementById('scenePrompt').value = suggestion;
+                            panel.style.display = 'none';
+                        };
+                        list.appendChild(item);
+                    });
+                    
+                    panel.style.display = 'block';
+                } catch (error) {
+                    console.error('Suggestions error:', error);
+                }
+            }
+            
+            addToHistory(description, sceneId, quality) {
+                const historyItem = {
+                    description,
+                    sceneId,
+                    quality,
+                    timestamp: new Date().toISOString()
+                };
+                
+                this.sceneHistory.unshift(historyItem);
+                this.updateHistoryDisplay();
+            }
+            
+            updateHistoryDisplay() {
+                const historyContainer = document.getElementById('sceneHistory');
+                historyContainer.innerHTML = '';
+                
+                this.sceneHistory.slice(0, 10).forEach((item, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `
+                        <div>${item.description.substring(0, 40)}...</div>
+                        <div style="font-size: 10px; color: #888; margin-top: 2px;">
+                            Quality: ${(item.quality * 100).toFixed(0)}% • ${new Date(item.timestamp).toLocaleTimeString()}
+                        </div>
+                    `;
+                    div.onclick = () => this.loadFromHistory(index);
+                    historyContainer.appendChild(div);
+                });
+            }
+            
+            async loadTrainingStats() {
+                try {
+                    const response = await fetch('/api/spline/stats');
+                    const stats = await response.json();
+                    
+                    document.getElementById('trainingStats').innerHTML = `
+                        <div>Total Scenes: ${stats.total_scenes_generated}</div>
+                        <div>Avg Quality: ${(stats.average_quality * 100).toFixed(0)}%</div>
+                        <div>Capabilities: ${stats.capabilities.length}</div>
+                    `;
+                } catch (error) {
+                    console.error('Stats loading error:', error);
+                }
+            }
+            
+            updateQualityScore(score) {
+                document.getElementById('qualityScore').textContent = (score * 100).toFixed(0) + '%';
+                
+                const dot = document.getElementById('qualityDot');
+                dot.className = 'quality-indicator ' + 
+                    (score > 0.8 ? 'quality-high' : 
+                     score > 0.5 ? 'quality-medium' : 'quality-low');
+            }
+            
+            updateStatus(message) {
+                document.getElementById('statusText').textContent = message;
+            }
+            
+            showLoading(show) {
+                document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+            }
+            
+            handleResize() {
+                const canvas = document.getElementById('canvas3d');
+                const width = canvas.offsetWidth;
+                const height = canvas.offsetHeight;
+                
+                this.camera.aspect = width / height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(width, height);
+            }
+        }
+        
+        // Global functions for UI interaction
+        let designerController;
+        
+        window.onload = () => {
+            designerController = new SplineDesignerController();
+        };
+        
+        function generateScene() {
+            designerController.generateScene();
+        }
+        
+        function addObject(type) {
+            // Quick object addition
+            const geometry = type === 'cube' ? new THREE.BoxGeometry(1, 1, 1) :
+                           type === 'sphere' ? new THREE.SphereGeometry(0.5, 16, 16) :
+                           type === 'cylinder' ? new THREE.CylinderGeometry(0.5, 0.5, 1, 16) :
+                           new THREE.BoxGeometry(1, 1, 1);
+            
+            const material = new THREE.MeshStandardMaterial({ 
+                color: Math.random() * 0xffffff,
+                metalness: 0.5,
+                roughness: 0.3
+            });
+            
+            const object = new THREE.Mesh(geometry, material);
+            object.position.set(
+                Math.random() * 4 - 2,
+                1,
+                Math.random() * 4 - 2
+            );
+            object.castShadow = true;
+            object.userData = { type, canRotate: true };
+            
+            designerController.scene.add(object);
+            designerController.currentObjects.push(object);
+            designerController.updateStatus(`Added ${type} to scene`);
+        }
+        
+        function setStyle(style) {
+            designerController.currentStyle = style;
+            document.querySelectorAll('.tool-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            designerController.updateStatus(`Style set to ${style}`);
+        }
+        
+        function resetCamera() {
+            designerController.camera.position.set(5, 5, 5);
+            designerController.camera.lookAt(0, 0, 0);
+            designerController.controls.reset();
+        }
+        
+        function toggleCodeViewer() {
+            const viewer = document.getElementById('codeViewer');
+            const isVisible = viewer.style.display !== 'none';
+            viewer.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                document.getElementById('codeContent').textContent = designerController.currentCode || '// No code generated yet';
+            }
+        }
+        
+        function exportScene() {
+            if (designerController.currentCode) {
+                const blob = new Blob([designerController.currentCode], { type: 'text/javascript' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'spline_scene.js';
+                a.click();
+                URL.revokeObjectURL(url);
+                designerController.updateStatus('Scene exported successfully');
+            } else {
+                designerController.updateStatus('No scene to export');
+            }
+        }
+        
+        function toggleAnimation() {
+            designerController.animationEnabled = !designerController.animationEnabled;
+            designerController.updateStatus(`Animation ${designerController.animationEnabled ? 'enabled' : 'disabled'}`);
+        }
+        
+        function updateObjectProperty(property, axis, value) {
+            // Update selected object properties - simplified for demo
+            designerController.updateStatus(`Updated ${property}.${axis} to ${value}`);
+        }
+        
+        function updateMaterialProperty(property, value) {
+            // Update material properties - simplified for demo
+            designerController.updateStatus(`Updated material ${property} to ${value}`);
+        }
+        
+        function updateLighting(property, value) {
+            // Update lighting properties - simplified for demo
+            designerController.updateStatus(`Updated lighting ${property} to ${value}`);
+        }
+        
+        function updateAnimation(property, value) {
+            if (property === 'rotationSpeed') {
+                designerController.rotationSpeed = parseFloat(value);
+                designerController.updateStatus(`Rotation speed set to ${value}`);
+            }
+        }
+        
+        function addLighting() {
+            const light = new THREE.PointLight(0xffffff, 1, 10);
+            light.position.set(Math.random() * 10 - 5, 5, Math.random() * 10 - 5);
+            designerController.scene.add(light);
+            designerController.updateStatus('Added point light to scene');
+        }
+        
+        function addAnimation() {
+            designerController.currentObjects.forEach(obj => {
+                obj.userData.canRotate = true;
+                obj.userData.canFloat = Math.random() > 0.5;
+            });
+            designerController.updateStatus('Added animations to objects');
+        }
+    </script>
+</body>
+</html>

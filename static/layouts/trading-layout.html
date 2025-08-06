@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading - AGENT</title>
+    <link rel="stylesheet" href="/static/layouts/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="trading-container">
+        <!-- Trading Header -->
+        <div class="trading-header">
+            <div class="header-left">
+                <h2>📈 Trading Dashboard</h2>
+                <div class="status-indicators">
+                    <div class="status-item">
+                        <span class="status-dot online"></span>
+                        <span>Markets Open</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot"></span>
+                        <span id="connectionStatus">Connected</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn-primary" id="enableTradingBtn">Enable Live Trading</button>
+                <button class="btn-secondary" id="settingsBtn">⚙️ Settings</button>
+            </div>
+        </div>
+
+        <!-- Main Trading Content -->
+        <div class="trading-content">
+            <!-- Left Panel - Markets & Opportunities -->
+            <div class="left-panel">
+                <!-- Market Overview -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🌍 Market Overview</h3>
+                        <button class="refresh-btn" id="refreshMarketsBtn">↻</button>
+                    </div>
+                    <div class="market-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Volume</div>
+                            <div class="stat-value" id="totalVolume">$1.2B</div>
+                            <div class="stat-change positive">+2.3%</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Pairs</div>
+                            <div class="stat-value" id="activePairs">847</div>
+                            <div class="stat-change positive">+12</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Volatility</div>
+                            <div class="stat-value" id="volatility">Medium</div>
+                            <div class="stat-change neutral">↔</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Arbitrage Opportunities -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🎯 Arbitrage Opportunities</h3>
+                        <span class="live-indicator">LIVE</span>
+                    </div>
+                    <div class="opportunities-list" id="opportunitiesList">
+                        <div class="opportunity-item high-profit">
+                            <div class="opp-pair">BTC/USDT</div>
+                            <div class="opp-exchanges">
+                                <span class="exchange">Binance</span>
+                                <span class="arrow">→</span>
+                                <span class="exchange">Coinbase</span>
+                            </div>
+                            <div class="opp-profit positive">+1.2%</div>
+                            <div class="opp-confidence">98%</div>
+                            <button class="execute-btn">Execute</button>
+                        </div>
+                        
+                        <div class="opportunity-item medium-profit">
+                            <div class="opp-pair">ETH/USDT</div>
+                            <div class="opp-exchanges">
+                                <span class="exchange">Kraken</span>
+                                <span class="arrow">→</span>
+                                <span class="exchange">Bitfinex</span>
+                            </div>
+                            <div class="opp-profit positive">+0.8%</div>
+                            <div class="opp-confidence">85%</div>
+                            <button class="execute-btn">Execute</button>
+                        </div>
+                        
+                        <div class="opportunity-item low-profit">
+                            <div class="opp-pair">ADA/USDT</div>
+                            <div class="opp-exchanges">
+                                <span class="exchange">Huobi</span>
+                                <span class="arrow">→</span>
+                                <span class="exchange">Gate.io</span>
+                            </div>
+                            <div class="opp-profit positive">+0.3%</div>
+                            <div class="opp-confidence">72%</div>
+                            <button class="execute-btn">Execute</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>⚡ Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions-grid">
+                        <button class="action-btn" id="scanMarketsBtn">
+                            <span class="icon">🔍</span>
+                            <span>Scan Markets</span>
+                        </button>
+                        <button class="action-btn" id="optimizePortfolioBtn">
+                            <span class="icon">📊</span>
+                            <span>Optimize</span>
+                        </button>
+                        <button class="action-btn" id="riskAnalysisBtn">
+                            <span class="icon">⚠️</span>
+                            <span>Risk Analysis</span>
+                        </button>
+                        <button class="action-btn" id="backtestBtn">
+                            <span class="icon">🔄</span>
+                            <span>Backtest</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Chart & Analysis -->
+            <div class="center-panel">
+                <!-- Chart Container -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-controls">
+                            <select id="pairSelector" class="chart-select">
+                                <option value="BTC/USDT">BTC/USDT</option>
+                                <option value="ETH/USDT">ETH/USDT</option>
+                                <option value="ADA/USDT">ADA/USDT</option>
+                            </select>
+                            <select id="timeframeSelector" class="chart-select">
+                                <option value="1m">1m</option>
+                                <option value="5m">5m</option>
+                                <option value="15m">15m</option>
+                                <option value="1h" selected>1h</option>
+                                <option value="4h">4h</option>
+                                <option value="1d">1d</option>
+                            </select>
+                        </div>
+                        <div class="chart-info">
+                            <span class="current-price" id="currentPrice">$43,250.00</span>
+                            <span class="price-change positive" id="priceChange">+2.3%</span>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Analysis Panel -->
+                <div class="analysis-panel">
+                    <div class="analysis-tabs">
+                        <button class="tab-btn active" data-tab="signals">Signals</button>
+                        <button class="tab-btn" data-tab="orderbook">Order Book</button>
+                        <button class="tab-btn" data-tab="trades">Recent Trades</button>
+                    </div>
+                    
+                    <div class="tab-content active" id="signalsTab">
+                        <div class="signals-list">
+                            <div class="signal-item buy">
+                                <div class="signal-type">BUY</div>
+                                <div class="signal-pair">BTC/USDT</div>
+                                <div class="signal-strength">Strong</div>
+                                <div class="signal-confidence">95%</div>
+                            </div>
+                            <div class="signal-item sell">
+                                <div class="signal-type">SELL</div>
+                                <div class="signal-pair">ETH/USDT</div>
+                                <div class="signal-strength">Weak</div>
+                                <div class="signal-confidence">65%</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="orderbookTab">
+                        <div class="orderbook">
+                            <div class="orderbook-side">
+                                <div class="orderbook-header asks">Asks</div>
+                                <div class="order-row">
+                                    <span class="price">43,255.00</span>
+                                    <span class="size">0.245</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="price">43,254.50</span>
+                                    <span class="size">1.823</span>
+                                </div>
+                            </div>
+                            <div class="orderbook-side">
+                                <div class="orderbook-header bids">Bids</div>
+                                <div class="order-row">
+                                    <span class="price">43,249.50</span>
+                                    <span class="size">2.156</span>
+                                </div>
+                                <div class="order-row">
+                                    <span class="price">43,249.00</span>
+                                    <span class="size">0.892</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tradesTab">
+                        <div class="trades-list">
+                            <div class="trade-row buy">
+                                <span class="trade-price">43,251.50</span>
+                                <span class="trade-size">0.125</span>
+                                <span class="trade-time">14:32:15</span>
+                            </div>
+                            <div class="trade-row sell">
+                                <span class="trade-price">43,249.00</span>
+                                <span class="trade-size">0.356</span>
+                                <span class="trade-time">14:32:12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Position Management -->
+            <div class="right-panel">
+                <!-- Active Positions -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>💼 Active Positions</h3>
+                        <span class="position-count" id="positionCount">3</span>
+                    </div>
+                    <div class="positions-list" id="positionsList">
+                        <div class="position-item profit">
+                            <div class="position-header">
+                                <span class="position-pair">BTC/USDT</span>
+                                <span class="position-side long">LONG</span>
+                            </div>
+                            <div class="position-details">
+                                <div class="position-size">0.5 BTC</div>
+                                <div class="position-entry">Entry: $42,100</div>
+                                <div class="position-current">Current: $43,250</div>
+                                <div class="position-pnl positive">+$575.00</div>
+                            </div>
+                            <div class="position-actions">
+                                <button class="btn-small btn-secondary">Close 25%</button>
+                                <button class="btn-small btn-primary">Close All</button>
+                            </div>
+                        </div>
+                        
+                        <div class="position-item loss">
+                            <div class="position-header">
+                                <span class="position-pair">ETH/USDT</span>
+                                <span class="position-side short">SHORT</span>
+                            </div>
+                            <div class="position-details">
+                                <div class="position-size">2.0 ETH</div>
+                                <div class="position-entry">Entry: $2,650</div>
+                                <div class="position-current">Current: $2,680</div>
+                                <div class="position-pnl negative">-$60.00</div>
+                            </div>
+                            <div class="position-actions">
+                                <button class="btn-small btn-secondary">Close 25%</button>
+                                <button class="btn-small btn-primary">Close All</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Management -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📋 Open Orders</h3>
+                        <button class="cancel-all-btn" id="cancelAllBtn">Cancel All</button>
+                    </div>
+                    <div class="orders-list" id="ordersList">
+                        <div class="order-item">
+                            <div class="order-type buy">BUY LIMIT</div>
+                            <div class="order-pair">BTC/USDT</div>
+                            <div class="order-price">$42,800</div>
+                            <div class="order-size">0.25 BTC</div>
+                            <button class="cancel-order-btn">✕</button>
+                        </div>
+                        
+                        <div class="order-item">
+                            <div class="order-type sell">SELL STOP</div>
+                            <div class="order-pair">ETH/USDT</div>
+                            <div class="order-price">$2,600</div>
+                            <div class="order-size">1.0 ETH</div>
+                            <button class="cancel-order-btn">✕</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Summary -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📊 Performance</h3>
+                        <select id="performancePeriod" class="period-select">
+                            <option value="1d">Today</option>
+                            <option value="7d">7 Days</option>
+                            <option value="30d" selected>30 Days</option>
+                        </select>
+                    </div>
+                    <div class="performance-stats">
+                        <div class="perf-stat">
+                            <div class="perf-label">Total P&L</div>
+                            <div class="perf-value positive" id="totalPnL">+$2,450.00</div>
+                        </div>
+                        <div class="perf-stat">
+                            <div class="perf-label">Win Rate</div>
+                            <div class="perf-value" id="winRate">68%</div>
+                        </div>
+                        <div class="perf-stat">
+                            <div class="perf-label">Avg. Trade</div>
+                            <div class="perf-value" id="avgTrade">+$85.50</div>
+                        </div>
+                        <div class="perf-stat">
+                            <div class="perf-label">Max Drawdown</div>
+                            <div class="perf-value negative" id="maxDrawdown">-$180.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .trading-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e4e4e7;
+        }
+
+        .trading-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+        }
+
+        .status-dot.online {
+            background: #00ff88;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .trading-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #e4e4e7;
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .stat-change {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .stat-change.positive { color: #00ff88; }
+        .stat-change.negative { color: #ff4444; }
+        .stat-change.neutral { color: #9ca3af; }
+
+        .opportunities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .opportunity-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 3px solid;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .opportunity-item.high-profit { border-left-color: #00ff88; }
+        .opportunity-item.medium-profit { border-left-color: #fbbf24; }
+        .opportunity-item.low-profit { border-left-color: #6b7280; }
+
+        .opp-pair {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .opp-exchanges {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .opp-profit {
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .opp-confidence {
+            font-size: 12px;
+            color: #9ca3af;
+            text-align: right;
+        }
+
+        .execute-btn {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .execute-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e4e4e7;
+            padding: 12px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .chart-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chart-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .chart-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .current-price {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .price-change {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .chart-wrapper {
+            height: 400px;
+            position: relative;
+        }
+
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .analysis-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            padding: 12px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .positions-list, .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .position-item, .order-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .position-side.long {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .position-side.short {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .position-details {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 12px;
+        }
+
+        .position-pnl {
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .position-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .performance-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .perf-stat {
+            text-align: center;
+        }
+
+        .perf-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .perf-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+
+        .live-indicator {
+            background: #ff4444;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e4e4e7;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+    </style>
+
+    <script src="/static/layouts/trading.js"></script>
+</body>
+</html>

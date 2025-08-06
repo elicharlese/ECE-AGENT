@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training - AGENT</title>
+    <link rel="stylesheet" href="/static/layouts/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="training-container">
+        <!-- Training Header -->
+        <div class="training-header">
+            <div class="header-left">
+                <h2>🧠 AI Training Center</h2>
+                <div class="training-status">
+                    <div class="status-indicator">
+                        <span class="status-dot active"></span>
+                        <span class="status-text">Training Active</span>
+                    </div>
+                    <div class="training-progress">
+                        <span class="progress-label">Current Session:</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 67%;"></div>
+                        </div>
+                        <span class="progress-value">67%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="training-controls">
+                    <button class="control-btn pause" id="pauseTrainingBtn">⏸️ Pause</button>
+                    <button class="control-btn stop" id="stopTrainingBtn">⏹️ Stop</button>
+                    <button class="btn-primary" id="newTrainingBtn">🚀 New Training</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Training Content -->
+        <div class="training-content">
+            <!-- Left Panel - Model Management -->
+            <div class="left-panel">
+                <!-- Active Models -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🤖 Active Models</h3>
+                        <button class="add-btn" id="addModelBtn">+ Add</button>
+                    </div>
+                    <div class="models-list">
+                        <div class="model-card active">
+                            <div class="model-header">
+                                <div class="model-info">
+                                    <div class="model-name">Arbitrage Alpha v3.2</div>
+                                    <div class="model-type">Deep Reinforcement Learning</div>
+                                </div>
+                                <div class="model-status training">TRAINING</div>
+                            </div>
+                            <div class="model-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Accuracy:</span>
+                                    <span class="metric-value">94.2%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Epoch:</span>
+                                    <span class="metric-value">245/500</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Loss:</span>
+                                    <span class="metric-value">0.0023</span>
+                                </div>
+                            </div>
+                            <div class="model-actions">
+                                <button class="action-btn view" data-model="arbitrage-alpha">📊 View</button>
+                                <button class="action-btn config" data-model="arbitrage-alpha">⚙️ Config</button>
+                            </div>
+                        </div>
+
+                        <div class="model-card">
+                            <div class="model-header">
+                                <div class="model-info">
+                                    <div class="model-name">Cross-Exchange ML</div>
+                                    <div class="model-type">Gradient Boosting</div>
+                                </div>
+                                <div class="model-status ready">READY</div>
+                            </div>
+                            <div class="model-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Accuracy:</span>
+                                    <span class="metric-value">91.8%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Last Trained:</span>
+                                    <span class="metric-value">2h ago</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Performance:</span>
+                                    <span class="metric-value positive">+18.2%</span>
+                                </div>
+                            </div>
+                            <div class="model-actions">
+                                <button class="action-btn deploy" data-model="cross-exchange">🚀 Deploy</button>
+                                <button class="action-btn retrain" data-model="cross-exchange">🔄 Retrain</button>
+                            </div>
+                        </div>
+
+                        <div class="model-card">
+                            <div class="model-header">
+                                <div class="model-info">
+                                    <div class="model-name">Risk Predictor</div>
+                                    <div class="model-type">Neural Network</div>
+                                </div>
+                                <div class="model-status deployed">DEPLOYED</div>
+                            </div>
+                            <div class="model-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Accuracy:</span>
+                                    <span class="metric-value">96.5%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Predictions:</span>
+                                    <span class="metric-value">1,247</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Uptime:</span>
+                                    <span class="metric-value">99.8%</span>
+                                </div>
+                            </div>
+                            <div class="model-actions">
+                                <button class="action-btn monitor" data-model="risk-predictor">📈 Monitor</button>
+                                <button class="action-btn update" data-model="risk-predictor">⬆️ Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training Queue -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📋 Training Queue</h3>
+                        <span class="queue-count">3 pending</span>
+                    </div>
+                    <div class="queue-list">
+                        <div class="queue-item active">
+                            <div class="queue-icon">🔥</div>
+                            <div class="queue-info">
+                                <div class="queue-name">Market Sentiment Analyzer</div>
+                                <div class="queue-details">Priority: High • ETA: 2h 15m</div>
+                            </div>
+                            <div class="queue-status">RUNNING</div>
+                        </div>
+
+                        <div class="queue-item">
+                            <div class="queue-icon">⏳</div>
+                            <div class="queue-info">
+                                <div class="queue-name">Portfolio Optimizer v2</div>
+                                <div class="queue-details">Priority: Medium • ETA: 4h 30m</div>
+                            </div>
+                            <div class="queue-status">QUEUED</div>
+                        </div>
+
+                        <div class="queue-item">
+                            <div class="queue-icon">💤</div>
+                            <div class="queue-info">
+                                <div class="queue-name">Volatility Predictor</div>
+                                <div class="queue-details">Priority: Low • ETA: 6h 45m</div>
+                            </div>
+                            <div class="queue-status">PENDING</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resource Monitor -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>💻 Resource Monitor</h3>
+                        <span class="resource-status healthy">HEALTHY</span>
+                    </div>
+                    <div class="resource-metrics">
+                        <div class="resource-item">
+                            <div class="resource-label">GPU Usage</div>
+                            <div class="resource-bar">
+                                <div class="resource-fill gpu" style="width: 78%;"></div>
+                            </div>
+                            <div class="resource-value">78%</div>
+                        </div>
+
+                        <div class="resource-item">
+                            <div class="resource-label">CPU Usage</div>
+                            <div class="resource-bar">
+                                <div class="resource-fill cpu" style="width: 45%;"></div>
+                            </div>
+                            <div class="resource-value">45%</div>
+                        </div>
+
+                        <div class="resource-item">
+                            <div class="resource-label">Memory Usage</div>
+                            <div class="resource-bar">
+                                <div class="resource-fill memory" style="width: 62%;"></div>
+                            </div>
+                            <div class="resource-value">62%</div>
+                        </div>
+
+                        <div class="resource-item">
+                            <div class="resource-label">Storage</div>
+                            <div class="resource-bar">
+                                <div class="resource-fill storage" style="width: 34%;"></div>
+                            </div>
+                            <div class="resource-value">34%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Training Dashboard -->
+            <div class="center-panel">
+                <!-- Training Progress -->
+                <div class="training-dashboard">
+                    <div class="dashboard-header">
+                        <div class="dashboard-tabs">
+                            <button class="dashboard-tab active" data-view="progress">Training Progress</button>
+                            <button class="dashboard-tab" data-view="metrics">Performance Metrics</button>
+                            <button class="dashboard-tab" data-view="logs">Training Logs</button>
+                            <button class="dashboard-tab" data-view="experiments">Experiments</button>
+                        </div>
+                        <div class="dashboard-controls">
+                            <button class="control-btn" id="exportLogsBtn">📥 Export</button>
+                            <button class="control-btn" id="fullscreenDashboardBtn">⛶ Fullscreen</button>
+                        </div>
+                    </div>
+
+                    <!-- Progress View -->
+                    <div class="dashboard-content active" id="progressView">
+                        <div class="progress-charts">
+                            <div class="chart-container">
+                                <h4>🎯 Training Accuracy</h4>
+                                <canvas id="accuracyChart"></canvas>
+                            </div>
+                            <div class="chart-container">
+                                <h4>📉 Loss Function</h4>
+                                <canvas id="lossChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="training-info">
+                            <div class="info-cards">
+                                <div class="info-card">
+                                    <div class="card-icon">⏱️</div>
+                                    <div class="card-content">
+                                        <div class="card-label">Training Time</div>
+                                        <div class="card-value">2h 34m</div>
+                                        <div class="card-change">Remaining: 1h 26m</div>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="card-icon">🔄</div>
+                                    <div class="card-content">
+                                        <div class="card-label">Current Epoch</div>
+                                        <div class="card-value">245/500</div>
+                                        <div class="card-change">+1 completed</div>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="card-icon">📊</div>
+                                    <div class="card-content">
+                                        <div class="card-label">Best Accuracy</div>
+                                        <div class="card-value">94.2%</div>
+                                        <div class="card-change positive">+0.3% improvement</div>
+                                    </div>
+                                </div>
+
+                                <div class="info-card">
+                                    <div class="card-icon">⚡</div>
+                                    <div class="card-content">
+                                        <div class="card-label">Learning Rate</div>
+                                        <div class="card-value">0.001</div>
+                                        <div class="card-change">Auto-adjusted</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metrics View -->
+                    <div class="dashboard-content" id="metricsView">
+                        <div class="metrics-grid">
+                            <div class="metric-panel">
+                                <h4>📈 Performance Metrics</h4>
+                                <div class="metric-chart">
+                                    <canvas id="performanceChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="metric-panel">
+                                <h4>🎯 Validation Metrics</h4>
+                                <div class="validation-metrics">
+                                    <div class="validation-item">
+                                        <span class="validation-label">Precision:</span>
+                                        <span class="validation-value">0.942</span>
+                                        <div class="validation-bar">
+                                            <div class="validation-fill" style="width: 94.2%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="validation-item">
+                                        <span class="validation-label">Recall:</span>
+                                        <span class="validation-value">0.918</span>
+                                        <div class="validation-bar">
+                                            <div class="validation-fill" style="width: 91.8%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="validation-item">
+                                        <span class="validation-label">F1-Score:</span>
+                                        <span class="validation-value">0.930</span>
+                                        <div class="validation-bar">
+                                            <div class="validation-fill" style="width: 93%;"></div>
+                                        </div>
+                                    </div>
+                                    <div class="validation-item">
+                                        <span class="validation-label">AUC-ROC:</span>
+                                        <span class="validation-value">0.967</span>
+                                        <div class="validation-bar">
+                                            <div class="validation-fill" style="width: 96.7%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logs View -->
+                    <div class="dashboard-content" id="logsView">
+                        <div class="logs-container">
+                            <div class="logs-header">
+                                <div class="logs-controls">
+                                    <select id="logLevel" class="log-filter">
+                                        <option value="all">All Levels</option>
+                                        <option value="info">Info</option>
+                                        <option value="warning">Warning</option>
+                                        <option value="error">Error</option>
+                                    </select>
+                                    <button class="logs-btn" id="clearLogsBtn">🗑️ Clear</button>
+                                    <button class="logs-btn" id="downloadLogsBtn">📥 Download</button>
+                                </div>
+                            </div>
+                            <div class="logs-content" id="logsContent">
+                                <div class="log-entry info">
+                                    <span class="log-time">14:32:15</span>
+                                    <span class="log-level">INFO</span>
+                                    <span class="log-message">Starting training epoch 245/500</span>
+                                </div>
+                                <div class="log-entry info">
+                                    <span class="log-time">14:32:10</span>
+                                    <span class="log-level">INFO</span>
+                                    <span class="log-message">Validation accuracy improved to 94.2%</span>
+                                </div>
+                                <div class="log-entry warning">
+                                    <span class="log-time">14:31:45</span>
+                                    <span class="log-level">WARN</span>
+                                    <span class="log-message">Learning rate adjusted from 0.0015 to 0.001</span>
+                                </div>
+                                <div class="log-entry info">
+                                    <span class="log-time">14:31:20</span>
+                                    <span class="log-level">INFO</span>
+                                    <span class="log-message">Completed epoch 244 - Loss: 0.0025</span>
+                                </div>
+                                <div class="log-entry info">
+                                    <span class="log-time">14:30:55</span>
+                                    <span class="log-level">INFO</span>
+                                    <span class="log-message">Processing batch 3120/3200</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experiments View -->
+                    <div class="dashboard-content" id="experimentsView">
+                        <div class="experiments-container">
+                            <div class="experiments-header">
+                                <h4>🧪 Model Experiments</h4>
+                                <button class="btn-primary" id="newExperimentBtn">+ New Experiment</button>
+                            </div>
+                            <div class="experiments-grid">
+                                <div class="experiment-card active">
+                                    <div class="experiment-header">
+                                        <div class="experiment-name">Experiment #247</div>
+                                        <div class="experiment-status running">RUNNING</div>
+                                    </div>
+                                    <div class="experiment-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Model:</span>
+                                            <span class="detail-value">Arbitrage Alpha v3.2</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Hyperparameters:</span>
+                                            <span class="detail-value">lr=0.001, batch=128</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Best Score:</span>
+                                            <span class="detail-value positive">94.2%</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="experiment-card">
+                                    <div class="experiment-header">
+                                        <div class="experiment-name">Experiment #246</div>
+                                        <div class="experiment-status completed">COMPLETED</div>
+                                    </div>
+                                    <div class="experiment-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Model:</span>
+                                            <span class="detail-value">Cross-Exchange ML</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Final Score:</span>
+                                            <span class="detail-value positive">91.8%</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Duration:</span>
+                                            <span class="detail-value">3h 45m</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="experiment-card">
+                                    <div class="experiment-header">
+                                        <div class="experiment-name">Experiment #245</div>
+                                        <div class="experiment-status failed">FAILED</div>
+                                    </div>
+                                    <div class="experiment-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Model:</span>
+                                            <span class="detail-value">Risk Predictor v2</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Error:</span>
+                                            <span class="detail-value error">OOM Error</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Duration:</span>
+                                            <span class="detail-value">45m</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Configuration & Tools -->
+            <div class="right-panel">
+                <!-- Quick Actions -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>⚡ Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="action-card" id="quickTrainBtn">
+                            <div class="action-icon">🚀</div>
+                            <div class="action-content">
+                                <div class="action-title">Quick Train</div>
+                                <div class="action-description">Start rapid model training</div>
+                            </div>
+                        </button>
+
+                        <button class="action-card" id="autoTuneBtn">
+                            <div class="action-icon">🎛️</div>
+                            <div class="action-content">
+                                <div class="action-title">Auto-Tune</div>
+                                <div class="action-description">Optimize hyperparameters</div>
+                            </div>
+                        </button>
+
+                        <button class="action-card" id="modelCompareBtn">
+                            <div class="action-icon">📊</div>
+                            <div class="action-content">
+                                <div class="action-title">Compare Models</div>
+                                <div class="action-description">Benchmark performance</div>
+                            </div>
+                        </button>
+
+                        <button class="action-card" id="dataAugmentBtn">
+                            <div class="action-icon">🔄</div>
+                            <div class="action-content">
+                                <div class="action-title">Data Augment</div>
+                                <div class="action-description">Enhance training data</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Training Configuration -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>⚙️ Training Config</h3>
+                        <button class="save-btn" id="saveConfigBtn">💾 Save</button>
+                    </div>
+                    <div class="config-form">
+                        <div class="config-group">
+                            <label class="config-label">Learning Rate</label>
+                            <input type="number" class="config-input" value="0.001" step="0.0001" id="learningRate">
+                        </div>
+
+                        <div class="config-group">
+                            <label class="config-label">Batch Size</label>
+                            <select class="config-select" id="batchSize">
+                                <option value="32">32</option>
+                                <option value="64">64</option>
+                                <option value="128" selected>128</option>
+                                <option value="256">256</option>
+                            </select>
+                        </div>
+
+                        <div class="config-group">
+                            <label class="config-label">Epochs</label>
+                            <input type="number" class="config-input" value="500" id="epochs">
+                        </div>
+
+                        <div class="config-group">
+                            <label class="config-label">Optimizer</label>
+                            <select class="config-select" id="optimizer">
+                                <option value="adam" selected>Adam</option>
+                                <option value="sgd">SGD</option>
+                                <option value="rmsprop">RMSprop</option>
+                                <option value="adagrad">Adagrad</option>
+                            </select>
+                        </div>
+
+                        <div class="config-group">
+                            <label class="config-label">Early Stopping</label>
+                            <div class="config-toggle">
+                                <input type="checkbox" id="earlyStopping" checked>
+                                <label for="earlyStopping" class="toggle-slider"></label>
+                            </div>
+                        </div>
+
+                        <div class="config-group">
+                            <label class="config-label">Validation Split</label>
+                            <input type="range" class="config-range" min="0.1" max="0.4" step="0.05" value="0.2" id="validationSplit">
+                            <span class="range-value">20%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Sources -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📊 Data Sources</h3>
+                        <button class="refresh-btn" id="refreshDataBtn">↻</button>
+                    </div>
+                    <div class="data-sources">
+                        <div class="data-source active">
+                            <div class="source-header">
+                                <div class="source-icon">📈</div>
+                                <div class="source-info">
+                                    <div class="source-name">Market Data</div>
+                                    <div class="source-status">Connected</div>
+                                </div>
+                                <div class="source-indicator connected"></div>
+                            </div>
+                            <div class="source-stats">
+                                <span class="stat">2.4M records</span>
+                                <span class="stat">Real-time</span>
+                            </div>
+                        </div>
+
+                        <div class="data-source active">
+                            <div class="source-header">
+                                <div class="source-icon">💰</div>
+                                <div class="source-info">
+                                    <div class="source-name">Trade History</div>
+                                    <div class="source-status">Connected</div>
+                                </div>
+                                <div class="source-indicator connected"></div>
+                            </div>
+                            <div class="source-stats">
+                                <span class="stat">847K trades</span>
+                                <span class="stat">Sync: 99.9%</span>
+                            </div>
+                        </div>
+
+                        <div class="data-source">
+                            <div class="source-header">
+                                <div class="source-icon">📰</div>
+                                <div class="source-info">
+                                    <div class="source-name">News Feed</div>
+                                    <div class="source-status">Disconnected</div>
+                                </div>
+                                <div class="source-indicator disconnected"></div>
+                            </div>
+                            <div class="source-stats">
+                                <span class="stat">--</span>
+                                <span class="stat">Offline</span>
+                            </div>
+                        </div>
+
+                        <div class="data-source active">
+                            <div class="source-header">
+                                <div class="source-icon">🌊</div>
+                                <div class="source-info">
+                                    <div class="source-name">Sentiment Data</div>
+                                    <div class="source-status">Connected</div>
+                                </div>
+                                <div class="source-indicator connected"></div>
+                            </div>
+                            <div class="source-stats">
+                                <span class="stat">125K signals</span>
+                                <span class="stat">Updated: 2m ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Templates -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📝 Model Templates</h3>
+                        <button class="create-btn" id="createTemplateBtn">+ Create</button>
+                    </div>
+                    <div class="templates-list">
+                        <div class="template-item">
+                            <div class="template-icon">🧠</div>
+                            <div class="template-info">
+                                <div class="template-name">Deep Learning Base</div>
+                                <div class="template-description">Multi-layer neural network</div>
+                            </div>
+                            <button class="template-btn">Use</button>
+                        </div>
+
+                        <div class="template-item">
+                            <div class="template-icon">🌳</div>
+                            <div class="template-info">
+                                <div class="template-name">Random Forest</div>
+                                <div class="template-description">Ensemble decision trees</div>
+                            </div>
+                            <button class="template-btn">Use</button>
+                        </div>
+
+                        <div class="template-item">
+                            <div class="template-icon">⚡</div>
+                            <div class="template-info">
+                                <div class="template-name">XGBoost</div>
+                                <div class="template-description">Gradient boosting framework</div>
+                            </div>
+                            <button class="template-btn">Use</button>
+                        </div>
+
+                        <div class="template-item">
+                            <div class="template-icon">🔄</div>
+                            <div class="template-info">
+                                <div class="template-name">LSTM</div>
+                                <div class="template-description">Long short-term memory</div>
+                            </div>
+                            <button class="template-btn">Use</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .training-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e4e4e7;
+        }
+
+        .training-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .training-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6b7280;
+        }
+
+        .status-dot.active {
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .training-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-label {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .progress-bar {
+            width: 150px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-value {
+            font-size: 12px;
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .training-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .control-btn.pause {
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .control-btn.stop {
+            color: #ff4444;
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+
+        .training-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #e4e4e7;
+        }
+
+        .models-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .model-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .model-card.active {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        .model-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .model-info {
+            flex: 1;
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: #e4e4e7;
+            margin-bottom: 4px;
+        }
+
+        .model-type {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .model-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .model-status.training {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .model-status.ready {
+            background: rgba(6, 182, 212, 0.2);
+            color: #06b6d4;
+        }
+
+        .model-status.deployed {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .model-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 11px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+        }
+
+        .metric-value {
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .model-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 6px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .queue-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+        }
+
+        .queue-item.active {
+            border-left-color: #8b5cf6;
+        }
+
+        .queue-icon {
+            font-size: 16px;
+        }
+
+        .queue-info {
+            flex: 1;
+        }
+
+        .queue-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+
+        .queue-details {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .queue-status {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .resource-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .resource-label {
+            width: 80px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .resource-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .resource-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .resource-fill.gpu {
+            background: linear-gradient(90deg, #8b5cf6, #06b6d4);
+        }
+
+        .resource-fill.cpu {
+            background: linear-gradient(90deg, #00ff88, #fbbf24);
+        }
+
+        .resource-fill.memory {
+            background: linear-gradient(90deg, #ff4444, #fbbf24);
+        }
+
+        .resource-fill.storage {
+            background: linear-gradient(90deg, #6b7280, #9ca3af);
+        }
+
+        .resource-value {
+            width: 40px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .training-dashboard {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dashboard-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #9ca3af;
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .dashboard-tab.active {
+            background: #8b5cf6;
+            color: white;
+            border-color: #8b5cf6;
+        }
+
+        .dashboard-content {
+            display: none;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .dashboard-content.active {
+            display: block;
+        }
+
+        .progress-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-container h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #e4e4e7;
+        }
+
+        .chart-container canvas {
+            max-height: 200px;
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-icon {
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-content {
+            flex: 1;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .card-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e7;
+            margin-bottom: 2px;
+        }
+
+        .card-change {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            font-size: 16px;
+            color: #8b5cf6;
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-title {
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 11px;
+        }
+
+        .action-description {
+            font-size: 9px;
+            color: #9ca3af;
+        }
+
+        .config-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .config-label {
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .config-input, .config-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .config-range {
+            width: 100%;
+            margin: 4px 0;
+        }
+
+        .range-value {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .config-toggle {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .config-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: #8b5cf6;
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .data-sources {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .data-source {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .source-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .source-icon {
+            font-size: 14px;
+            color: #8b5cf6;
+        }
+
+        .source-info {
+            flex: 1;
+        }
+
+        .source-name {
+            font-weight: 500;
+            font-size: 12px;
+        }
+
+        .source-status {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .source-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .source-indicator.connected {
+            background: #00ff88;
+        }
+
+        .source-indicator.disconnected {
+            background: #ff4444;
+        }
+
+        .source-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .templates-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .template-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .template-icon {
+            font-size: 14px;
+            color: #8b5cf6;
+        }
+
+        .template-info {
+            flex: 1;
+        }
+
+        .template-name {
+            font-weight: 500;
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .template-description {
+            font-size: 9px;
+            color: #9ca3af;
+        }
+
+        .template-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 4px;
+            color: #8b5cf6;
+            padding: 4px 8px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .logs-container {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .logs-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .log-filter {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #e4e4e7;
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+
+        .logs-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #e4e4e7;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .logs-content {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 12px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .log-entry {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .log-time {
+            color: #9ca3af;
+            width: 60px;
+        }
+
+        .log-level {
+            width: 40px;
+            font-weight: 600;
+        }
+
+        .log-level.info {
+            color: #06b6d4;
+        }
+
+        .log-level.warning {
+            color: #fbbf24;
+        }
+
+        .log-level.error {
+            color: #ff4444;
+        }
+
+        .log-message {
+            flex: 1;
+            color: #e4e4e7;
+        }
+
+        .experiments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .experiment-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .experiment-card.active {
+            border-color: #8b5cf6;
+        }
+
+        .experiment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .experiment-name {
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .experiment-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .experiment-status.running {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .experiment-status.completed {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .experiment-status.failed {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .experiment-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .detail-label {
+            color: #9ca3af;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .detail-value.positive {
+            color: #00ff88;
+        }
+
+        .detail-value.error {
+            color: #ff4444;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .add-btn, .save-btn, .create-btn, .refresh-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 6px;
+            color: #8b5cf6;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+        }
+
+        .queue-count {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            background: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .resource-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+
+    <script src="/static/layouts/training.js"></script>
+</body>
+</html>

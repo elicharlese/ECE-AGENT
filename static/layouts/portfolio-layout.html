@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - AGENT</title>
+    <link rel="stylesheet" href="/static/layouts/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="portfolio-container">
+        <!-- Portfolio Header -->
+        <div class="portfolio-header">
+            <div class="header-left">
+                <h2>💼 Portfolio Management</h2>
+                <div class="portfolio-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Total Value:</span>
+                        <span class="summary-value" id="totalValue">$125,450.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">24h Change:</span>
+                        <span class="summary-change positive" id="dailyChange">+$2,350.00 (+1.9%)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn-secondary" id="rebalanceBtn">⚖️ Rebalance</button>
+                <button class="btn-primary" id="optimizeBtn">🎯 Optimize</button>
+            </div>
+        </div>
+
+        <!-- Main Portfolio Content -->
+        <div class="portfolio-content">
+            <!-- Left Panel - Asset Allocation -->
+            <div class="left-panel">
+                <!-- Allocation Chart -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📊 Asset Allocation</h3>
+                        <select id="allocationPeriod" class="period-select">
+                            <option value="current" selected>Current</option>
+                            <option value="target">Target</option>
+                            <option value="optimal">Optimal</option>
+                        </select>
+                    </div>
+                    <div class="allocation-chart-container">
+                        <canvas id="allocationChart"></canvas>
+                    </div>
+                    <div class="allocation-legend" id="allocationLegend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #00ff88;"></div>
+                            <span class="legend-label">Bitcoin (45%)</span>
+                            <span class="legend-value">$56,452.50</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #00d4ff;"></div>
+                            <span class="legend-label">Ethereum (25%)</span>
+                            <span class="legend-value">$31,362.50</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #fbbf24;"></div>
+                            <span class="legend-label">Altcoins (20%)</span>
+                            <span class="legend-value">$25,090.00</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8b5cf6;"></div>
+                            <span class="legend-label">Stablecoins (10%)</span>
+                            <span class="legend-value">$12,545.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Metrics -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>⚠️ Risk Metrics</h3>
+                        <button class="refresh-btn" id="refreshRiskBtn">↻</button>
+                    </div>
+                    <div class="risk-metrics">
+                        <div class="risk-item">
+                            <div class="risk-label">Portfolio Beta</div>
+                            <div class="risk-value" id="portfolioBeta">1.25</div>
+                            <div class="risk-indicator high"></div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Sharpe Ratio</div>
+                            <div class="risk-value" id="sharpeRatio">1.85</div>
+                            <div class="risk-indicator good"></div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">Max Drawdown</div>
+                            <div class="risk-value" id="maxDrawdown">-8.5%</div>
+                            <div class="risk-indicator medium"></div>
+                        </div>
+                        <div class="risk-item">
+                            <div class="risk-label">VaR (95%)</div>
+                            <div class="risk-value" id="valueAtRisk">-$4,250</div>
+                            <div class="risk-indicator medium"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diversification -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🌐 Diversification</h3>
+                    </div>
+                    <div class="diversification-metrics">
+                        <div class="diversification-item">
+                            <div class="div-label">Geographic</div>
+                            <div class="div-bar">
+                                <div class="div-fill" style="width: 85%;"></div>
+                            </div>
+                            <div class="div-score">85%</div>
+                        </div>
+                        <div class="diversification-item">
+                            <div class="div-label">Sector</div>
+                            <div class="div-bar">
+                                <div class="div-fill" style="width: 65%;"></div>
+                            </div>
+                            <div class="div-score">65%</div>
+                        </div>
+                        <div class="diversification-item">
+                            <div class="div-label">Market Cap</div>
+                            <div class="div-bar">
+                                <div class="div-fill" style="width: 78%;"></div>
+                            </div>
+                            <div class="div-score">78%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Performance & Holdings -->
+            <div class="center-panel">
+                <!-- Performance Chart -->
+                <div class="performance-chart-container">
+                    <div class="chart-header">
+                        <div class="chart-controls">
+                            <div class="timeframe-buttons">
+                                <button class="timeframe-btn active" data-period="1d">1D</button>
+                                <button class="timeframe-btn" data-period="7d">7D</button>
+                                <button class="timeframe-btn" data-period="30d">30D</button>
+                                <button class="timeframe-btn" data-period="90d">90D</button>
+                                <button class="timeframe-btn" data-period="1y">1Y</button>
+                                <button class="timeframe-btn" data-period="all">ALL</button>
+                            </div>
+                        </div>
+                        <div class="chart-info">
+                            <div class="performance-summary">
+                                <span class="perf-label">Period Return:</span>
+                                <span class="perf-value positive" id="periodReturn">+12.5%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Holdings Table -->
+                <div class="holdings-container">
+                    <div class="holdings-header">
+                        <h3>💎 Holdings</h3>
+                        <div class="holdings-controls">
+                            <input type="text" class="search-input" placeholder="Search assets..." id="holdingsSearch">
+                            <select id="sortBy" class="sort-select">
+                                <option value="value">Sort by Value</option>
+                                <option value="allocation">Sort by Allocation</option>
+                                <option value="performance">Sort by Performance</option>
+                                <option value="alphabetical">Sort A-Z</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="holdings-table-container">
+                        <table class="holdings-table" id="holdingsTable">
+                            <thead>
+                                <tr>
+                                    <th>Asset</th>
+                                    <th>Amount</th>
+                                    <th>Value</th>
+                                    <th>Allocation</th>
+                                    <th>24h Change</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="holding-row">
+                                    <td class="asset-cell">
+                                        <div class="asset-info">
+                                            <div class="asset-icon">₿</div>
+                                            <div class="asset-details">
+                                                <div class="asset-name">Bitcoin</div>
+                                                <div class="asset-symbol">BTC</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="amount-cell">1.3052 BTC</td>
+                                    <td class="value-cell">$56,452.50</td>
+                                    <td class="allocation-cell">
+                                        <div class="allocation-bar">
+                                            <div class="allocation-fill" style="width: 45%;"></div>
+                                        </div>
+                                        <span class="allocation-text">45%</span>
+                                    </td>
+                                    <td class="change-cell positive">+2.3%</td>
+                                    <td class="actions-cell">
+                                        <button class="action-btn trade">Trade</button>
+                                        <button class="action-btn details">Details</button>
+                                    </td>
+                                </tr>
+                                <tr class="holding-row">
+                                    <td class="asset-cell">
+                                        <div class="asset-info">
+                                            <div class="asset-icon">Ξ</div>
+                                            <div class="asset-details">
+                                                <div class="asset-name">Ethereum</div>
+                                                <div class="asset-symbol">ETH</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="amount-cell">11.708 ETH</td>
+                                    <td class="value-cell">$31,362.50</td>
+                                    <td class="allocation-cell">
+                                        <div class="allocation-bar">
+                                            <div class="allocation-fill" style="width: 25%;"></div>
+                                        </div>
+                                        <span class="allocation-text">25%</span>
+                                    </td>
+                                    <td class="change-cell positive">+1.8%</td>
+                                    <td class="actions-cell">
+                                        <button class="action-btn trade">Trade</button>
+                                        <button class="action-btn details">Details</button>
+                                    </td>
+                                </tr>
+                                <tr class="holding-row">
+                                    <td class="asset-cell">
+                                        <div class="asset-info">
+                                            <div class="asset-icon">⟐</div>
+                                            <div class="asset-details">
+                                                <div class="asset-name">Cardano</div>
+                                                <div class="asset-symbol">ADA</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="amount-cell">18,250 ADA</td>
+                                    <td class="value-cell">$15,045.00</td>
+                                    <td class="allocation-cell">
+                                        <div class="allocation-bar">
+                                            <div class="allocation-fill" style="width: 12%;"></div>
+                                        </div>
+                                        <span class="allocation-text">12%</span>
+                                    </td>
+                                    <td class="change-cell negative">-0.5%</td>
+                                    <td class="actions-cell">
+                                        <button class="action-btn trade">Trade</button>
+                                        <button class="action-btn details">Details</button>
+                                    </td>
+                                </tr>
+                                <tr class="holding-row">
+                                    <td class="asset-cell">
+                                        <div class="asset-info">
+                                            <div class="asset-icon">$</div>
+                                            <div class="asset-details">
+                                                <div class="asset-name">USD Coin</div>
+                                                <div class="asset-symbol">USDC</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="amount-cell">12,545 USDC</td>
+                                    <td class="value-cell">$12,545.00</td>
+                                    <td class="allocation-cell">
+                                        <div class="allocation-bar">
+                                            <div class="allocation-fill" style="width: 10%;"></div>
+                                        </div>
+                                        <span class="allocation-text">10%</span>
+                                    </td>
+                                    <td class="change-cell neutral">0.0%</td>
+                                    <td class="actions-cell">
+                                        <button class="action-btn trade">Trade</button>
+                                        <button class="action-btn details">Details</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Analytics & Tools -->
+            <div class="right-panel">
+                <!-- Performance Summary -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📈 Performance Summary</h3>
+                        <select id="performancePeriod" class="period-select">
+                            <option value="1d">Today</option>
+                            <option value="7d">7 Days</option>
+                            <option value="30d" selected>30 Days</option>
+                            <option value="90d">90 Days</option>
+                            <option value="1y">1 Year</option>
+                        </select>
+                    </div>
+                    <div class="performance-grid">
+                        <div class="perf-card">
+                            <div class="perf-label">Total Return</div>
+                            <div class="perf-value positive" id="totalReturn">+12.5%</div>
+                            <div class="perf-subtext">$14,250.00</div>
+                        </div>
+                        <div class="perf-card">
+                            <div class="perf-label">Best Performer</div>
+                            <div class="perf-value" id="bestPerformer">BTC</div>
+                            <div class="perf-subtext positive">+18.2%</div>
+                        </div>
+                        <div class="perf-card">
+                            <div class="perf-label">Worst Performer</div>
+                            <div class="perf-value" id="worstPerformer">ADA</div>
+                            <div class="perf-subtext negative">-2.1%</div>
+                        </div>
+                        <div class="perf-card">
+                            <div class="perf-label">Volatility</div>
+                            <div class="perf-value" id="portfolioVolatility">15.2%</div>
+                            <div class="perf-subtext">Medium</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Tools -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🛠️ Portfolio Tools</h3>
+                    </div>
+                    <div class="tools-grid">
+                        <button class="tool-btn" id="rebalanceTool">
+                            <div class="tool-icon">⚖️</div>
+                            <div class="tool-label">Rebalance</div>
+                            <div class="tool-desc">Auto-rebalance allocation</div>
+                        </button>
+                        <button class="tool-btn" id="optimizeTool">
+                            <div class="tool-icon">🎯</div>
+                            <div class="tool-label">Optimize</div>
+                            <div class="tool-desc">Risk-return optimization</div>
+                        </button>
+                        <button class="tool-btn" id="backtestTool">
+                            <div class="tool-icon">📊</div>
+                            <div class="tool-label">Backtest</div>
+                            <div class="tool-desc">Strategy performance</div>
+                        </button>
+                        <button class="tool-btn" id="analysisTool">
+                            <div class="tool-icon">🔍</div>
+                            <div class="tool-label">Analysis</div>
+                            <div class="tool-desc">Deep portfolio analysis</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🔄 Recent Transactions</h3>
+                        <button class="view-all-btn" id="viewAllTransactions">View All</button>
+                    </div>
+                    <div class="transactions-list" id="transactionsList">
+                        <div class="transaction-item buy">
+                            <div class="transaction-type">BUY</div>
+                            <div class="transaction-asset">0.125 BTC</div>
+                            <div class="transaction-value">$5,406.25</div>
+                            <div class="transaction-time">2h ago</div>
+                        </div>
+                        <div class="transaction-item sell">
+                            <div class="transaction-type">SELL</div>
+                            <div class="transaction-asset">2.5 ETH</div>
+                            <div class="transaction-value">$6,700.00</div>
+                            <div class="transaction-time">5h ago</div>
+                        </div>
+                        <div class="transaction-item buy">
+                            <div class="transaction-type">BUY</div>
+                            <div class="transaction-asset">5,000 ADA</div>
+                            <div class="transaction-value">$4,125.00</div>
+                            <div class="transaction-time">1d ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alerts & Notifications -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🔔 Alerts</h3>
+                        <button class="settings-btn" id="alertSettings">⚙️</button>
+                    </div>
+                    <div class="alerts-list" id="alertsList">
+                        <div class="alert-item warning">
+                            <div class="alert-icon">⚠️</div>
+                            <div class="alert-content">
+                                <div class="alert-message">BTC allocation exceeds target (45% vs 40%)</div>
+                                <div class="alert-time">10 min ago</div>
+                            </div>
+                        </div>
+                        <div class="alert-item success">
+                            <div class="alert-icon">✅</div>
+                            <div class="alert-content">
+                                <div class="alert-message">Portfolio rebalancing completed successfully</div>
+                                <div class="alert-time">2h ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .portfolio-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e4e4e7;
+        }
+
+        .portfolio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .portfolio-summary {
+            display: flex;
+            gap: 30px;
+        }
+
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .summary-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .summary-change {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .portfolio-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #e4e4e7;
+        }
+
+        .allocation-chart-container {
+            height: 200px;
+            margin-bottom: 16px;
+        }
+
+        .allocation-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            flex: 1;
+            color: #e4e4e7;
+        }
+
+        .legend-value {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .risk-metrics {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .risk-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .risk-label {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .risk-value {
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .risk-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .risk-indicator.good { background: #00ff88; }
+        .risk-indicator.medium { background: #fbbf24; }
+        .risk-indicator.high { background: #ff4444; }
+
+        .diversification-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .diversification-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .div-label {
+            width: 80px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .div-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .div-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            border-radius: 3px;
+        }
+
+        .div-score {
+            width: 40px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .performance-chart-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .timeframe-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .timeframe-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #9ca3af;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .timeframe-btn.active {
+            background: #00ff88;
+            color: white;
+            border-color: #00ff88;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+            position: relative;
+        }
+
+        .holdings-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .holdings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .holdings-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #e4e4e7;
+        }
+
+        .holdings-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 6px 12px;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .sort-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .holdings-table-container {
+            overflow-x: auto;
+        }
+
+        .holdings-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .holdings-table th,
+        .holdings-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .holdings-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #9ca3af;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .asset-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+        }
+
+        .asset-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .asset-name {
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .asset-symbol {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .allocation-bar {
+            width: 60px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-right: 8px;
+        }
+
+        .allocation-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+        }
+
+        .allocation-cell {
+            display: flex;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #e4e4e7;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .performance-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .perf-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .perf-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .perf-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e7;
+            margin-bottom: 4px;
+        }
+
+        .perf-subtext {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #e4e4e7;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .tool-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .tool-label {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .tool-desc {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .transactions-list, .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .transaction-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 8px;
+            align-items: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .transaction-type {
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .transaction-item.buy .transaction-type {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .transaction-item.sell .transaction-type {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .alert-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            border-left: 3px solid;
+        }
+
+        .alert-item.warning { border-left-color: #fbbf24; }
+        .alert-item.success { border-left-color: #00ff88; }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-message {
+            font-size: 12px;
+            color: #e4e4e7;
+            margin-bottom: 4px;
+        }
+
+        .alert-time {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .positive { color: #00ff88; }
+        .negative { color: #ff4444; }
+        .neutral { color: #9ca3af; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e4e4e7;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .period-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+    </style>
+
+    <script src="/static/layouts/portfolio.js"></script>
+</body>
+</html>

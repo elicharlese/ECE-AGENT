@@ -30,6 +30,16 @@ try:
         print(f"Trading modules not available: {e}")
         TRADING_AVAILABLE = False
 
+    # Try to import MCP modules
+    try:
+        from .mcp_endpoints import router as mcp_router
+        MCP_AVAILABLE = True
+        print("MCP modules imported successfully")
+    except ImportError as e:
+        print(f"MCP modules not available: {e}")
+        MCP_AVAILABLE = False
+        mcp_router = None
+
     # Configure logging
     logging.basicConfig(level=logging.INFO)
     log = logging.getLogger(__name__)
@@ -44,6 +54,11 @@ try:
         docs_url="/docs",
         redoc_url="/redoc"
     )
+    
+    # Include MCP router if available
+    if MCP_AVAILABLE and mcp_router:
+        app.include_router(mcp_router)
+        log.info("MCP endpoints included successfully")
     
     log.info("FastAPI app created successfully")
 

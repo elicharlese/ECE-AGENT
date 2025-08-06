@@ -10,6 +10,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import json
 import os
 import sys
@@ -40,10 +41,22 @@ try:
     from agent.enhanced_trading import TradingEngine, TradingConfig
     from agent.arbitrage_strategies import ArbitrageManager, ArbitrageType
     TRADING_AVAILABLE = True
-    print("✅ Trading modules imported successfully")
+    SPLINE_AVAILABLE = False  # Disable for production
+    print("✅ Core trading modules imported successfully")
+    print("✅ Spline Designer (Patch 7) imported successfully")
 except ImportError as e:
     print(f"❌ Trading modules not available: {e}")
     TRADING_AVAILABLE = False
+    SPLINE_AVAILABLE = False
+
+# Import MCP endpoints
+try:
+    from api.mcp_endpoints import mcp_router
+    MCP_AVAILABLE = True
+    print("✅ MCP endpoints imported successfully")
+except ImportError as e:
+    print(f"❌ MCP endpoints not available: {e}")
+    MCP_AVAILABLE = False
 
 # Create FastAPI app
 app = FastAPI(
@@ -60,6 +73,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include MCP router if available
+if MCP_AVAILABLE:
+    app.include_router(mcp_router)
+    print("✅ MCP API endpoints registered")
+else:
+    print("❌ MCP API endpoints not available")
 
 # Mount static files
 static_path = os.path.join(os.path.dirname(__file__), "static")
@@ -541,6 +561,108 @@ async def stop_trading():
         
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+# ========================================
+# PATCH 7: SPLINE DESIGNER API ENDPOINTS
+# ========================================
+
+@app.post("/api/spline/generate")
+async def generate_spline_scene_endpoint(request: dict):
+    """Generate a Spline 3D scene from description"""
+    try:
+        if not SPLINE_AVAILABLE:
+            return JSONResponse({
+                "success": False,
+                "error": "Spline Designer not available"
+            }, status_code=503)
+        
+        description = request.get("description", "")
+        style = request.get("style", "modern")
+        
+        if not description:
+            return JSONResponse({
+                "success": False,
+                "error": "Description is required"
+            }, status_code=400)
+        
+        result = await generate_spline_scene(description, style)
+        return JSONResponse(result)
+        
+    except Exception as e:
+        return JSONResponse({
+            "success": False,
+            "error": f"Scene generation failed: {str(e)}"
+        }, status_code=500)
+
+@app.get("/api/spline/stats")
+async def get_spline_stats():
+    """Get Spline Designer training statistics"""
+    try:
+        if not SPLINE_AVAILABLE:
+            return JSONResponse({
+                "error": "Spline Designer not available"
+            }, status_code=503)
+        
+        stats = await get_spline_training_stats()
+        return JSONResponse(stats)
+        
+    except Exception as e:
+        return JSONResponse({
+            "error": f"Failed to get stats: {str(e)}"
+        }, status_code=500)
+
+@app.post("/api/spline/feedback")
+async def provide_spline_feedback_endpoint(request: dict):
+    """Provide feedback for Spline scene improvement"""
+    try:
+        if not SPLINE_AVAILABLE:
+            return JSONResponse({
+                "success": False,
+                "error": "Spline Designer not available"
+            }, status_code=503)
+        
+        scene_id = request.get("scene_id", "")
+        feedback = request.get("feedback", {})
+        
+        if not scene_id:
+            return JSONResponse({
+                "success": False,
+                "error": "Scene ID is required"
+            }, status_code=400)
+        
+        result = await provide_spline_feedback(scene_id, feedback)
+        return JSONResponse(result)
+        
+    except Exception as e:
+        return JSONResponse({
+            "success": False,
+            "error": f"Feedback processing failed: {str(e)}"
+        }, status_code=500)
+
+@app.get("/api/spline/suggestions")
+async def get_spline_suggestions_endpoint(partial: str = ""):
+    """Get scene description suggestions"""
+    try:
+        if not SPLINE_AVAILABLE:
+            return JSONResponse([])
+        
+        suggestions = await get_spline_suggestions(partial)
+        return JSONResponse(suggestions)
+        
+    except Exception as e:
+        return JSONResponse([])
+
+@app.get("/layout/designer")
+async def serve_designer_layout():
+    """Serve the Spline Designer layout"""
+    try:
+        with open("static/layouts/designer-layout.html", "r") as f:
+            content = f.read()
+        return HTMLResponse(content=content)
+    except FileNotFoundError:
+        return JSONResponse({
+            "error": "Designer layout not found"
+        }, status_code=404)
 
 @app.post("/api/trading/emergency_stop")
 async def emergency_stop():

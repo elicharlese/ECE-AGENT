@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - AGENT</title>
+    <link rel="stylesheet" href="/static/layouts/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="analytics-container">
+        <!-- Analytics Header -->
+        <div class="analytics-header">
+            <div class="header-left">
+                <h2>📊 Trading Analytics</h2>
+                <div class="analytics-summary">
+                    <div class="summary-metric">
+                        <span class="metric-label">Total Trades:</span>
+                        <span class="metric-value" id="totalTrades">1,247</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Win Rate:</span>
+                        <span class="metric-value positive" id="winRate">68.5%</span>
+                    </div>
+                    <div class="summary-metric">
+                        <span class="metric-label">Total P&L:</span>
+                        <span class="metric-value positive" id="totalPnL">+$24,580.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <select id="analyticsTimeframe" class="timeframe-select">
+                    <option value="7d">Last 7 Days</option>
+                    <option value="30d" selected>Last 30 Days</option>
+                    <option value="90d">Last 90 Days</option>
+                    <option value="1y">Last Year</option>
+                    <option value="all">All Time</option>
+                </select>
+                <button class="btn-secondary" id="exportReportBtn">📄 Export Report</button>
+                <button class="btn-primary" id="generateReportBtn">📈 Generate Report</button>
+            </div>
+        </div>
+
+        <!-- Main Analytics Content -->
+        <div class="analytics-content">
+            <!-- Left Panel - Performance Metrics -->
+            <div class="left-panel">
+                <!-- Key Performance Indicators -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🎯 Key Performance Indicators</h3>
+                        <button class="refresh-btn" id="refreshKPIBtn">↻</button>
+                    </div>
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon">💰</div>
+                            <div class="kpi-content">
+                                <div class="kpi-label">Average Profit</div>
+                                <div class="kpi-value positive" id="avgProfit">$127.50</div>
+                                <div class="kpi-change positive">+12.3%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon">📈</div>
+                            <div class="kpi-content">
+                                <div class="kpi-label">Sharpe Ratio</div>
+                                <div class="kpi-value" id="sharpeRatio">2.45</div>
+                                <div class="kpi-change positive">+0.23</div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon">⚡</div>
+                            <div class="kpi-content">
+                                <div class="kpi-label">Avg. Trade Time</div>
+                                <div class="kpi-value" id="avgTradeTime">45m</div>
+                                <div class="kpi-change negative">-8m</div>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-card">
+                            <div class="kpi-icon">🎯</div>
+                            <div class="kpi-content">
+                                <div class="kpi-label">Success Rate</div>
+                                <div class="kpi-value positive" id="successRate">68.5%</div>
+                                <div class="kpi-change positive">+2.1%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Risk Analysis -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>⚠️ Risk Analysis</h3>
+                        <span class="risk-status low">LOW RISK</span>
+                    </div>
+                    <div class="risk-metrics">
+                        <div class="risk-gauge">
+                            <canvas id="riskGauge"></canvas>
+                            <div class="gauge-center">
+                                <div class="gauge-value">3.2</div>
+                                <div class="gauge-label">Risk Score</div>
+                            </div>
+                        </div>
+                        <div class="risk-details">
+                            <div class="risk-item">
+                                <span class="risk-metric">Max Drawdown</span>
+                                <span class="risk-value">-5.8%</span>
+                                <div class="risk-bar">
+                                    <div class="risk-fill" style="width: 30%;"></div>
+                                </div>
+                            </div>
+                            <div class="risk-item">
+                                <span class="risk-metric">Volatility</span>
+                                <span class="risk-value">12.4%</span>
+                                <div class="risk-bar">
+                                    <div class="risk-fill" style="width: 45%;"></div>
+                                </div>
+                            </div>
+                            <div class="risk-item">
+                                <span class="risk-metric">VaR (95%)</span>
+                                <span class="risk-value">-$1,850</span>
+                                <div class="risk-bar">
+                                    <div class="risk-fill" style="width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategy Performance -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🧠 Strategy Performance</h3>
+                        <button class="optimize-btn" id="optimizeStrategiesBtn">Optimize</button>
+                    </div>
+                    <div class="strategy-list">
+                        <div class="strategy-item">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Arbitrage Alpha</span>
+                                <span class="strategy-status active">ACTIVE</span>
+                            </div>
+                            <div class="strategy-metrics">
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Trades:</span>
+                                    <span class="metric-value">387</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Win Rate:</span>
+                                    <span class="metric-value positive">74.2%</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">P&L:</span>
+                                    <span class="metric-value positive">+$14,250</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-item">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Cross-Exchange</span>
+                                <span class="strategy-status active">ACTIVE</span>
+                            </div>
+                            <div class="strategy-metrics">
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Trades:</span>
+                                    <span class="metric-value">623</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Win Rate:</span>
+                                    <span class="metric-value positive">65.8%</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">P&L:</span>
+                                    <span class="metric-value positive">+$8,920</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-item">
+                            <div class="strategy-header">
+                                <span class="strategy-name">Triangular Arb</span>
+                                <span class="strategy-status paused">PAUSED</span>
+                            </div>
+                            <div class="strategy-metrics">
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Trades:</span>
+                                    <span class="metric-value">237</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">Win Rate:</span>
+                                    <span class="metric-value">61.2%</span>
+                                </div>
+                                <div class="strategy-metric">
+                                    <span class="metric-label">P&L:</span>
+                                    <span class="metric-value positive">+$1,410</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Charts and Analysis -->
+            <div class="center-panel">
+                <!-- Performance Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-tabs">
+                            <button class="tab-btn active" data-chart="performance">Performance</button>
+                            <button class="tab-btn" data-chart="drawdown">Drawdown</button>
+                            <button class="tab-btn" data-chart="distribution">Distribution</button>
+                            <button class="tab-btn" data-chart="correlation">Correlation</button>
+                        </div>
+                        <div class="chart-controls">
+                            <button class="chart-control-btn" id="fullscreenBtn">⛶</button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Trade Analysis -->
+                <div class="trade-analysis-container">
+                    <div class="analysis-tabs">
+                        <button class="analysis-tab active" data-analysis="summary">Trade Summary</button>
+                        <button class="analysis-tab" data-analysis="patterns">Patterns</button>
+                        <button class="analysis-tab" data-analysis="market">Market Analysis</button>
+                    </div>
+                    
+                    <div class="analysis-content active" id="summaryAnalysis">
+                        <div class="trade-summary-grid">
+                            <div class="summary-card">
+                                <h4>📊 Volume Analysis</h4>
+                                <div class="summary-stats">
+                                    <div class="stat-row">
+                                        <span>Total Volume:</span>
+                                        <span class="stat-value">$2.4M</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Avg. Trade Size:</span>
+                                        <span class="stat-value">$1,925</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Largest Trade:</span>
+                                        <span class="stat-value">$12,450</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <h4>⏱️ Timing Analysis</h4>
+                                <div class="summary-stats">
+                                    <div class="stat-row">
+                                        <span>Avg. Hold Time:</span>
+                                        <span class="stat-value">45m</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Best Time:</span>
+                                        <span class="stat-value">2-4 PM</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Peak Day:</span>
+                                        <span class="stat-value">Wednesday</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-card">
+                                <h4>💎 Asset Performance</h4>
+                                <div class="summary-stats">
+                                    <div class="stat-row">
+                                        <span>Best Pair:</span>
+                                        <span class="stat-value positive">BTC/USDT (+15.2%)</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Most Traded:</span>
+                                        <span class="stat-value">ETH/USDT (347)</span>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>Success Rate:</span>
+                                        <span class="stat-value positive">68.5%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-content" id="patternsAnalysis">
+                        <div class="patterns-grid">
+                            <div class="pattern-card">
+                                <h4>🔄 Trading Patterns</h4>
+                                <div class="pattern-list">
+                                    <div class="pattern-item">
+                                        <span class="pattern-name">Mean Reversion</span>
+                                        <span class="pattern-frequency">34%</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-name">Momentum</span>
+                                        <span class="pattern-frequency">28%</span>
+                                    </div>
+                                    <div class="pattern-item">
+                                        <span class="pattern-name">Breakout</span>
+                                        <span class="pattern-frequency">22%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-content" id="marketAnalysis">
+                        <div class="market-conditions">
+                            <h4>🌍 Market Conditions</h4>
+                            <div class="condition-indicators">
+                                <div class="condition-item">
+                                    <span class="condition-label">Market Regime:</span>
+                                    <span class="condition-value trending">Trending</span>
+                                </div>
+                                <div class="condition-item">
+                                    <span class="condition-label">Volatility:</span>
+                                    <span class="condition-value medium">Medium</span>
+                                </div>
+                                <div class="condition-item">
+                                    <span class="condition-label">Liquidity:</span>
+                                    <span class="condition-value high">High</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Reports and Insights -->
+            <div class="right-panel">
+                <!-- Performance Breakdown -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📈 Performance Breakdown</h3>
+                        <select id="breakdownPeriod" class="period-select">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <div class="performance-breakdown">
+                        <div class="breakdown-chart">
+                            <canvas id="breakdownChart"></canvas>
+                        </div>
+                        <div class="breakdown-legend">
+                            <div class="legend-item">
+                                <div class="legend-color wins"></div>
+                                <span>Winning Trades (68%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color losses"></div>
+                                <span>Losing Trades (32%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>🤖 AI Insights</h3>
+                        <span class="insights-status">ACTIVE</span>
+                    </div>
+                    <div class="insights-list">
+                        <div class="insight-item positive">
+                            <div class="insight-icon">📈</div>
+                            <div class="insight-content">
+                                <div class="insight-title">Performance Improvement</div>
+                                <div class="insight-description">Your win rate increased by 3.2% this week</div>
+                                <div class="insight-confidence">Confidence: 92%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-item warning">
+                            <div class="insight-icon">⚠️</div>
+                            <div class="insight-content">
+                                <div class="insight-title">Risk Alert</div>
+                                <div class="insight-description">Concentration risk detected in BTC trades</div>
+                                <div class="insight-confidence">Confidence: 87%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="insight-item neutral">
+                            <div class="insight-icon">💡</div>
+                            <div class="insight-content">
+                                <div class="insight-title">Optimization Opportunity</div>
+                                <div class="insight-description">Consider reducing position size during high volatility</div>
+                                <div class="insight-confidence">Confidence: 76%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Reports -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📄 Quick Reports</h3>
+                        <button class="customize-btn" id="customizeReportsBtn">⚙️</button>
+                    </div>
+                    <div class="reports-list">
+                        <button class="report-btn" data-report="daily">
+                            <div class="report-icon">📊</div>
+                            <div class="report-content">
+                                <div class="report-name">Daily Summary</div>
+                                <div class="report-description">Today's trading overview</div>
+                            </div>
+                        </button>
+                        
+                        <button class="report-btn" data-report="weekly">
+                            <div class="report-icon">📈</div>
+                            <div class="report-content">
+                                <div class="report-name">Weekly Analysis</div>
+                                <div class="report-description">7-day performance report</div>
+                            </div>
+                        </button>
+                        
+                        <button class="report-btn" data-report="risk">
+                            <div class="report-icon">⚠️</div>
+                            <div class="report-content">
+                                <div class="report-name">Risk Assessment</div>
+                                <div class="report-description">Portfolio risk analysis</div>
+                            </div>
+                        </button>
+                        
+                        <button class="report-btn" data-report="strategy">
+                            <div class="report-icon">🎯</div>
+                            <div class="report-content">
+                                <div class="report-name">Strategy Review</div>
+                                <div class="report-description">Strategy performance deep-dive</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Market Sentiment -->
+                <div class="panel-section">
+                    <div class="section-header">
+                        <h3>📊 Market Sentiment</h3>
+                        <span class="sentiment-indicator bullish">BULLISH</span>
+                    </div>
+                    <div class="sentiment-meters">
+                        <div class="sentiment-meter">
+                            <div class="meter-label">Fear & Greed Index</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill greed" style="width: 72%;"></div>
+                            </div>
+                            <div class="meter-value">72 (Greed)</div>
+                        </div>
+                        
+                        <div class="sentiment-meter">
+                            <div class="meter-label">Social Sentiment</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill positive" style="width: 68%;"></div>
+                            </div>
+                            <div class="meter-value">68% Positive</div>
+                        </div>
+                        
+                        <div class="sentiment-meter">
+                            <div class="meter-label">Institutional Flow</div>
+                            <div class="meter-bar">
+                                <div class="meter-fill buying" style="width: 85%;"></div>
+                            </div>
+                            <div class="meter-value">85% Buying</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .analytics-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            color: #e4e4e7;
+        }
+
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-left h2 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .analytics-summary {
+            display: flex;
+            gap: 30px;
+        }
+
+        .summary-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .metric-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .timeframe-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .analytics-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #e4e4e7;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .kpi-icon {
+            font-size: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .kpi-content {
+            flex: 1;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #e4e4e7;
+            margin-bottom: 2px;
+        }
+
+        .kpi-change {
+            font-size: 11px;
+        }
+
+        .risk-metrics {
+            display: flex;
+            gap: 20px;
+        }
+
+        .risk-gauge {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .gauge-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .gauge-label {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .risk-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .risk-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .risk-metric {
+            width: 80px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .risk-value {
+            width: 60px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e4e4e7;
+        }
+
+        .risk-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .risk-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #fbbf24, #ff4444);
+        }
+
+        .strategy-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .strategy-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .strategy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .strategy-name {
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .strategy-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .strategy-status.active {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .strategy-status.paused {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .strategy-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .strategy-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .chart-container {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-tabs {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #9ca3af;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: #00ff88;
+            color: white;
+            border-color: #00ff88;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+            padding: 20px;
+        }
+
+        .trade-analysis-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .analysis-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .analysis-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #9ca3af;
+            padding: 12px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .analysis-tab.active {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .analysis-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .analysis-content.active {
+            display: block;
+        }
+
+        .trade-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-card h4 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #e4e4e7;
+        }
+
+        .summary-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .stat-row span:first-child {
+            color: #9ca3af;
+        }
+
+        .stat-value {
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .performance-breakdown {
+            text-align: center;
+        }
+
+        .breakdown-chart {
+            height: 150px;
+            margin-bottom: 16px;
+        }
+
+        .breakdown-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .legend-color.wins {
+            background: #00ff88;
+        }
+
+        .legend-color.losses {
+            background: #ff4444;
+        }
+
+        .insights-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .insight-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border-left: 3px solid;
+        }
+
+        .insight-item.positive {
+            border-left-color: #00ff88;
+        }
+
+        .insight-item.warning {
+            border-left-color: #fbbf24;
+        }
+
+        .insight-item.neutral {
+            border-left-color: #6b7280;
+        }
+
+        .insight-icon {
+            font-size: 16px;
+        }
+
+        .insight-content {
+            flex: 1;
+        }
+
+        .insight-title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
+        .insight-description {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-bottom: 4px;
+        }
+
+        .insight-confidence {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .reports-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .report-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: #e4e4e7;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .report-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .report-icon {
+            font-size: 16px;
+            color: #00ff88;
+        }
+
+        .report-content {
+            flex: 1;
+        }
+
+        .report-name {
+            font-weight: 500;
+            margin-bottom: 2px;
+            font-size: 12px;
+        }
+
+        .report-description {
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .sentiment-meters {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sentiment-meter {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meter-label {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .meter-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .meter-fill.greed {
+            background: #00ff88;
+        }
+
+        .meter-fill.positive {
+            background: #00d4ff;
+        }
+
+        .meter-fill.buying {
+            background: #8b5cf6;
+        }
+
+        .meter-value {
+            font-size: 11px;
+            font-weight: 500;
+            color: #e4e4e7;
+        }
+
+        .positive {
+            color: #00ff88;
+        }
+
+        .negative {
+            color: #ff4444;
+        }
+
+        .risk-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .sentiment-indicator {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .sentiment-indicator.bullish {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .insights-status {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #e4e4e7;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .period-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+    </style>
+
+    <script src="/static/layouts/analytics.js"></script>
+</body>
+</html>

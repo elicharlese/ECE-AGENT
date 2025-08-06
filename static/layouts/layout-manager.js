@@ -47,6 +47,13 @@ class LayoutManager {
                 websocket: '/ws/training',
                 apis: ['/api/training/status', '/api/training/models']
             },
+            designer: {
+                name: 'Spline Designer',
+                url: '/layout/designer',
+                component: 'SplineDesignerLayout',
+                websocket: null,
+                apis: ['/api/spline/generate', '/api/spline/stats', '/api/spline/suggestions']
+            },
             settings: {
                 name: 'Settings',
                 url: '/static/layouts/settings-layout.html',
