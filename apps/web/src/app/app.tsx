@@ -1,6 +1,7 @@
 // React Router v6 app entry that wires Mobbin-inspired example pages.
 
 // ... existing code ...
+import Chat from './chat';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './dashboard';
 import ListDetail from './list-detail';
