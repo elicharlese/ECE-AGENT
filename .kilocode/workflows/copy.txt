@@ -1,0 +1,35 @@
+---
+title: copy
+description: |
+  Scans the full codebase and surfaces inconsistencies, errors, or outdated voice/tone.
+  Suggests edits based on brand benchmarks and updates UI text for cohesion.
+
+_steps:
+  - name: Scan codebase for UI copy
+    run: |
+      # Cascade should:
+      - grep through all `.tsx`, `.mdx`, `.md`, `.json`, and `.env` files
+      - collect visible strings (text inside JSX, headings, descriptions, metadata, alt tags)
+      - identify tone mismatches, vague language, or placeholder text
+
+  - name: Compare to brand guidelines
+    run: |
+      # Cascade should:
+      - use `/docs/brand.md` or `.windsurfrules.md` (if available) to benchmark:
+        - voice (friendly vs technical)
+        - capitalization, punctuation, style
+        - key phrases or brand slogans
+
+  - name: Suggest and replace copy
+    run: |
+      # Cascade should:
+      - suggest updates in-place
+      - auto-replace if clearly low-risk
+      - write flagged changes to `PATCHN_COPY_AUDIT.md` for human review
+
+  - name: Log copy work
+    run: |
+      # Cascade should:
+      - append to `PATCHN_SUMMARY.md`
+      - tag commit with `[copy]`
+      - summarize changes in checklist

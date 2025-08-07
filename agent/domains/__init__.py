@@ -4,6 +4,7 @@ from .trader import TraderAgent
 from .lawyer import LawyerAgent
 from .researcher import ResearcherAgent
 from .data_engineer import DataEngineerAgent
+from .spline_3d_developer import Spline3DDeveloper
 
 # Domain registry for easy access
 DOMAIN_AGENTS = {
@@ -13,6 +14,11 @@ DOMAIN_AGENTS = {
     'researcher': ResearcherAgent,
     'data-engineer': DataEngineerAgent,
     'data_engineer': DataEngineerAgent,  # Alternative naming
+    'spline-3d': Spline3DDeveloper,  # Spline 3D development
+    'spline_3d': Spline3DDeveloper,  # Alternative naming
+    'spline': Spline3DDeveloper,  # Short form
+    '3d-developer': Spline3DDeveloper,  # 3D development
+    '3d_developer': Spline3DDeveloper,  # Alternative naming
     'hacker': ResearcherAgent,  # Use researcher for ethical hacking
     'network-admin': ResearcherAgent,  # Network admin uses research capabilities
     'network-analyst': ResearcherAgent,  # Network analyst uses research capabilities
@@ -35,6 +41,7 @@ __all__ = [
     'LawyerAgent',
     'ResearcherAgent',
     'DataEngineerAgent',
+    'Spline3DDeveloper',
     'DOMAIN_AGENTS',
     'get_domain_agent',
     'list_available_domains'

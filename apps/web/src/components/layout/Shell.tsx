@@ -14,12 +14,12 @@ export const Shell: React.FC<ShellProps> = ({ title, sidebar, children }) => {
       <TopNav title={title} />
       <div className="flex">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-64 border-r border-gray-200 bg-white">
+        <aside className="hidden lg:block w-64 border-r border-default bg-white">
           {sidebar ?? <SideNav />}
         </aside>
 
         {/* Content area */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        <main className="flex-1 p-m md:p-l lg:p-[calc(var(--space-l)*1.25)]">{children}</main>
       </div>
     </div>
   );

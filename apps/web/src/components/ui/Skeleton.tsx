@@ -17,6 +17,8 @@ const roundedMap: Record<NonNullable<SkeletonProps['rounded']>, string> = {
   'radius-12': 'radius-12',
 };
 
+const baseSkeletonClass = 'animate-pulse bg-[rgb(var(--color-border))]';
+
 export function Skeleton({
   className,
   rounded = 'md',
@@ -31,8 +33,10 @@ export function Skeleton({
           <div
             key={i}
             className={clsx(
-              'animate-pulse bg-gray-200 dark:bg-gray-700',
+              baseSkeletonClass,
               roundedMap[rounded],
+              // Slightly vary width for realism
+              i === lines - 1 && lines > 2 ? 'w-3/4' : 'w-full',
               lineHeightClass
             )}
           />
@@ -44,7 +48,7 @@ export function Skeleton({
   return (
     <div
       className={clsx(
-        'animate-pulse bg-gray-200 dark:bg-gray-700',
+        baseSkeletonClass,
         roundedMap[rounded],
         lineHeightClass,
         className

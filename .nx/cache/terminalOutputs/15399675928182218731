@@ -1,0 +1,172 @@
+[2m1:51:02 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to load PostCSS config (searchPath: /Users/elicharlese/CascadeProjects/AGENT/apps/web): [Error] Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+Error: Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+    at load (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11776:11)
+    at async Promise.all (index 0)
+    at async plugins (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11805:12)
+    at async processResult (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11876:14)
+  Plugin: [35mvite:css[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/styles.css[39m
+Error: [31m  Failed to scan for dependencies from entries:
+  /Users/elicharlese/CascadeProjects/AGENT/apps/web/index.html
+
+  [39m[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "apps/web/src/app/app.tsx" for import "App"[0m
+
+    apps/web/src/main.tsx:3:9:
+[37m      3 │ import { [32mApp[37m } from './app/app';
+        ╵          [32m~~~[0m
+
+
+    at failureErrorWithLog (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:1467:15)
+    at /Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:926:25
+    at runOnEndCallbacks (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:1307:45)
+    at buildResponseToResult (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:924:7)
+    at /Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:936:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:935:54)
+    at handleRequest (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:628:17)
+    at handleIncomingPacket (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:653:7)
+    at Socket.readFromStdout (/Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/esbuild@0.25.8/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:507:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Skeleton.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Skeleton.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const roundedMap = {
+  19 |    none: "rounded-none",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Skeleton.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Skeleton.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const roundedMap = {
+  19 |    none: "rounded-none",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Skeleton.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Skeleton.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const roundedMap = {
+  19 |    none: "rounded-none",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/LoadingOverlay.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/LoadingOverlay.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  export function LoadingOverlay({
+  19 |    show,[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/LoadingOverlay.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/LoadingOverlay.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  export function LoadingOverlay({
+  19 |    show,[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/LoadingOverlay.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/LoadingOverlay.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  export function LoadingOverlay({
+  19 |    show,[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Alert.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Alert.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const variantClasses = {
+  19 |    info: "bg-blue-50 text-blue-900 border-blue-200",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Alert.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Alert.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const variantClasses = {
+  19 |    info: "bg-blue-50 text-blue-900 border-blue-200",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Alert.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Alert.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const variantClasses = {
+  19 |    info: "bg-blue-50 text-blue-900 border-blue-200",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Skeleton.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Skeleton.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const roundedMap = {
+  19 |    none: "rounded-none",[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/LoadingOverlay.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/LoadingOverlay.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  export function LoadingOverlay({
+  19 |    show,[39m
+[2m1:51:03 PM[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "clsx" from "apps/web/src/components/ui/Alert.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/components/ui/Alert.tsx[39m:2:17
+[33m  15 |    window.$RefreshSig$ = RefreshRuntime.createSignatureFunctionForTransform;
+  16 |  }
+  17 |  import clsx from "clsx";
+     |                    ^
+  18 |  const variantClasses = {
+  19 |    info: "bg-blue-50 text-blue-900 border-blue-200",[39m
+[2m1:51:05 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to load PostCSS config (searchPath: /Users/elicharlese/CascadeProjects/AGENT/apps/web): [Error] Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+Error: Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+    at load (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11776:11)
+    at async Promise.all (index 0)
+    at async plugins (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11805:12)
+    at async processResult (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11876:14)[39m
+  Plugin: [35mvite:css[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/styles.css[39m
+[2m1:51:05 PM[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to load PostCSS config (searchPath: /Users/elicharlese/CascadeProjects/AGENT/apps/web): [Error] Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+Error: Loading PostCSS Plugin failed: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+
+(@/Users/elicharlese/CascadeProjects/AGENT/apps/web/postcss.config.js)
+    at load (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11776:11)
+    at async Promise.all (index 0)
+    at async plugins (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11805:12)
+    at async processResult (file:///Users/elicharlese/CascadeProjects/AGENT/node_modules/.pnpm/vite@6.3.5_@types+node@20.19.9_jiti@2.4.2_terser@5.43.1_yaml@2.8.1/node_modules/vite/dist/node/chunks/dep-DBxKXgDP.js:11876:14)[39m
+  Plugin: [35mvite:css[39m
+  File: [36m/Users/elicharlese/CascadeProjects/AGENT/apps/web/src/styles.css[39m
+[1m[31mWatch error: Daemon closed the connection[39m[22m

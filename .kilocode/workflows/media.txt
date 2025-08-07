@@ -1,0 +1,43 @@
+---
+title: media
+description: |
+  Generates placeholder or final-ready media assets for UI zones:
+  - Layouts, sections, columns
+  - Cards, buttons
+  - Animations (scrolling + trigger-based)
+  - Images or 3D scenes via Spline
+
+_steps:
+  - name: Evaluate layout structure
+    run: |
+      # Cascade should:
+      - scan `/components/layout`, `/pages`, and `/app/layout.tsx`
+      - detect image blocks, section zones, and card/button components
+      - log missing or low-quality visual areas to `PATCHN_MEDIA_OPPORTUNITIES.md`
+
+  - name: Scaffold placeholder assets
+    run: |
+      # Cascade should:
+      - generate sample `.png`, `.svg`, or `.mp4` assets for missing UI areas
+      - scaffold image component stubs using `next/image` or native `<img>`
+      - insert animations using Framer Motion or `react-scroll` where relevant
+
+  - name: Inject Spline support
+    run: |
+      # Cascade should:
+      - install `@splinetool/react-spline` if not yet present
+      - scaffold reusable 3D embed component
+      - insert 3D container section into landing page or `/components/3d/SplineZone.tsx`
+
+  - name: Update media zones
+    run: |
+      # Cascade should:
+      - ensure `/public/media/` holds all new visual assets
+      - update paths in UI components to reference proper image/video files
+
+  - name: Log and checkpoint
+    run: |
+      # Cascade should:
+      - write all new assets + component updates to `PATCHN_SUMMARY.md`
+      - tag commit with `[media]`
+      - add all generated visual content to commit

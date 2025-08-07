@@ -8,7 +8,7 @@ import ListDetail from './list-detail';
 import Settings from './settings';
 import Auth from './auth';
 
-export default function App() {
+export function App() {
   return (
     <BrowserRouter>
       <Routes>
@@ -22,4 +22,6 @@ export default function App() {
     </BrowserRouter>
   );
 }
+
+export default App;
 // ... existing code ...
