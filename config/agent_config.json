@@ -62,6 +62,12 @@
             "enabled": true,
             "tools": ["traffic_analysis", "performance_monitoring", "security_analysis"],
             "analysis_tools": ["wireshark", "tcpdump", "netstat", "iptables"]
+        },
+        "clickup": {
+            "enabled": true,
+            "tools": ["task_management", "project_planning", "team_collaboration"],
+            "integrations": ["api_v2"],
+            "features": ["create_tasks", "update_tasks", "get_tasks", "manage_lists"]
         }
     },
     "security": {

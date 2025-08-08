@@ -5,6 +5,7 @@ from .lawyer import LawyerAgent
 from .researcher import ResearcherAgent
 from .data_engineer import DataEngineerAgent
 from .spline_3d_developer import Spline3DDeveloper
+from .clickup import ClickUpAgent
 
 # Domain registry for easy access
 DOMAIN_AGENTS = {
@@ -24,6 +25,9 @@ DOMAIN_AGENTS = {
     'network-analyst': ResearcherAgent,  # Network analyst uses research capabilities
     'pentester': ResearcherAgent,  # Penetration tester uses research capabilities
     'incident-response': ResearcherAgent,  # Incident response uses research capabilities
+    'clickup': ClickUpAgent,  # ClickUp task management
+    'task-manager': ClickUpAgent,  # Alternative naming
+    'project-manager': ClickUpAgent,  # Alternative naming
     'general': DeveloperAgent,  # Default to developer for general queries
 }
 
@@ -42,6 +46,7 @@ __all__ = [
     'ResearcherAgent',
     'DataEngineerAgent',
     'Spline3DDeveloper',
+    'ClickUpAgent',
     'DOMAIN_AGENTS',
     'get_domain_agent',
     'list_available_domains'

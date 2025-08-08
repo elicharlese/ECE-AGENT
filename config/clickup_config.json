@@ -1,0 +1,9 @@
+{
+  "api_base_url": "https://api.clickup.com/api/v2",
+  "api_key": "YOUR_CLICKUP_API_KEY_HERE",
+  "default_space_id": "",
+  "default_folder_id": "",
+  "default_list_id": "",
+  "timeout": 30,
+  "max_retries": 3
+}
