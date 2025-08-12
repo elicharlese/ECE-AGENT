@@ -26,13 +26,14 @@ const getConversationById = async (conversationId) => {
   }
 };
 
-// Get conversations by agent ID
-const getConversationsByAgentId = async (agentId) => {
+// Get conversations by agent ID and user ID
+const getConversationsByAgentId = async (agentId, userId) => {
   try {
     const { data, error } = await supabase
       .from('conversations')
       .select('id, title, agent_id, created_at, updated_at')
       .eq('agent_id', agentId)
+      .eq('user_id', userId)
       .order('updated_at', { ascending: false });
     
     if (error) {
@@ -76,6 +77,7 @@ const saveConversation = async (conversation) => {
         .insert({
           title: conversation.title,
           agent_id: conversation.agent_id,
+          user_id: conversation.user_id,
           messages: conversation.messages,
           created_at: getCurrentTimestamp(),
           updated_at: getCurrentTimestamp()

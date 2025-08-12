@@ -2,11 +2,15 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
+import { UserProvider } from '@/contexts/user-context'
+import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'AGENT - Advanced Generative ENgineering Toolkit',
+  description: 'AGENT - Advanced Generative ENgineering Toolkit',
+  generator: 'AGENT',
+  applicationName: 'AGENT',
+  keywords: ['AGENT', 'AI', 'Generative', 'Engineering', 'Toolkit'],
 }
 
 export default function RootLayout({
@@ -25,7 +29,13 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        <SolanaWalletProvider>
+          <UserProvider>
+            {children}
+          </UserProvider>
+        </SolanaWalletProvider>
+      </body>
     </html>
   )
 }

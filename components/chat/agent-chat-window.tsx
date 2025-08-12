@@ -289,7 +289,7 @@ export function AgentChatWindow({ agentId, onToggleAgentSidebar, agentSidebarCol
             <AgentIcon className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{currentAgent.name}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white truncate">AGENT - {currentAgent.name}</h3>
             <p
               className={`text-gray-500 dark:text-gray-400 truncate ${screenSize === "mobile" ? "text-xs" : "text-sm"}`}
             >

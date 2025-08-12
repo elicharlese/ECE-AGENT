@@ -17,8 +17,36 @@ app.use(express.json());
 // Supabase setup
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Authentication middleware
+const authenticateUser = async (req, res, next) => {
+  const token = req.headers.authorization;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  try {
+    // Remove 'Bearer ' prefix if present
+    const jwt = token.replace('Bearer ', '');
+    
+    // Verify the token with Supabase
+    const { data, error } = await supabase.auth.getUser(jwt);
+    
+    if (error || !data.user) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    // Add user info to request object
+    req.user = data.user;
+    next();
+  } catch (err) {
+    console.error('Authentication error:', err);
+    return res.status(500).json({ error: 'Authentication failed' });
+  }
+};
 
 // Import conversation model
 const conversationModel = require('./db/conversationModel');
@@ -32,6 +60,35 @@ const getCurrentTimestamp = () => new Date().toISOString();
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: getCurrentTimestamp() });
+});
+
+// Simple login endpoint for testing (in a real app, use Supabase Auth)
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // In a real implementation, you would verify credentials with Supabase Auth
+    // For testing purposes, we'll just return a mock token
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+    
+    // Mock user data
+    const user = {
+      id: '00000000-0000-0000-0000-000000000000',
+      email: email,
+      created_at: getCurrentTimestamp()
+    };
+    
+    // Mock JWT token
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJlbWFpbCI6InRlc3RAZXhhbXBsZS5jb20iLCJpYXQiOjE3NTUwMjU3MjMsImV4cCI6MjA3MDYwMTcyM30.5Dv6Jm5fJ5v6Jm5fJ5v6Jm5fJ5v6Jm5fJ5v6Jm5fJ5v6';
+    
+    res.status(200).json({ user, token });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // Get all agent configurations
@@ -51,8 +108,8 @@ app.get('/api/agents/:agentId', (req, res) => {
   res.status(200).json(agent);
 });
 
-// Chat endpoint
-app.post('/api/chat', async (req, res) => {
+// Chat endpoint (authenticated)
+app.post('/api/chat', authenticateUser, async (req, res) => {
   try {
     const { message, conversationId, agentId } = req.body;
     
@@ -80,6 +137,7 @@ app.post('/api/chat', async (req, res) => {
         id: null,
         title: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
         agent_id: agentId,
+        user_id: req.user.id,
         created_at: getCurrentTimestamp(),
         updated_at: getCurrentTimestamp(),
         messages: []
@@ -125,8 +183,8 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Get conversation history
-app.get('/api/conversations/:conversationId', async (req, res) => {
+// Get conversation history (authenticated)
+app.get('/api/conversations/:conversationId', authenticateUser, async (req, res) => {
   try {
     const { conversationId } = req.params;
     
@@ -136,6 +194,11 @@ app.get('/api/conversations/:conversationId', async (req, res) => {
       return res.status(404).json({ error: 'Conversation not found' });
     }
     
+    // Check if user has access to this conversation
+    if (conversation.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
     res.status(200).json(conversation);
   } catch (error) {
     console.error('Get conversation error:', error);
@@ -143,12 +206,13 @@ app.get('/api/conversations/:conversationId', async (req, res) => {
   }
 });
 
-// Get all conversations for an agent
-app.get('/api/conversations/agent/:agentId', async (req, res) => {
+// Get all conversations for an agent (authenticated)
+app.get('/api/conversations/agent/:agentId', authenticateUser, async (req, res) => {
   try {
     const { agentId } = req.params;
+    const userId = req.user.id;
     
-    const conversations = await conversationModel.getConversationsByAgentId(agentId);
+    const conversations = await conversationModel.getConversationsByAgentId(agentId, userId);
     
     res.status(200).json(conversations);
   } catch (error) {

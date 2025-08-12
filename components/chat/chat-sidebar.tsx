@@ -1,14 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Plus, Archive, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AgentBranding } from "@/components/agent-branding"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
 import { SettingsPanel } from "./settings-panel"
+import { useConversations } from "@/hooks/use-conversations"
 
 interface ChatSidebarProps {
   selectedChatId: string
@@ -19,50 +21,21 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleCollapse }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
+  const { conversations, loading, error, fetchConversations } = useConversations()
 
-  const mockChats = [
-    {
-      id: "1",
-      name: "Sarah Wilson",
-      lastMessage: "Hey! How was your day?",
-      timestamp: "2:34 PM",
-      unreadCount: 2,
-      isOnline: true,
-      isPinned: true,
-    },
-    {
-      id: "2",
-      name: "Team Project",
-      lastMessage: "John: The presentation looks great!",
-      timestamp: "1:15 PM",
-      unreadCount: 0,
-      isOnline: false,
-      isPinned: true,
-    },
-    {
-      id: "3",
-      name: "Mom",
-      lastMessage: "Don't forget dinner tomorrow",
-      timestamp: "12:45 PM",
-      unreadCount: 1,
-      isOnline: false,
-      isPinned: false,
-    },
-    {
-      id: "4",
-      name: "Alex Chen",
-      lastMessage: "Thanks for the help earlier!",
-      timestamp: "Yesterday",
-      unreadCount: 0,
-      isOnline: true,
-      isPinned: false,
-    },
-  ]
+  // Convert conversations to chat format for display
+  const chats = conversations.map(conv => ({
+    id: conv.id,
+    name: conv.title || `Conversation ${conv.id.slice(0, 8)}`,
+    lastMessage: "", // We would need to extract this from messages
+    timestamp: new Date(conv.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    unreadCount: 0,
+    isOnline: false,
+    isPinned: false,
+  }))
 
-  const filteredChats = mockChats.filter(
-    (chat) =>
-      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filteredChats = chats.filter(chat =>
+    chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const pinnedChats = filteredChats.filter((chat) => chat.isPinned)
@@ -79,7 +52,10 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Messages</h1>
+          <div className="flex items-center gap-2">
+            <AgentBranding variant="compact" />
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Messages</h1>
+          </div>
           <div className="flex items-center gap-2">
             <ContactsManager onStartChat={handleStartChat} />
             <Button variant="ghost" size="sm">

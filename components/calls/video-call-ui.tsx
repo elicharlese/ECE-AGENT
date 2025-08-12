@@ -183,7 +183,7 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center">
-                  <h2 className="text-2xl font-semibold">{contact.name}</h2>
+                  <h2 className="text-2xl font-semibold">AGENT - {contact.name}</h2>
                   <p className="text-gray-400 mt-2">{getStatusText()}</p>
                 </div>
               </div>

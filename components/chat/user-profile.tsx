@@ -15,7 +15,7 @@ interface UserProfile {
   id: string
   name: string
   email: string
-  phone: string
+  phone?: string
   bio: string
   avatar?: string
   status: "online" | "away" | "busy" | "offline"
@@ -95,7 +95,7 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            {isOwnProfile ? "Your Profile" : user.name}
+            AGENT - {isOwnProfile ? "Your Profile" : user.name}
             {isOwnProfile && (
               <div className="flex gap-2">
                 {isEditing ? (

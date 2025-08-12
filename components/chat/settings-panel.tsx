@@ -143,7 +143,7 @@ export function SettingsPanel() {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
+          <DialogTitle>AGENT - Settings</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">

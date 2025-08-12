@@ -150,7 +150,7 @@ export function AppAnalyticsDashboard({ selectedAppId }: AppAnalyticsDashboardPr
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">{currentMetrics.appName}</h2>
+          <h2 className="text-2xl font-bold">AGENT - {currentMetrics.appName}</h2>
           <div className="flex items-center gap-4 mt-2">
             <div className={`flex items-center gap-2 ${health.color}`}>
               <HealthIcon className="h-4 w-4" />

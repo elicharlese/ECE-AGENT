@@ -18,7 +18,7 @@ interface Message {
   timestamp: Date
   senderId: string
   senderName: string
-  type: "text" | "image" | "video" | "audio" | "document" | "system" | "gif"
+  type: "text" | "image" | "video" | "audio" | "document" | "system" | "gif" | "app"
   isOwn: boolean
   mediaUrl?: string
   fileName?: string

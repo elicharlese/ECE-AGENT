@@ -556,7 +556,7 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Link className="h-5 w-5" />
-            Agent Integration
+            AGENT - Agent Integration
           </h3>
           <div className="flex gap-2">
             <Badge variant="outline">{activeAgents} Active</Badge>

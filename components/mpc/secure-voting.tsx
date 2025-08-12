@@ -346,7 +346,7 @@ export function SecureVoting({ onCreateVote, onCastVote }: SecureVotingProps) {
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Vote className="h-5 w-5" />
-            Secure Voting
+            AGENT - Secure Voting
           </h3>
           <div className="flex gap-2">
             <Badge variant="outline">{activeVotes} Active</Badge>

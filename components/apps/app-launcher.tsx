@@ -56,7 +56,7 @@ export function AppLauncher({ onLaunchApp }: AppLauncherProps) {
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Apps</DialogTitle>
+          <DialogTitle>AGENT - Apps</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-3 gap-4 p-4">

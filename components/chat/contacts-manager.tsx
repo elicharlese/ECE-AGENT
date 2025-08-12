@@ -179,7 +179,7 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl h-[85vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Contacts</DialogTitle>
+          <DialogTitle>AGENT - Contacts</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="all" className="flex-1 flex flex-col min-h-0">

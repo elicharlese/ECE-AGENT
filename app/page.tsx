@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useUser } from "@/contexts/user-context"
+import { LoginForm } from "@/components/login-form"
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
 import { ChatWindow } from "@/components/chat/chat-window"
 import { AgentSidebar } from "@/components/chat/agent-sidebar"
@@ -10,6 +12,27 @@ import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
 
 export default function ChatApp() {
+  const { user, isLoading } = useUser()
+  
+  // Show login form if user is not authenticated
+  if (!user && !isLoading) {
+    return <LoginForm />
+  }
+  
+  // Show loading state while checking auth status
+  if (isLoading) {
+    return (
+      <div className="flex min-h-full items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    )
+  }
+  
+  // Show chat app if user is authenticated
+  return <AuthenticatedChatApp />
+}
+
+function AuthenticatedChatApp() {
   const [selectedChatId, setSelectedChatId] = useState<string>("1")
   const [selectedAgentId, setSelectedAgentId] = useState<string>()
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)

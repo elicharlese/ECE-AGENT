@@ -112,7 +112,7 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="text-2xl font-semibold">{contact.name}</h2>
+              <h2 className="text-2xl font-semibold">AGENT - {contact.name}</h2>
               {contact.phone && <p className="text-gray-300">{contact.phone}</p>}
               <p className="text-gray-400 mt-2">{getStatusText()}</p>
             </div>

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Phone, Video, Menu, Bot } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AgentBranding } from "@/components/agent-branding"
 import { MessageBubble } from "./message-bubble"
 import { UserProfile } from "./user-profile"
 import { PinnedMessages } from "./pinned-messages"
@@ -19,6 +20,7 @@ import { useHaptics } from "@/hooks/use-haptics"
 import { AgentIntegration } from "../agents/agent-integration"
 import { PhoneCallUI } from "../calls/phone-call-ui"
 import { VideoCallUI } from "../calls/video-call-ui"
+import { LogoutButton } from "../logout-button"
 
 interface Message {
   id: string
@@ -26,7 +28,7 @@ interface Message {
   timestamp: Date
   senderId: string
   senderName: string
-  type: "text" | "image" | "video" | "audio" | "document" | "system" | "app"
+  type: "text" | "image" | "video" | "audio" | "document" | "system" | "gif" | "app"
   isOwn: boolean
   mediaUrl?: string
   fileName?: string
@@ -290,6 +292,7 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
               <Menu className="h-4 w-4" />
             </Button>
           )}
+          <AgentBranding variant="compact" className="hidden md:flex" />
           <UserProfile user={chatInfo} isOwnProfile={false} />
         </div>
 
@@ -305,6 +308,7 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
           <Button variant="ghost" size="sm" onClick={handleVideoCall}>
             <Video className="h-4 w-4" />
           </Button>
+          <LogoutButton />
         </div>
       </div>
 
