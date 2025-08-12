@@ -1,0 +1,204 @@
+"use client"
+
+import { useState } from "react"
+import { Search, Plus, Archive, ChevronLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { UserProfile } from "./user-profile"
+import { ContactsManager } from "./contacts-manager"
+import { SettingsPanel } from "./settings-panel"
+
+interface ChatSidebarProps {
+  selectedChatId: string
+  onSelectChat: (chatId: string) => void
+  collapsed: boolean
+  onToggleCollapse: () => void
+}
+
+export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleCollapse }: ChatSidebarProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const mockChats = [
+    {
+      id: "1",
+      name: "Sarah Wilson",
+      lastMessage: "Hey! How was your day?",
+      timestamp: "2:34 PM",
+      unreadCount: 2,
+      isOnline: true,
+      isPinned: true,
+    },
+    {
+      id: "2",
+      name: "Team Project",
+      lastMessage: "John: The presentation looks great!",
+      timestamp: "1:15 PM",
+      unreadCount: 0,
+      isOnline: false,
+      isPinned: true,
+    },
+    {
+      id: "3",
+      name: "Mom",
+      lastMessage: "Don't forget dinner tomorrow",
+      timestamp: "12:45 PM",
+      unreadCount: 1,
+      isOnline: false,
+      isPinned: false,
+    },
+    {
+      id: "4",
+      name: "Alex Chen",
+      lastMessage: "Thanks for the help earlier!",
+      timestamp: "Yesterday",
+      unreadCount: 0,
+      isOnline: true,
+      isPinned: false,
+    },
+  ]
+
+  const filteredChats = mockChats.filter(
+    (chat) =>
+      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chat.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  const pinnedChats = filteredChats.filter((chat) => chat.isPinned)
+  const regularChats = filteredChats.filter((chat) => !chat.isPinned)
+
+  const handleStartChat = (contactId: string) => {
+    onSelectChat(contactId)
+  }
+
+  if (collapsed) return null
+
+  return (
+    <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Messages</h1>
+          <div className="flex items-center gap-2">
+            <ContactsManager onStartChat={handleStartChat} />
+            <Button variant="ghost" size="sm">
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onToggleCollapse}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-gray-50 dark:bg-gray-700 border-0"
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex gap-2 mt-3">
+          <Button variant="ghost" size="sm" className="text-xs">
+            <Archive className="h-3 w-3 mr-1" />
+            Archived
+          </Button>
+          <SettingsPanel />
+        </div>
+      </div>
+
+      {/* Chat List */}
+      <div className="flex-1 overflow-y-auto">
+        {/* Pinned Chats */}
+        {pinnedChats.length > 0 && (
+          <div className="p-2">
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">PINNED</div>
+            {pinnedChats.map((chat) => (
+              <ChatItem
+                key={chat.id}
+                chat={chat}
+                isSelected={selectedChatId === chat.id}
+                onSelect={() => onSelectChat(chat.id)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Regular Chats */}
+        <div className="p-2">
+          {regularChats.length > 0 && pinnedChats.length > 0 && (
+            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">ALL MESSAGES</div>
+          )}
+          {regularChats.map((chat) => (
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              isSelected={selectedChatId === chat.id}
+              onSelect={() => onSelectChat(chat.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* User Profile at Bottom */}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <UserProfile />
+      </div>
+    </div>
+  )
+}
+
+function ChatItem({ chat, isSelected, onSelect }: { chat: any; isSelected: boolean; onSelect: () => void }) {
+  return (
+    <div
+      onClick={onSelect}
+      className={`
+        flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors
+        ${
+          isSelected
+            ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            : "hover:bg-gray-50 dark:hover:bg-gray-700"
+        }
+      `}
+    >
+      <div className="relative">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={chat.avatar || "/placeholder.svg"} />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+            {chat.name
+              .split(" ")
+              .map((n: string) => n[0])
+              .join("")}
+          </AvatarFallback>
+        </Avatar>
+        {chat.isOnline && (
+          <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full" />
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <h3
+            className={`font-medium truncate ${isSelected ? "text-blue-700 dark:text-blue-300" : "text-gray-900 dark:text-white"}`}
+          >
+            {chat.name}
+          </h3>
+          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{chat.timestamp}</span>
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{chat.lastMessage}</p>
+          {chat.unreadCount > 0 && (
+            <Badge className="ml-2 bg-blue-500 hover:bg-blue-600 text-white text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5">
+              {chat.unreadCount}
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
