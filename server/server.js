@@ -22,21 +22,22 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Authentication middleware
 const authenticateUser = async (req, res, next) => {
-  const token = req.headers.authorization;
+  const authHeader = req.headers.authorization;
   
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   
   try {
-    // Remove 'Bearer ' prefix if present
-    const jwt = token.replace('Bearer ', '');
+    // Extract token from 'Bearer <token>' format
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
     
     // Verify the token with Supabase
-    const { data, error } = await supabase.auth.getUser(jwt);
+    const { data, error } = await supabase.auth.getUser(token);
     
     if (error || !data.user) {
-      return res.status(401).json({ error: 'Invalid token' });
+      console.error('Token verification error:', error?.message || 'Invalid token');
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
     
     // Add user info to request object
@@ -60,6 +61,112 @@ const getCurrentTimestamp = () => new Date().toISOString();
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: getCurrentTimestamp() });
+});
+
+// Solana authentication endpoint
+app.post('/api/auth/solana', async (req, res) => {
+  try {
+    const { publicKey, signature, message, timestamp } = req.body;
+    
+    if (!publicKey || !signature || !message || !timestamp) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Verify timestamp is recent (within 5 minutes)
+    const now = Date.now();
+    if (now - timestamp > 5 * 60 * 1000) {
+      return res.status(400).json({ error: 'Request expired' });
+    }
+    
+    // In a production environment, you would verify the signature here
+    // For now, we'll create a mock user based on the public key
+    
+    // Check if user exists or create new one
+    // First, try to find user by email (Solana wallet address)
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', `${publicKey}@solana.wallet`)
+      .single();
+    
+    let user;
+    if (fetchError || !existingUser) {
+      // Create new user with Solana public key as identifier
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: `${publicKey}@solana.wallet`,
+        password: 'solana-wallet-user', // Placeholder password for Supabase auth
+        email_confirm: true,
+        user_metadata: {
+          wallet_type: 'solana',
+          public_key: publicKey,
+          display_name: `Solana User ${publicKey.slice(0, 8)}...`
+        }
+      });
+      
+      if (createError) {
+        console.error('Error creating Solana user:', createError);
+        return res.status(500).json({ error: 'Failed to create user' });
+      }
+      
+      user = newUser.user;
+    } else {
+      // Get full user object from Supabase auth
+      const { data: authUser, error: authError } = await supabase.auth.admin.getUserById(existingUser.id);
+      if (authError) {
+        console.error('Error fetching user:', authError);
+        return res.status(500).json({ error: 'Failed to fetch user' });
+      }
+      user = authUser.user;
+    }
+    
+    // Generate access token for the user
+    const { data: sessionData, error: sessionError } = await supabase.auth.admin.signInWithPassword({
+      email: user.email,
+      password: 'solana-wallet-user'
+    });
+    
+    if (sessionError) {
+      console.error('Error generating session:', sessionError);
+      return res.status(500).json({ error: 'Failed to generate session' });
+    }
+    
+    res.json({
+      user: user,
+      access_token: sessionData.session.access_token,
+      refresh_token: sessionData.session.refresh_token
+    });
+    
+  } catch (error) {
+    console.error('Solana auth error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Create test user endpoint (for development)
+app.post('/api/auth/create-test-user', async (req, res) => {
+  try {
+    const { data: user, error } = await supabase.auth.admin.createUser({
+      email: 'test@example.com',
+      password: 'password123',
+      email_confirm: true,
+      user_metadata: {
+        display_name: 'Test User'
+      }
+    });
+    
+    if (error) {
+      // User might already exist
+      if (error.message.includes('already registered')) {
+        return res.json({ message: 'Test user already exists' });
+      }
+      throw error;
+    }
+    
+    res.json({ message: 'Test user created successfully', user: user.user });
+  } catch (error) {
+    console.error('Error creating test user:', error);
+    res.status(500).json({ error: 'Failed to create test user' });
+  }
 });
 
 // Simple login endpoint for testing (in a real app, use Supabase Auth)
@@ -221,8 +328,19 @@ app.get('/api/conversations/agent/:agentId', authenticateUser, async (req, res) 
   }
 });
 
+// Import WebSocket server
+const http = require('http');
+const { setupWebSocketServer } = require('./websocket');
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Setup WebSocket server
+const wss = setupWebSocketServer(server);
+
 // Start server
-app.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/api/health`);
+  console.log(`WebSocket server ready`);
 });
