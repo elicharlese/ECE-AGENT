@@ -30,11 +30,9 @@ html {
         `}</style>
       </head>
       <body>
-        <SolanaWalletProvider>
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </SolanaWalletProvider>
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   )
