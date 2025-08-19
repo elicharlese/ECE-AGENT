@@ -26,6 +26,9 @@ export function LoginForm() {
   const [showProfilePopup, setShowProfilePopup] = useState(false)
   const [showGoogleHint, setShowGoogleHint] = useState(false)
   const [recentProfile, setRecentProfile] = useState<any>(null)
+  const [showDevLogin, setShowDevLogin] = useState(false)
+  const [devUsername, setDevUsername] = useState('')
+  const [devPassword, setDevPassword] = useState('')
   const { login } = useUser()
 
   useEffect(() => {
@@ -138,6 +141,33 @@ export function LoginForm() {
       console.error('Magic link error:', error)
     } else {
       setError('Magic link sent! Check your email.')
+    }
+  }
+
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setIsLoading(true)
+    
+    if (devUsername === 'admin' && devPassword === 'admin123' && process.env.NODE_ENV === 'development') {
+      // Set a cookie to bypass auth in development
+      document.cookie = 'dev_admin=true; path=/; max-age=86400' // 24 hours
+      
+      // Set a local user state for the app to use
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('dev_user', JSON.stringify({
+          id: 'dev-admin-id',
+          email: 'admin@dev.local',
+          name: 'Dev Admin',
+          avatar_url: null
+        }))
+      }
+      
+      // Use window.location for hard redirect to bypass Next.js router
+      window.location.href = '/messages'
+    } else {
+      setError('Invalid dev credentials')
+      setIsLoading(false)
     }
   }
 
@@ -277,7 +307,7 @@ export function LoginForm() {
                 </div>
               </div>
 
-              <div className="mt-6">
+              <div className="mt-6 space-y-3">
                 <Button
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
@@ -287,6 +317,45 @@ export function LoginForm() {
                   <Chrome className="mr-3 h-5 w-5 text-indigo-500" />
                   Continue with Google
                 </Button>
+                
+                {process.env.NODE_ENV === 'development' && (
+                  <>
+                    {!showDevLogin ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowDevLogin(true)}
+                        className="w-full text-sm text-gray-500 hover:text-gray-700 underline"
+                      >
+                        Or sign in with dev account
+                      </button>
+                    ) : (
+                      <form onSubmit={handleDevLogin} className="space-y-3 mt-4 p-4 bg-gray-50 rounded-xl">
+                        <p className="text-xs text-gray-600 text-center">Dev Login (Development Only)</p>
+                        <Input
+                          type="text"
+                          placeholder="Username (admin)"
+                          value={devUsername}
+                          onChange={(e) => setDevUsername(e.target.value)}
+                          className="w-full h-10"
+                        />
+                        <Input
+                          type="password"
+                          placeholder="Password (admin123)"
+                          value={devPassword}
+                          onChange={(e) => setDevPassword(e.target.value)}
+                          className="w-full h-10"
+                        />
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full h-10 bg-gray-700 hover:bg-gray-800"
+                        >
+                          Sign in as Dev Admin
+                        </Button>
+                      </form>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
