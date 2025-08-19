@@ -9,6 +9,22 @@ export async function middleware(req: NextRequest) {
     },
   })
 
+  // Allow auth callback routes to pass through
+  if (req.nextUrl.pathname.startsWith('/auth/callback')) {
+    return res
+  }
+
+  // Check for dev admin cookie in development
+  const isDevAdmin = process.env.NODE_ENV === 'development' && req.cookies.get('dev_admin')?.value === 'true'
+  
+  // If dev admin, allow access to all routes except /auth
+  if (isDevAdmin) {
+    if (req.nextUrl.pathname === '/auth') {
+      return NextResponse.redirect(new URL('/messages', req.url))
+    }
+    return res
+  }
+
   // Development fallback: if Supabase env vars are missing, allow access to /auth and block others
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -45,14 +61,14 @@ export async function middleware(req: NextRequest) {
   const {
     data: { session },
   } = await supabase.auth.getSession()
-
+  
   // If user is not signed in and the current path is not /auth redirect the user to /auth
   if (!session && !req.nextUrl.pathname.startsWith('/auth')) {
     return NextResponse.redirect(new URL('/auth', req.url))
   }
 
   // If user is signed in and the current path is /auth redirect the user to /messages
-  if (session && (req.nextUrl.pathname === '/auth' || req.nextUrl.pathname.startsWith('/auth'))) {
+  if (session && req.nextUrl.pathname === '/auth') {
     return NextResponse.redirect(new URL('/messages', req.url))
   }
 
@@ -60,5 +76,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|auth/callback|auth/callback/.*).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 }
