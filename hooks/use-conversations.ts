@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Conversation } from '@/services/conversation-service'
 import * as conversationService from '@/services/conversation-service'
+import { supabase } from '@/lib/supabase/client'
 
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -62,6 +63,23 @@ export function useConversations() {
 
   useEffect(() => {
     fetchConversations()
+    // Subscribe to conversation updates so sidebar stays fresh
+    const channel = supabase
+      .channel('conversations-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return {

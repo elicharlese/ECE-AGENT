@@ -3,6 +3,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { ensureProfile } from '@/services/profile-service'
+import { useRouter } from 'next/navigation'
 
 interface User {
   id: string
@@ -22,6 +24,8 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [profileEnsured, setProfileEnsured] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     // Check if user is already logged in
@@ -33,6 +37,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
           email: supabaseUser.email || null,
           created_at: supabaseUser.created_at
         })
+        // Ensure profile exists
+        if (!profileEnsured) {
+          try {
+            await ensureProfile()
+            setProfileEnsured(true)
+          } catch (e) {
+            console.error('Failed to ensure profile:', e)
+          }
+        }
       }
       setIsLoading(false)
     }
@@ -40,15 +53,34 @@ export function UserProvider({ children }: { children: ReactNode }) {
     checkUser()
     
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser({
           id: session.user.id,
           email: session.user.email || null,
           created_at: session.user.created_at
         })
+        // Ensure profile exists when user logs in
+        if (!profileEnsured) {
+          try {
+            await ensureProfile()
+            setProfileEnsured(true)
+          } catch (e) {
+            console.error('Failed to ensure profile on auth change:', e)
+          }
+        }
+        // Store profile for future quick sign-in and redirect
+        if (event === 'SIGNED_IN') {
+          const { storeRecentProfile } = await import('@/components/profile-signin-popup')
+          storeRecentProfile(session.user)
+          // Force redirect to messages after successful authentication
+          if (window.location.pathname.startsWith('/auth') || window.location.pathname === '/') {
+            window.location.href = '/messages'
+          }
+        }
       } else {
         setUser(null)
+        setProfileEnsured(false)
       }
       setIsLoading(false)
     })
@@ -60,74 +92,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Handle special admin credentials
-      if (email === 'admin' && password === 'admin') {
-        // For demo purposes, create or login as admin user with a valid email
-        const adminEmail = 'admin@agent-demo.com'
-        const adminPassword = 'SecurePass123!'
-        
-        // Try to sign in as admin
-        let { data, error } = await supabase.auth.signInWithPassword({
-          email: adminEmail,
-          password: adminPassword
-        })
-        
-        // If admin doesn't exist, create it
-        if (error) {
-          console.log('Admin user not found, creating admin account...')
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: adminEmail,
-            password: adminPassword,
-            options: {
-              emailRedirectTo: undefined,
-              data: {
-                role: 'admin',
-                display_name: 'Administrator'
-              }
-            }
-          })
-          
-          if (signUpError) {
-            console.error('Admin user creation error:', signUpError.message)
-            return false
-          }
-          
-          data = signUpData as typeof data;
-        }
-        
-        if (data.user) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email || null,
-            created_at: data.user.created_at
-          })
-          return true
-        }
-        return false;
-      }
-      
-      // Handle demo credentials (test/test)
-      if (email === 'test' && password === 'test') {
-        return await createDemoUser();
-      }
-      
-      // Handle demo credentials (test@example.com/password123)
-      if (email === 'test@example.com' && password === 'password123') {
-        return await createDemoUser();
-      }
-      
-      // Regular user login - try to sign in first
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
         console.error('Login error:', error.message)
-        // Return false to let the calling component handle the error message
         return false
       }
-
       if (data.user) {
         setUser({
           id: data.user.id,
@@ -136,7 +105,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
         })
         return true
       }
-      
       return false
     } catch (error) {
       console.error('Login error:', error)
@@ -144,51 +112,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Helper function to create demo user with a valid email domain
-  const createDemoUser = async (): Promise<boolean> => {
-    const demoEmail = 'demo@agent-demo.com'
-    const demoPassword = 'DemoPass123!'
-    
-    // Try to sign in first
-    let { data, error } = await supabase.auth.signInWithPassword({
-      email: demoEmail,
-      password: demoPassword
-    })
-    
-    // If demo user doesn't exist, create it
-    if (error) {
-      console.log('Demo user not found, creating demo account...')
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: demoEmail,
-        password: demoPassword,
-        options: {
-          emailRedirectTo: undefined,
-          data: {
-            role: 'demo',
-            display_name: 'Demo User'
-          }
-        }
-      })
-      
-      if (signUpError) {
-        console.error('Demo user creation error:', signUpError.message)
-        return false
-      }
-      
-      data = signUpData as typeof data;
-    }
-    
-    if (data.user) {
-      setUser({
-        id: data.user.id,
-        email: data.user.email || null,
-        created_at: data.user.created_at
-      })
-      return true
-    }
-    
-    return false
-  }
+  
 
   const logout = async () => {
     await supabase.auth.signOut()

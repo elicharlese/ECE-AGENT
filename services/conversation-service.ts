@@ -52,9 +52,13 @@ export async function getConversationById(id: string): Promise<Conversation | nu
 }
 
 export async function createConversation(title: string): Promise<Conversation> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) {
+    throw new Error('Not authenticated')
+  }
   const { data, error } = await supabase
     .from('conversations')
-    .insert({ title, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .insert({ title, agent_id: 'dm', user_id: auth.user.id, created_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .select()
     .single()
 
