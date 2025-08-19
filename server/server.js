@@ -2,9 +2,17 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const fetch = require('node-fetch');
+const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
+// 1) server/.env
 dotenv.config();
+// 2) root .env.local (to access NEXT_PUBLIC_* for local dev)
+const rootEnvLocal = path.resolve(__dirname, '..', '.env.local');
+if (fs.existsSync(rootEnvLocal)) {
+  dotenv.config({ path: rootEnvLocal, override: false });
+}
 
 // Initialize Express app
 const app = express();
@@ -16,7 +24,7 @@ app.use(express.json());
 
 // Supabase setup
 const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
