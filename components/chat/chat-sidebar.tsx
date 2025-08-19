@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
-import { SettingsPanel } from "./settings-panel"
 import { useConversations } from "@/hooks/use-conversations"
 
 interface ChatSidebarProps {
@@ -84,7 +83,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
             <Archive className="h-3 w-3 mr-1" />
             Archived
           </Button>
-          <SettingsPanel />
+          {/* SettingsPanel removed (legacy). Replace with noop button or omit entirely. */}
         </div>
       </div>
 

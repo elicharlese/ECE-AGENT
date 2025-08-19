@@ -47,6 +47,16 @@ Establish the foundational infrastructure for the AGENT iMessage chat applicatio
 - [ ] User profile management and template engine
 - [ ] Integration with AGENT backend for job tracking
 - [ ] Popup UI for quick access and management
+- [ ] Core messaging UI implementation
+- [ ] AI agent integration with MCP tools
+- [ ] Professional workflow templates (Developer, Trader, Lawyer, Researcher)
+- [ ] Group chat functionality
+- [ ] Single chat functionality
+- [ ] Real-time messaging with WebSocket
+- [ ] Authentication system
+- [ ] Routing and navigation
+- [ ] Full sitemap documentation
+- [ ] All pages tested and functional
 
 ### Job Application Features
 - [ ] Autofill for LinkedIn, Indeed, Workday platforms
