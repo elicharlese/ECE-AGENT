@@ -2,11 +2,17 @@ import { supabase } from '@/lib/supabase/client'
 import { sendMessage as sendDbMessage, DBMessage } from './message-service'
 
 // AI Service Configuration
+type AIProvider = 'openai' | 'openrouter'
+
 interface AIConfig {
   apiKey?: string
   model?: string
   temperature?: number
   maxTokens?: number
+  provider?: AIProvider
+  endpoint?: string
+  headers?: Record<string, string>
+  systemPrompt?: string
 }
 
 interface AIMessage {
@@ -28,14 +34,24 @@ class AIService {
     model: 'gpt-4',
     temperature: 0.7,
     maxTokens: 1000,
+    provider: 'openai',
+    endpoint: 'https://api.openai.com/v1/chat/completions',
   }
+
+  private static readonly DEFAULT_TIMEOUT_MS = 45000
 
   constructor() {
     // Check for API keys in environment
     if (typeof window !== 'undefined') {
-      const storedKey = localStorage.getItem('openai_api_key')
-      if (storedKey) {
-        this.config.apiKey = storedKey
+      const storedOpenAI = localStorage.getItem('openai_api_key')
+      if (storedOpenAI) this.config.apiKey = storedOpenAI
+
+      // Optional: store a default OpenRouter key separately
+      const storedOpenRouter = localStorage.getItem('openrouter_api_key')
+      if (!this.config.apiKey && storedOpenRouter) {
+        this.config.apiKey = storedOpenRouter
+        this.config.provider = 'openrouter'
+        this.config.endpoint = 'https://openrouter.ai/api/v1/chat/completions'
       }
     }
   }
@@ -47,32 +63,72 @@ class AIService {
     }
   }
 
-  async generateResponse(messages: AIMessage[]): Promise<string> {
-    // If we have an API key, use real OpenAI API
-    if (this.config.apiKey && this.config.apiKey !== 'demo') {
+  setProvider(provider: AIProvider) {
+    this.config.provider = provider
+    if (provider === 'openrouter' && !this.config.endpoint) {
+      this.config.endpoint = 'https://openrouter.ai/api/v1/chat/completions'
+    }
+    if (provider === 'openai' && !this.config.endpoint) {
+      this.config.endpoint = 'https://api.openai.com/v1/chat/completions'
+    }
+  }
+
+  private resolveRuntimeConfig(overrides?: Partial<AIConfig>): Required<Pick<AIConfig, 'provider' | 'endpoint' | 'model' | 'temperature' | 'maxTokens'>> & Pick<AIConfig, 'apiKey' | 'headers' | 'systemPrompt'> {
+    const provider: AIProvider = (overrides?.provider || this.config.provider || 'openai')
+    const endpoint = overrides?.endpoint
+      || this.config.endpoint
+      || (provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions')
+    const model = overrides?.model || this.config.model || 'gpt-4'
+    const temperature = overrides?.temperature ?? this.config.temperature ?? 0.7
+    const maxTokens = overrides?.maxTokens ?? this.config.maxTokens ?? 1000
+    const headers = { ...(this.config.headers || {}), ...(overrides?.headers || {}) }
+    const systemPrompt = overrides?.systemPrompt || this.config.systemPrompt
+    const apiKey = overrides?.apiKey || this.config.apiKey
+    return { provider, endpoint, model, temperature, maxTokens, headers, systemPrompt, apiKey }
+  }
+
+  async generateResponse(messages: AIMessage[], overrides?: Partial<AIConfig>): Promise<string> {
+    const cfg = this.resolveRuntimeConfig(overrides)
+
+    // If we have an API key, use real API
+    if (cfg.apiKey && cfg.apiKey !== 'demo') {
       try {
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cfg.apiKey}`,
+          ...cfg.headers,
+        }
+        // Recommended OpenRouter headers (non-fatal if missing)
+        if (cfg.provider === 'openrouter' && typeof window !== 'undefined') {
+          headers['HTTP-Referer'] = window.location.origin
+          headers['X-Title'] = 'ECE Agent Chat'
+        }
+
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : undefined
+        const timeout = setTimeout(() => controller?.abort(), AIService.DEFAULT_TIMEOUT_MS)
+        const response = await fetch(cfg.endpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.config.apiKey}`,
-          },
+          headers,
           body: JSON.stringify({
-            model: this.config.model,
+            model: cfg.model,
             messages,
-            temperature: this.config.temperature,
-            max_tokens: this.config.maxTokens,
+            temperature: cfg.temperature,
+            max_tokens: cfg.maxTokens,
           }),
-        })
+          signal: controller?.signal,
+        }).finally(() => clearTimeout(timeout))
 
         if (!response.ok) {
-          throw new Error(`OpenAI API error: ${response.status}`)
+          let body: any = null
+          try { body = await response.text() } catch {}
+          throw new Error(`AI API error: ${response.status} ${body ? `- ${body}` : ''}`)
         }
 
         const data = await response.json()
-        return data.choices[0]?.message?.content || 'No response generated'
+        return data.choices?.[0]?.message?.content || 'No response generated'
       } catch (error) {
-        console.error('AI API error:', error)
+        const isAbort = (error as any)?.name === 'AbortError'
+        console.error('AI API error:', isAbort ? 'Request timed out' : error)
         // Fallback to mock response
         return this.getMockResponse(messages)
       }
@@ -106,7 +162,8 @@ class AIService {
 
   async processConversationMessage(
     conversationId: string,
-    userMessage: string
+    userMessage: string,
+    overrides?: Partial<AIConfig>
   ): Promise<DBMessage> {
     // Get conversation history
     const { data: messages } = await supabase
@@ -120,14 +177,20 @@ class AIService {
     const aiMessages: AIMessage[] = [
       {
         role: 'system',
-        content: 'You are a helpful AI assistant integrated into a messaging app. Be concise and friendly.',
+        content: overrides?.systemPrompt
+          || this.config.systemPrompt
+          || 'You are a helpful AI assistant integrated into a messaging app. Be concise and friendly.',
       },
     ]
 
     if (messages) {
       messages.forEach(msg => {
+        // Defensive role mapping to avoid null/invalid roles breaking the AI payload
+        const role: 'user' | 'assistant' = (msg.role === 'assistant')
+          ? 'assistant'
+          : (msg.role === 'user' || msg.user_id ? 'user' : 'assistant')
         aiMessages.push({
-          role: msg.role as 'user' | 'assistant',
+          role,
           content: msg.content,
         })
       })
@@ -136,7 +199,7 @@ class AIService {
     aiMessages.push({ role: 'user', content: userMessage })
 
     // Generate AI response
-    const aiResponse = await this.generateResponse(aiMessages)
+    const aiResponse = await this.generateResponse(aiMessages, overrides)
 
     // Save AI response to database
     const { data, error } = await supabase
@@ -169,6 +232,18 @@ class AIService {
       model: this.config.model,
       hasApiKey: !!this.config.apiKey,
       apiKeyType: this.config.apiKey === 'demo' ? 'demo' : this.config.apiKey ? 'custom' : 'none',
+    }
+  }
+
+  async testConnection(overrides: Partial<AIConfig> = {}): Promise<boolean> {
+    try {
+      const content = await this.generateResponse([
+        { role: 'system', content: overrides.systemPrompt || 'You are a test probe answering minimally.' },
+        { role: 'user', content: 'ping' },
+      ], overrides)
+      return typeof content === 'string' && content.length > 0
+    } catch (e) {
+      return false
     }
   }
 }

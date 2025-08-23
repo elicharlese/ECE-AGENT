@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+// Note: supabase client not needed here; removing unused import to satisfy lint
 
 // MCP Tool Types
 export interface MCPTool {
@@ -70,10 +70,21 @@ class MCPService {
       category: 'github',
       enabled: false,
     },
+    {
+      id: 'github-mcp',
+      name: 'GitHub MCP (Remote)',
+      description: 'Use the remote GitHub-hosted MCP server over HTTP/SSE',
+      category: 'github',
+      enabled: false,
+    },
   ]
 
   private gateways: MCPGateway[] = []
   private githubToken: string | null = null
+  private mcpSessionId: string | null = null
+  private mcpStreamAbort?: AbortController
+  private mcpListeners: Array<(eventText: string) => void> = []
+  private lastMcpEventAt: number | null = null
 
   constructor() {
     // Load saved configuration
@@ -97,8 +108,155 @@ class MCPService {
       }
 
       this.githubToken = localStorage.getItem('github_token')
+      this.mcpSessionId = localStorage.getItem('github_mcp_session')
+      if (this.githubToken && this.mcpSessionId) {
+        void this.startMcpStream()
+      }
     }
   }
+
+  // --- Remote GitHub MCP over backend proxy ---
+  private async initRemoteGitHubMCP(): Promise<void> {
+    if (!this.githubToken) throw new Error('GitHub not connected')
+    // Initialize session by POSTing to proxy; session id returned as header
+    const res = await fetch('/api/mcp/github', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-GitHub-PAT': this.githubToken,
+      },
+      body: JSON.stringify({}),
+    })
+    if (!res.ok) throw new Error(`MCP init failed: ${res.status}`)
+    const sid = res.headers.get('mcp-session-id') || res.headers.get('Mcp-Session-Id')
+    if (!sid) throw new Error('Missing MCP session id')
+    this.mcpSessionId = sid
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('github_mcp_session', sid)
+    }
+    // Start streaming in background
+    void this.startMcpStream()
+  }
+
+  private async startMcpStream() {
+    if (!this.githubToken || !this.mcpSessionId) return
+    // Abort previous stream if any
+    if (this.mcpStreamAbort) this.mcpStreamAbort.abort()
+    const ctrl = new AbortController()
+    this.mcpStreamAbort = ctrl
+
+    try {
+      const res = await fetch('/api/mcp/github', {
+        method: 'GET',
+        headers: {
+          'X-GitHub-PAT': this.githubToken,
+          'Mcp-Session-Id': this.mcpSessionId,
+        },
+        signal: ctrl.signal,
+      })
+      if (!res.ok || !res.body) {
+        throw new Error(`MCP stream failed: ${res.status}`)
+      }
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+        // rudimentary SSE split by double newline
+        let idx
+        while ((idx = buffer.indexOf('\n\n')) >= 0) {
+          const chunk = buffer.slice(0, idx)
+          buffer = buffer.slice(idx + 2)
+          this.emitMcpEvent(chunk)
+        }
+      }
+    } catch (e) {
+      if ((e as any)?.name === 'AbortError') return
+      console.warn('MCP stream error:', e)
+    }
+  }
+
+  private async stopRemoteGitHubMCP(): Promise<void> {
+    try {
+      if (this.mcpStreamAbort) this.mcpStreamAbort.abort()
+      if (this.githubToken && this.mcpSessionId) {
+        await fetch('/api/mcp/github', {
+          method: 'DELETE',
+          headers: {
+            'X-GitHub-PAT': this.githubToken,
+            'Mcp-Session-Id': this.mcpSessionId,
+          },
+        })
+      }
+    } catch (_) {
+      // ignore
+    } finally {
+      this.mcpSessionId = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('github_mcp_session')
+      }
+    }
+  }
+
+  private async executeGitHubMCP(params: { request?: any }): Promise<any> {
+    if (!this.githubToken) {
+      throw new Error('GitHub not connected')
+    }
+    // If there is no session yet, try to init
+    if (!this.mcpSessionId) {
+      try {
+        await this.initRemoteGitHubMCP()
+      } catch (e) {
+        return { success: false, error: (e as Error).message }
+      }
+    }
+    // Basic ping without specific request payload; users of MCP can wire richer requests later
+    const res = await fetch('/api/mcp/github', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-GitHub-PAT': this.githubToken,
+        'Mcp-Session-Id': this.mcpSessionId as string,
+      },
+      body: JSON.stringify(params.request ?? {}),
+    })
+    const text = await res.text()
+    return {
+      success: res.ok,
+      sessionId: this.mcpSessionId,
+      raw: text,
+    }
+  }
+
+  onMcpEvent(listener: (eventText: string) => void) {
+    this.mcpListeners.push(listener)
+  }
+
+  offMcpEvent(listener: (eventText: string) => void) {
+    this.mcpListeners = this.mcpListeners.filter(l => l !== listener)
+  }
+
+  private emitMcpEvent(eventText: string) {
+    this.lastMcpEventAt = Date.now()
+    for (const l of this.mcpListeners) {
+      try { l(eventText) } catch (_) { /* noop */ }
+    }
+  }
+
+  // --- MCP status helpers ---
+  getMcpStatus() {
+    return {
+      connected: !!this.githubToken,
+      sessionId: this.mcpSessionId,
+      streaming: !!this.mcpStreamAbort,
+      lastEventAt: this.lastMcpEventAt,
+    }
+  }
+  getMcpSessionId() { return this.mcpSessionId }
+  isMcpStreaming() { return !!this.mcpStreamAbort }
+  getLastMcpEventAt() { return this.lastMcpEventAt }
 
   // Get all available tools
   getTools(): MCPTool[] {
@@ -173,6 +331,20 @@ class MCPService {
       this.saveGateways()
       this.saveTools()
 
+      // Try to initialize remote MCP session via backend proxy (best-effort)
+      try {
+        await this.initRemoteGitHubMCP()
+        // Enable GitHub MCP tool
+        const ghMcp = this.tools.find(t => t.id === 'github-mcp')
+        if (ghMcp) {
+          ghMcp.enabled = true
+          ghMcp.config = { connected: true }
+        }
+        this.saveTools()
+      } catch (e) {
+        console.warn('Remote GitHub MCP init failed (non-fatal):', e)
+      }
+
       return gateway
     } catch (error) {
       console.error('Failed to connect GitHub:', error)
@@ -199,6 +371,14 @@ class MCPService {
       githubTool.enabled = false
       githubTool.config = { connected: false }
     }
+
+    // Disable GitHub MCP tool and stop session
+    const githubMcpTool = this.tools.find(t => t.id === 'github-mcp')
+    if (githubMcpTool) {
+      githubMcpTool.enabled = false
+      githubMcpTool.config = { connected: false }
+    }
+    void this.stopRemoteGitHubMCP()
 
     this.saveGateways()
     this.saveTools()
@@ -230,6 +410,8 @@ class MCPService {
         return this.executeWebSearch(params as { query: string })
       case 'github-api':
         return this.executeGitHubAPI(params as { endpoint: string; method?: string; data?: any })
+      case 'github-mcp':
+        return this.executeGitHubMCP(params as { request?: any })
       default:
         // Mock response for demo
         return {

@@ -8,6 +8,7 @@ export interface AgentConnection {
   id: string
   name: string
   model: string
+  provider: 'openai' | 'openrouter'
   status: 'connected' | 'disconnected' | 'error'
   capabilities: string[]
   config: {
@@ -25,6 +26,8 @@ interface AgentConnectionPanelProps {
   onUpdateConnection: (id: string, updates: Partial<AgentConnection>) => void
   onRemoveConnection: (id: string) => void
   onTestConnection: (id: string) => Promise<boolean>
+  selectedId?: string
+  onSelectConnection?: (id: string) => void
 }
 
 export function AgentConnectionPanel({
@@ -33,6 +36,8 @@ export function AgentConnectionPanel({
   onUpdateConnection,
   onRemoveConnection,
   onTestConnection,
+  selectedId,
+  onSelectConnection,
 }: AgentConnectionPanelProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [testingId, setTestingId] = useState<string | null>(null)
@@ -75,9 +80,12 @@ export function AgentConnectionPanel({
             className={cn(
               'border rounded-lg p-3 transition-all',
               'hover:shadow-md cursor-pointer',
-              expandedId === agent.id && 'shadow-md border-primary'
+              (expandedId === agent.id || selectedId === agent.id) && 'shadow-md border-primary'
             )}
-            onClick={() => setExpandedId(expandedId === agent.id ? null : agent.id)}
+            onClick={() => {
+              setExpandedId(expandedId === agent.id ? null : agent.id)
+              onSelectConnection?.(agent.id)
+            }}
           >
             {/* Agent Header */}
             <div className="flex items-center justify-between">
@@ -91,9 +99,13 @@ export function AgentConnectionPanel({
                   )}
                 />
                 <span className="font-medium">{agent.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {agent.model}
+                <span className="text-xs text-muted-foreground">{agent.model}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent text-muted-foreground uppercase">
+                  {agent.provider}
                 </span>
+                {selectedId === agent.id && (
+                  <Check className="h-3.5 w-3.5 text-green-600" />
+                )}
               </div>
               <div className="flex items-center gap-1">
                 <button
@@ -146,7 +158,20 @@ export function AgentConnectionPanel({
                   <label className="text-xs font-medium text-muted-foreground">
                     Configuration
                   </label>
-                  
+
+                  {/* Provider */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs">Provider</span>
+                    <select
+                      value={agent.provider}
+                      onChange={(e) => onUpdateConnection(agent.id, { provider: e.target.value as AgentConnection['provider'] })}
+                      className="w-32 px-2 py-1 text-xs border rounded"
+                    >
+                      <option value="openai">OpenAI</option>
+                      <option value="openrouter">OpenRouter</option>
+                    </select>
+                  </div>
+
                   {/* Temperature */}
                   <div className="flex items-center justify-between">
                     <span className="text-xs">Temperature</span>
@@ -191,6 +216,34 @@ export function AgentConnectionPanel({
                       rows={3}
                     />
                   </div>
+
+                  {/* API Key */}
+                  <div>
+                    <span className="text-xs">API Key</span>
+                    <input
+                      type="password"
+                      value={agent.config.apiKey || ''}
+                      onChange={(e) => onUpdateConnection(agent.id, {
+                        config: { ...agent.config, apiKey: e.target.value }
+                      })}
+                      className="w-full mt-1 px-2 py-1 text-xs border rounded"
+                      placeholder={agent.provider === 'openrouter' ? 'sk-or-v1-...' : 'sk-...'}
+                    />
+                  </div>
+
+                  {/* Endpoint */}
+                  <div>
+                    <span className="text-xs">Endpoint</span>
+                    <input
+                      type="text"
+                      value={agent.config.endpoint || ''}
+                      onChange={(e) => onUpdateConnection(agent.id, {
+                        config: { ...agent.config, endpoint: e.target.value }
+                      })}
+                      className="w-full mt-1 px-2 py-1 text-xs border rounded"
+                      placeholder={agent.provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions'}
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -226,10 +279,13 @@ function AgentAddForm({
 }) {
   const [name, setName] = useState('')
   const [model, setModel] = useState('gpt-4')
+  const [provider, setProvider] = useState<AgentConnection['provider']>('openai')
   const [capabilities, setCapabilities] = useState<string[]>(['chat'])
   const [temperature, setTemperature] = useState(0.7)
   const [maxTokens, setMaxTokens] = useState(2048)
   const [systemPrompt, setSystemPrompt] = useState('')
+  const [apiKey, setApiKey] = useState('')
+  const [endpoint, setEndpoint] = useState('')
 
   const availableCapabilities = [
     'chat', 'code', 'analysis', 'search', 'vision', 'audio', 'tools'
@@ -245,12 +301,15 @@ function AgentAddForm({
     onAdd({
       name,
       model,
+      provider,
       status: 'disconnected',
       capabilities,
       config: {
         temperature,
         maxTokens,
         systemPrompt,
+        apiKey,
+        endpoint: endpoint || (provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions'),
       },
     })
   }
@@ -266,6 +325,18 @@ function AgentAddForm({
           className="w-full mt-1 px-3 py-1.5 border rounded-md"
           required
         />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Provider</label>
+        <select
+          value={provider}
+          onChange={(e) => setProvider(e.target.value as AgentConnection['provider'])}
+          className="w-full mt-1 px-3 py-1.5 border rounded-md"
+        >
+          <option value="openai">OpenAI</option>
+          <option value="openrouter">OpenRouter</option>
+        </select>
       </div>
 
       <div>
@@ -334,6 +405,28 @@ function AgentAddForm({
           className="w-full mt-1 px-3 py-1.5 border rounded-md resize-none"
           rows={4}
           placeholder="You are a helpful assistant..."
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">API Key</label>
+        <input
+          type="password"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          className="w-full mt-1 px-3 py-1.5 border rounded-md"
+          placeholder={provider === 'openrouter' ? 'sk-or-v1-...' : 'sk-...'}
+        />
+      </div>
+
+      <div>
+        <label className="text-sm font-medium">Endpoint</label>
+        <input
+          type="text"
+          value={endpoint}
+          onChange={(e) => setEndpoint(e.target.value)}
+          className="w-full mt-1 px-3 py-1.5 border rounded-md"
+          placeholder={provider === 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions'}
         />
       </div>
 

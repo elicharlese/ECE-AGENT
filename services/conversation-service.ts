@@ -27,13 +27,29 @@ export async function getConversations(): Promise<Conversation[]> {
   const { data: auth } = await supabase.auth.getUser()
   if (!auth?.user) return []
 
+  // First fetch conversation ids where the user is a participant
+  const { data: memberRows, error: memberErr } = await supabase
+    .from('conversation_participants')
+    .select('conversation_id')
+    .eq('user_id', auth.user.id)
+
+  if (memberErr) {
+    console.warn('getConversations membership error', memberErr)
+    return []
+  }
+
+  const ids = (memberRows || []).map(r => r.conversation_id)
+  if (!ids.length) return []
+
+  // Fetch only necessary columns and cap results for faster initial render
   const { data, error } = await supabase
     .from('conversations')
-    .select('*')
+    .select('id, title, created_at, updated_at, user_id, agent_id')
+    .in('id', ids)
     .order('updated_at', { ascending: false })
+    .limit(50)
 
   if (error) {
-    // Log as warn to avoid Next dev overlay and gracefully degrade
     const shape = {
       code: (error as any)?.code,
       message: (error as any)?.message,

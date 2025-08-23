@@ -5,6 +5,7 @@ export interface Profile {
   username: string
   full_name?: string | null
   avatar_url?: string | null
+  cover_url?: string | null
   solana_address?: string | null
   created_at: string
   updated_at: string
@@ -91,7 +92,11 @@ export async function listProfiles(options?: { search?: string; excludeSelf?: bo
     }
 
     if (search && search.length > 0) {
-      const pattern = `%${search}%`
+      // If an email was typed, search by its local-part normalized like our username policy
+      const normalized = search.includes('@')
+        ? sanitizeUsername(search.split('@')[0] ?? '')
+        : search
+      const pattern = `%${normalized}%`
       // Search username OR full_name
       query = query.or(`username.ilike.${pattern},full_name.ilike.${pattern}`)
     }
@@ -144,7 +149,7 @@ export async function ensureProfile(): Promise<Profile> {
   return data
 }
 
-export async function updateProfile(patch: Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'solana_address'>>): Promise<Profile> {
+export async function updateProfile(patch: Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'cover_url' | 'solana_address'>>): Promise<Profile> {
   const { data: auth } = await supabase.auth.getUser()
   if (!auth?.user) throw new Error('Not authenticated')
 
@@ -177,10 +182,10 @@ export const profileService = {
     if (id && id !== auth.user.id) {
       throw new Error('Cannot update another user\'s profile')
     }
-    const allowed: Array<keyof Profile> = ['username', 'full_name', 'avatar_url', 'solana_address']
+    const allowed: Array<keyof Profile> = ['username', 'full_name', 'avatar_url', 'cover_url', 'solana_address']
     const filtered = Object.fromEntries(
       Object.entries(patch).filter(([k]) => (allowed as string[]).includes(k))
-    ) as Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'solana_address'>>
+    ) as Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'cover_url' | 'solana_address'>>
     return updateProfile(filtered)
   },
   getProfileByUserId,

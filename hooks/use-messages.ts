@@ -67,6 +67,7 @@ export function useSendMessage() {
           user_id: user.id,
           content,
           type,
+          role: 'user',
         })
         .select()
         .single()
