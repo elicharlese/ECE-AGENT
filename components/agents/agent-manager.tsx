@@ -577,7 +577,7 @@ function AgentCard({
 
 function AgentDetailModal({ agent, onClose }: { agent: Agent; onClose: () => void }) {
   return (
-    <Dialog open={true} onOpenChange={onClose}>
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

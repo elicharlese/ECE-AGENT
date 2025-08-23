@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Camera } from 'lucide-react'
 import { profileService } from '@/services/profile-service'
 import { supabase } from '@/lib/supabase/client'
+import { WalletLinker } from '@/components/user/WalletLinker'
 
 interface UserProfileProps {
   userId?: string
@@ -257,6 +258,12 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
                 <div className="text-sm text-gray-600">Status</div>
               </div>
             </div>
+
+            {/* Wallet Linking */}
+            <WalletLinker
+              currentAddress={profile.solana_address || null}
+              onChange={(addr) => setProfile((p: any) => ({ ...p, solana_address: addr }))}
+            />
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
 import type { Conversation } from '@/services/conversation-service'
-import { ensureProfile, getProfileByUsername } from '@/services/profile-service'
+import { ensureProfile, getProfileByIdentifier } from '@/services/profile-service'
 
 async function findExistingDM(userA: string, userB: string): Promise<Conversation | null> {
   // Find conversation IDs that contain both participants
@@ -37,6 +37,11 @@ async function findExistingDM(userA: string, userB: string): Promise<Conversatio
   return conv as Conversation
 }
 
+// Aggregate service for compatibility with components importing `{ dmService }`
+export const dmService = {
+  startDirectMessageByUsername,
+}
+
 export async function startDirectMessageByUsername(username: string): Promise<Conversation> {
   const { data: auth } = await supabase.auth.getUser()
   if (!auth?.user) throw new Error('Not authenticated')
@@ -44,8 +49,8 @@ export async function startDirectMessageByUsername(username: string): Promise<Co
   // Ensure current user has a profile
   await ensureProfile()
 
-  // Find target profile
-  const target = await getProfileByUsername(username)
+  // Find target profile by username, email, or user ID
+  const target = await getProfileByIdentifier(username)
   if (!target) {
     throw new Error('User not found')
   }

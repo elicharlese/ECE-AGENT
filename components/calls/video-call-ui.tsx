@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -17,6 +17,8 @@ import {
   Settings,
 } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
+import { useUser } from "@/contexts/user-context"
+import { LiveKitRoom, VideoConference } from "@livekit/components-react"
 
 interface VideoCallUIProps {
   isOpen: boolean
@@ -41,6 +43,14 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
   const { triggerHaptic } = useHaptics()
   const videoRef = useRef<HTMLVideoElement>(null)
   const localVideoRef = useRef<HTMLVideoElement>(null)
+  const { user } = useUser()
+  const [lkToken, setLkToken] = useState<string | null>(null)
+  const [lkWsUrl, setLkWsUrl] = useState<string | null>(null)
+  const [lkLoading, setLkLoading] = useState(false)
+  const [lkError, setLkError] = useState<string | null>(null)
+  // Stable guest identity across this component's lifetime
+  const [guestId] = useState(() => `guest-${Math.random().toString(36).slice(2)}`)
+  const [roomConnected, setRoomConnected] = useState(false)
 
   useEffect(() => {
     if (callStatus === "connected") {
@@ -51,15 +61,43 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
     }
   }, [callStatus])
 
-  useEffect(() => {
-    if (callType === "outgoing" && callStatus === "connecting") {
-      const timer = setTimeout(() => {
-        setCallStatus("connected")
-        triggerHaptic("success")
-      }, 2000)
-      return () => clearTimeout(timer)
+  const joinCall = useCallback(async () => {
+    try {
+      setLkLoading(true)
+      setLkError(null)
+      const res = await fetch("/api/livekit/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomName: String(contact.id || "default-room"),
+          identity: user?.id || guestId,
+          metadata: { name: user?.email || "Guest" },
+          grants: { canPublish: true, canSubscribe: true, canPublishData: true },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data?.token || !data?.wsUrl) {
+        throw new Error(data?.error || "Failed to mint LiveKit token")
+      }
+      setLkToken(data.token)
+      setLkWsUrl(data.wsUrl)
+      setCallStatus("connected")
+      triggerHaptic("success")
+    } catch (e: any) {
+      console.error("LiveKit join error", e)
+      setLkError(e?.message || "Failed to join LiveKit")
+    } finally {
+      setLkLoading(false)
     }
-  }, [callType, callStatus, triggerHaptic])
+  }, [contact.id, triggerHaptic, user?.email, user?.id])
+
+  useEffect(() => {
+    if (!isOpen) return
+    // Auto-join for outgoing calls when dialog opens
+    if (callType === "outgoing" && callStatus === "connecting") {
+      joinCall()
+    }
+  }, [isOpen, callType, callStatus, joinCall])
 
   useEffect(() => {
     // Auto-hide controls after 3 seconds
@@ -78,8 +116,9 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
   }
 
   const handleAnswer = () => {
-    setCallStatus("connected")
+    setCallStatus("connecting")
     triggerHaptic("success")
+    joinCall()
   }
 
   const handleDecline = () => {
@@ -125,7 +164,7 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent
         className={`${
           isFullscreen ? "max-w-full h-full" : "max-w-4xl h-[600px]"
@@ -139,36 +178,37 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
           <div className="flex-1 relative bg-gray-900">
             {callStatus === "connected" ? (
               <>
-                {/* Remote Video */}
-                <div className="w-full h-full bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center">
-                  {isVideoOff ? (
-                    <div className="text-center">
-                      <Avatar className="h-32 w-32 mx-auto mb-4">
-                        <AvatarImage src={contact.avatar || "/placeholder.svg"} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
-                          {contact.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="text-gray-300">Camera is off</p>
-                    </div>
-                  ) : (
-                    <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline />
-                  )}
-                </div>
-
-                {/* Local Video (Picture-in-Picture) */}
-                <div className="absolute top-4 right-4 w-32 h-24 bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-600">
-                  <video ref={localVideoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
-                </div>
-
-                {/* Call Info Overlay */}
-                <div className="absolute top-4 left-4 bg-black/50 rounded-lg px-3 py-2">
-                  <p className="text-sm font-medium">{contact.name}</p>
-                  <p className="text-xs text-gray-300">{formatDuration(duration)}</p>
-                </div>
+                {lkError && (
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-red-600 text-white px-3 py-2 rounded">
+                    {lkError}
+                  </div>
+                )}
+                {lkLoading && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <p className="text-gray-300">Connecting to room...</p>
+                  </div>
+                )}
+                {!lkLoading && lkToken && lkWsUrl && (
+                  <LiveKitRoom
+                    key={lkToken}
+                    token={lkToken}
+                    serverUrl={lkWsUrl}
+                    data-lk-theme="default"
+                    video={false}
+                    audio={false}
+                    onConnected={() => setRoomConnected(true)}
+                    onDisconnected={() => {
+                      setRoomConnected(false)
+                      onClose()
+                    }}
+                  >
+                    {roomConnected ? (
+                      <VideoConference />
+                    ) : (
+                      <div className="p-8 text-center text-sm text-gray-300">Connecting…</div>
+                    )}
+                  </LiveKitRoom>
+                )}
               </>
             ) : (
               /* Pre-call State */
@@ -216,43 +256,6 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
                     <Video className="h-6 w-6" />
                   </Button>
                 </>
-              ) : callStatus === "connected" ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className={`h-14 w-14 rounded-full ${
-                      isMuted
-                        ? "bg-red-500 hover:bg-red-600 border-red-500"
-                        : "bg-gray-700/80 hover:bg-gray-600 border-gray-600"
-                    } text-white backdrop-blur-sm`}
-                    onClick={toggleMute}
-                  >
-                    {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600 border-red-500 text-white"
-                    onClick={handleEndCall}
-                  >
-                    <PhoneOff className="h-6 w-6" />
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className={`h-14 w-14 rounded-full ${
-                      isVideoOff
-                        ? "bg-red-500 hover:bg-red-600 border-red-500"
-                        : "bg-gray-700/80 hover:bg-gray-600 border-gray-600"
-                    } text-white backdrop-blur-sm`}
-                    onClick={toggleVideo}
-                  >
-                    {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-                  </Button>
-                </>
               ) : callStatus === "connecting" ? (
                 <Button
                   variant="outline"
@@ -266,27 +269,7 @@ export function VideoCallUI({ isOpen, onClose, contact, callType }: VideoCallUIP
             </div>
 
             {/* Additional Controls */}
-            {callStatus === "connected" && (
-              <div className="flex items-center justify-center space-x-4 mt-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-white backdrop-blur-sm"
-                  onClick={toggleFullscreen}
-                >
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white backdrop-blur-sm">
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white backdrop-blur-sm">
-                  <Users className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white backdrop-blur-sm">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            {callStatus === "connected" && null}
           </div>
         </div>
       </DialogContent>

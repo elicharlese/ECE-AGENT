@@ -1,13 +1,16 @@
 'use client'
 
 import * as React from 'react'
-import { MoreVertical, Paperclip, Send, Smile, Bot, Wrench, Phone, Video, Info } from "lucide-react"
+import { MoreVertical, Bot, Wrench, Phone, Video, Info, Smile } from "lucide-react"
 import { cn } from '@/lib/utils'
 import { MessageReactions } from '@/components/chat/message-reactions'
 import { listMessages, sendMessage as sendDbMessage, subscribeToMessages, DBMessage } from '@/services/message-service'
 import { getConversationById } from '@/services/conversation-service'
 import { supabase } from '@/lib/supabase/client'
 import { aiService } from '@/services/ai-service'
+import { VideoCallUI } from '@/components/calls/video-call-ui'
+import { RichMessageInput } from '@/components/messages/rich-message-input'
+import { useDensity } from '@/contexts/density-context'
 
 // Simple ReadReceipt component since it was removed
 function ReadReceipt({ status }: { status?: 'sent' | 'delivered' | 'read' }) {
@@ -49,13 +52,14 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContactInfo, onOpenMCPSettings }: ChatWindowProps) {
+  const { density } = useDensity()
   const [messages, setMessages] = React.useState<Message[]>([])
-  const [inputMessage, setInputMessage] = React.useState('')
   const [isTyping, setIsTyping] = React.useState(false)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
   const [reactionPickerFor, setReactionPickerFor] = React.useState<string | null>(null)
   const [currentUser, setCurrentUser] = React.useState<{ id: string, name: string }>({ id: '', name: 'You' })
   const [conversationTitle, setConversationTitle] = React.useState<string>('')
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -115,15 +119,13 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
     }
   }, [chatId, mapDB])
 
-  const sendMessage = async () => {
-    if (!inputMessage.trim()) return
-    const content = inputMessage
-    setInputMessage('')
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return
     try {
       const sent = await sendDbMessage(chatId, content)
       // Optimistically add (subscription will also add; guard duplicate)
       setMessages(prev => prev.some(m => m.id === sent.id) ? prev : [...prev, mapDB(sent)])
-      
+
       // If message starts with @ai or in AI conversation, trigger AI response
       if (content.toLowerCase().startsWith('@ai') || chatId === 'ai') {
         setIsTyping(true)
@@ -138,17 +140,10 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
       }
     } catch (e) {
       console.error('Failed to send message', e)
-      // Restore input on error
-      setInputMessage(content)
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
-  }
+  
 
   const handleAddReaction = (messageId: string, emoji: string) => {
     setMessages(prev => prev.map(m => {
@@ -215,6 +210,7 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
           <button 
             className="p-2 rounded-md hover:bg-gray-100"
             title="Video Call"
+            onClick={() => setIsVideoOpen(true)}
           >
             <Video className="w-5 h-5 text-gray-600" />
           </button>
@@ -339,30 +335,25 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <Paperclip className="w-5 h-5 text-gray-600" />
-          </button>
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <Smile className="w-5 h-5 text-gray-600" />
-          </button>
-          <button
-            onClick={sendMessage}
-            className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <Send className="w-5 h-5" />
-          </button>
-        </div>
+      <div className="border-t border-gray-200">
+        <RichMessageInput
+          className="px-4"
+          placeholder={chatId === 'ai' ? 'Ask AI anything...' : 'Type a message...'}
+          density={density}
+          onTyping={() => setIsTyping(true)}
+          onStopTyping={() => setIsTyping(false)}
+          onSendMessage={async (content) => {
+            await sendMessage(content)
+          }}
+        />
       </div>
+      {/* Video Call Popout */}
+      <VideoCallUI
+        isOpen={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        contact={{ id: chatId, name: conversationTitle || 'Conversation' }}
+        callType="outgoing"
+      />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { VideoCallUI } from '@/components/calls/video-call-ui'
 
 interface AgentChatWindowProps {
   agentId?: string
@@ -23,6 +24,7 @@ export function AgentChatWindow({ agentId, onToggleAgentSidebar, agentSidebarCol
   const [showMCPTools, setShowMCPTools] = useState(false)
   const { messages, sendMessage } = useWebSocket()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [isVideoOpen, setIsVideoOpen] = useState(false)
 
   useEffect(() => {
     if (agentId) {
@@ -134,7 +136,7 @@ export function AgentChatWindow({ agentId, onToggleAgentSidebar, agentSidebarCol
             <button className="p-2 hover:bg-gray-100 rounded-lg">
               <Phone className="w-5 h-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
+            <button className="p-2 hover:bg-gray-100 rounded-lg" onClick={() => setIsVideoOpen(true)}>
               <Video className="w-5 h-5 text-gray-600" />
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-lg">
@@ -245,6 +247,13 @@ export function AgentChatWindow({ agentId, onToggleAgentSidebar, agentSidebarCol
           </Button>
         </div>
       </div>
+      {/* Video Call Popout */}
+      <VideoCallUI
+        isOpen={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        contact={{ id: agentInfo.id, name: agentInfo.name, avatar: undefined }}
+        callType="outgoing"
+      />
     </div>
   )
 }

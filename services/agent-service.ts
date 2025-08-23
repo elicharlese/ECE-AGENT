@@ -66,6 +66,15 @@ class AgentService {
       mcpTools: ['stripe', 'supabase', 'memory'],
       status: 'offline'
     }
+    ,
+    {
+      id: 'research-agent',
+      name: 'Research Agent',
+      description: 'Performs deep web research and summarizes findings with sources.',
+      capabilities: ['research', 'summarization', 'source-citation'],
+      mcpTools: ['brave-search', 'sequential-thinking', 'memory'],
+      status: 'online'
+    }
   ]
 
   async getAgents(): Promise<Agent[]> {
@@ -156,6 +165,19 @@ class AgentService {
     } else if (agent.id === 'finance-agent') {
       toolsUsed.push('stripe')
       content = "I can help with financial operations and payment processing..."
+    } else if (agent.id === 'research-agent') {
+      toolsUsed.push('brave-search', 'sequential-thinking')
+      const lower = message.toLowerCase()
+      if (lower.includes('sources') || lower.includes('cite') || lower.includes('remember')) {
+        toolsUsed.push('memory')
+      }
+      if (lower.includes('summarize') || lower.includes('summary')) {
+        content = "I'll research this topic and provide a concise summary with cited sources..."
+      } else if (lower.includes('search') || lower.includes('research')) {
+        content = "I'll search the web and compile key findings with references..."
+      } else {
+        content = "Initiating research. I'll gather information and return a summary with sources..."
+      }
     } else {
       content = "Processing your request..."
     }

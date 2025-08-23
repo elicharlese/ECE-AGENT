@@ -109,16 +109,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_conversation_participant
 -- Enable RLS for conversation_participants
 ALTER TABLE conversation_participants ENABLE ROW LEVEL SECURITY;
 
--- Allow selecting membership rows if the user participates in that conversation
 DROP POLICY IF EXISTS "Participants can read membership of their conversations" ON conversation_participants;
-CREATE POLICY "Participants can read membership of their conversations" ON conversation_participants
+-- Non-recursive variant: users can read only their own membership rows
+CREATE POLICY "Participants can read own membership only" ON conversation_participants
   FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM conversation_participants cp2
-      WHERE cp2.conversation_id = conversation_participants.conversation_id
-        AND cp2.user_id = auth.uid()
-    )
+    user_id = auth.uid()
   );
 
 -- Allow inserting membership if adding self OR if creator of the conversation

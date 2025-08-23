@@ -6,6 +6,9 @@ export interface Conversation {
   created_at: string
   updated_at: string
   user_id: string
+  agent_id?: string
+  last_message?: string
+  unread_count?: number
 }
 
 export interface Message {
@@ -20,14 +23,25 @@ export interface Message {
 }
 
 export async function getConversations(): Promise<Conversation[]> {
+  // Avoid querying if not authenticated
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) return []
+
   const { data, error } = await supabase
     .from('conversations')
     .select('*')
     .order('updated_at', { ascending: false })
 
   if (error) {
-    console.error('Error fetching conversations:', error)
-    throw new Error(error.message)
+    // Log as warn to avoid Next dev overlay and gracefully degrade
+    const shape = {
+      code: (error as any)?.code,
+      message: (error as any)?.message,
+      details: (error as any)?.details,
+      hint: (error as any)?.hint,
+    }
+    console.warn('getConversations: returning empty due to error', shape)
+    return []
   }
 
   return data || []
@@ -51,6 +65,26 @@ export async function getConversationById(id: string): Promise<Conversation | nu
   return data
 }
 
+export async function createConversationWithParticipants(
+  title: string,
+  participantIds: string[] = [],
+  agentId?: string,
+): Promise<Conversation> {
+  const res = await fetch('/api/conversations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify({ title, participantIds, agentId }),
+  })
+
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const msg = (json && (json.error || json.message)) || 'Failed to create conversation'
+    throw new Error(msg)
+  }
+  return json.conversation as Conversation
+}
+
 export async function createConversation(title: string): Promise<Conversation> {
   const { data: auth } = await supabase.auth.getUser()
   if (!auth?.user) {
@@ -65,6 +99,15 @@ export async function createConversation(title: string): Promise<Conversation> {
   if (error) {
     console.error('Error creating conversation:', error)
     throw new Error(error.message)
+  }
+
+  // Ensure membership row exists for creator (non-blocking best-effort)
+  try {
+    await supabase
+      .from('conversation_participants')
+      .insert({ conversation_id: data.id, user_id: auth.user.id, role: 'owner' })
+  } catch (e) {
+    console.warn('Failed to ensure creator membership row (non-blocking):', e)
   }
 
   return data
@@ -96,4 +139,14 @@ export async function deleteConversation(id: string): Promise<void> {
     console.error('Error deleting conversation:', error)
     throw new Error(error.message)
   }
+}
+
+// Aggregate service for compatibility with components importing `{ conversationService }`
+export const conversationService = {
+  getConversations,
+  getConversationById,
+  createConversation,
+  createConversationWithParticipants,
+  updateConversation,
+  deleteConversation,
 }

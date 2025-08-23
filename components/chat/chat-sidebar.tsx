@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Search, Plus, Archive, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { AgentBranding } from "@/components/agent-branding"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -10,6 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
 import { useConversations } from "@/hooks/use-conversations"
+import { dmService } from "@/services/dm-service"
+import { toast } from "@/hooks/use-toast"
 
 interface ChatSidebarProps {
   selectedChatId: string
@@ -21,6 +24,9 @@ interface ChatSidebarProps {
 export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleCollapse }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const { conversations, loading, error, fetchConversations } = useConversations()
+  const [startDmOpen, setStartDmOpen] = useState(false)
+  const [dmIdentifier, setDmIdentifier] = useState("")
+  const [startingDm, setStartingDm] = useState(false)
 
   // Convert conversations to chat format for display
   const chats = conversations.map(conv => ({
@@ -40,8 +46,25 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
   const pinnedChats = filteredChats.filter((chat) => chat.isPinned)
   const regularChats = filteredChats.filter((chat) => !chat.isPinned)
 
-  const handleStartChat = (contactId: string) => {
-    onSelectChat(contactId)
+  const handleStartChat = async (identifier: string) => {
+    const id = (identifier || "").trim()
+    if (!id) {
+      toast({ title: "Enter a username or email", description: "Please provide an identifier to start a DM." })
+      return
+    }
+    try {
+      setStartingDm(true)
+      const conversation = await dmService.startDirectMessageByUsername(id)
+      onSelectChat(conversation.id)
+      await fetchConversations()
+      setStartDmOpen(false)
+      setDmIdentifier("")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to start DM"
+      toast({ title: "Could not start chat", description: message, variant: "destructive" })
+    } finally {
+      setStartingDm(false)
+    }
   }
 
   if (collapsed) return null
@@ -57,9 +80,40 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
           </div>
           <div className="flex items-center gap-2">
             <ContactsManager onStartChat={handleStartChat} />
-            <Button variant="ghost" size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
+            <Dialog open={startDmOpen} onOpenChange={setStartDmOpen}>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm" aria-label="Start a direct message">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent title="Start a direct message" description="Enter a username or email to chat with." className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Start a direct message</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <Input
+                    autoFocus
+                    placeholder="username or email"
+                    value={dmIdentifier}
+                    onChange={(e) => setDmIdentifier(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        handleStartChat(dmIdentifier)
+                      }
+                    }}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      onClick={() => handleStartChat(dmIdentifier)}
+                      disabled={startingDm || !dmIdentifier.trim()}
+                    >
+                      {startingDm ? 'Starting…' : 'Start DM'}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button variant="ghost" size="sm" onClick={onToggleCollapse}>
               <ChevronLeft className="h-4 w-4" />
             </Button>

@@ -36,6 +36,26 @@ export function useConversations() {
     }
   }
 
+  const createConversationWithParticipants = async (
+    title: string,
+    participantIds: string[] = [],
+    agentId?: string,
+  ) => {
+    try {
+      const newConversation = await conversationService.createConversationWithParticipants(
+        title,
+        participantIds,
+        agentId,
+      )
+      setConversations(prev => [newConversation, ...prev])
+      return newConversation
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create conversation')
+      console.error('Error creating conversation with participants:', err)
+      throw err
+    }
+  }
+
   const updateConversation = async (id: string, updates: Partial<Conversation>) => {
     try {
       const updatedConversation = await conversationService.updateConversation(id, updates)
@@ -88,6 +108,7 @@ export function useConversations() {
     error,
     fetchConversations,
     createConversation,
+    createConversationWithParticipants,
     updateConversation,
     deleteConversation
   }

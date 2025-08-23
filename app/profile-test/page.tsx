@@ -23,23 +23,25 @@ export default function ProfileTestPage() {
     phone: '+1 (555) 123-4567',
     location: 'San Francisco, CA',
     bio: 'Full-stack developer passionate about building great products. Currently testing the AGENT platform.',
-    avatar_url: null,
+    avatar_url: undefined,
     joined_date: new Date().toISOString()
   })
   const [editedProfile, setEditedProfile] = useState(profile)
 
   useEffect(() => {
-    // Load dev user from localStorage if available
-    const devUser = localStorage.getItem('dev_user')
-    if (devUser) {
+    // Demo-only: use localStorage in non-production builds only
+    if (process.env.NODE_ENV !== 'production') {
       try {
-        const userData = JSON.parse(devUser)
-        setProfile(prev => ({
-          ...prev,
-          id: userData.id || prev.id,
-          name: userData.name || prev.name,
-          email: userData.email || prev.email
-        }))
+        const devUser = typeof window !== 'undefined' ? localStorage.getItem('dev_user') : null
+        if (devUser) {
+          const userData = JSON.parse(devUser)
+          setProfile(prev => ({
+            ...prev,
+            id: userData.id || prev.id,
+            name: userData.name || prev.name,
+            email: userData.email || prev.email
+          }))
+        }
       } catch (e) {
         console.error('Error loading user data:', e)
       }
@@ -48,7 +50,12 @@ export default function ProfileTestPage() {
 
   const handleSave = () => {
     setProfile(editedProfile)
-    localStorage.setItem('dev_user', JSON.stringify(editedProfile))
+    // Demo-only persistence in non-production
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        localStorage.setItem('dev_user', JSON.stringify(editedProfile))
+      } catch {}
+    }
     setIsEditing(false)
     
     // Show success message
@@ -74,6 +81,12 @@ export default function ProfileTestPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Demo-only banner */}
+      <div className="max-w-4xl mx-auto mb-4">
+        <div className="rounded-md border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-800">
+          This page is demo-only and not used in production authentication flows. Local changes persist only in non-production builds.
+        </div>
+      </div>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
