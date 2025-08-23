@@ -5,6 +5,7 @@ import { X, Phone, Video, Mail, MapPin, Shield, Bell, Share } from 'lucide-react
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
+import { VideoCallUI } from '@/components/calls/video-call-ui'
 
 interface ContactInfoPanelProps {
   isOpen: boolean
@@ -22,6 +23,7 @@ export function ContactInfoPanel({ isOpen, onClose, contact }: ContactInfoPanelP
   const [hideAlerts, setHideAlerts] = React.useState(false)
   const [sendReadReceipts, setSendReadReceipts] = React.useState(true)
   const [shareLocation, setShareLocation] = React.useState(false)
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false)
 
   if (!isOpen) return null
 
@@ -55,7 +57,7 @@ export function ContactInfoPanel({ isOpen, onClose, contact }: ContactInfoPanelP
               <Phone className="w-5 h-5 text-blue-600" />
               <span className="text-xs">Call</span>
             </button>
-            <button className="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-gray-100">
+            <button className="flex flex-col items-center gap-1 p-3 rounded-lg hover:bg-gray-100" onClick={() => setIsVideoOpen(true)}>
               <Video className="w-5 h-5 text-blue-600" />
               <span className="text-xs">Video</span>
             </button>
@@ -153,6 +155,13 @@ export function ContactInfoPanel({ isOpen, onClose, contact }: ContactInfoPanelP
           </div>
         </div>
       </div>
+      {/* Video Call Popout */}
+      <VideoCallUI
+        isOpen={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        contact={{ id: contact.email || contact.phone || contact.name, name: contact.name, avatar: contact.avatar }}
+        callType="outgoing"
+      />
     </div>
   )
 }

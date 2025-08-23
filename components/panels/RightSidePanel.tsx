@@ -68,22 +68,9 @@ export function RightSidePanel({ isOpen, activeTab, onTabChange, onClose, chatId
 
   if (!isClient) return null
 
-  // When closed, render a small floating handle to open the tools
+  // Don't render floating handle for 3-panel layout
   if (!isOpen) {
-    return (
-      <button
-        type="button"
-        onClick={() => onOpen?.()}
-        className="fixed right-3 bottom-24 z-40 group"
-        aria-label="Open tools"
-        title="Open tools"
-      >
-        <div className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-full shadow-md hover:shadow-lg hover:border-gray-300">
-          <Wrench className="w-4 h-4 text-gray-600" />
-          <span className="text-sm text-gray-700">Open tools</span>
-        </div>
-      </button>
-    )
+    return null
   }
 
   return (
@@ -129,16 +116,7 @@ export function RightSidePanel({ isOpen, activeTab, onTabChange, onClose, chatId
             <Wrench className="w-4 h-4" /> MCP Tools
           </button>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onClose}
-            className="p-2 rounded-md hover:bg-gray-100"
-            aria-label="Close panel"
-            title="Close panel"
-          >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
-          </button>
-        </div>
+        {/* Close button removed for permanent 3-panel layout */}
       </div>
 
       {/* Content area */}
