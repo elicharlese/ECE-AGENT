@@ -3,17 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@/contexts/user-context'
 import { supabase } from '@/lib/supabase/client'
-import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AgentBranding } from '@/components/agent-branding'
-import { Loader2, Mail, Lock, Chrome } from 'lucide-react'
-import { ProfileSigninPopup, storeRecentProfile } from '@/components/profile-signin-popup'
+import { Loader2, Chrome } from 'lucide-react'
+import { ProfileSigninPopup } from '@/components/profile-signin-popup'
 import { GoogleAuthHint, getMostRecentProfile } from '@/components/google-auth-hint'
+import { AuthWalletSection } from '@/components/auth/AuthWalletSection'
 
 // Solana login removed - using Google OAuth only
 
@@ -26,26 +21,15 @@ export function LoginForm() {
   const [showProfilePopup, setShowProfilePopup] = useState(false)
   const [showGoogleHint, setShowGoogleHint] = useState(false)
   const [recentProfile, setRecentProfile] = useState<any>(null)
-  const [showDevLogin, setShowDevLogin] = useState(false)
-  const [devUsername, setDevUsername] = useState('')
-  const [devPassword, setDevPassword] = useState('')
   const { login } = useUser()
 
   useEffect(() => {
-    // Check if there are stored profiles to show the popup
-    const checkStoredProfiles = () => {
+    const checkStoredProfiles = async () => {
       try {
-        const stored = localStorage.getItem('recent_profiles')
-        if (stored) {
-          const profiles = JSON.parse(stored)
-          if (profiles.length > 0) {
-            setShowProfilePopup(true)
-          }
-        }
-        // Get most recent profile for Google hint
-        const recent = getMostRecentProfile()
-        if (recent) {
-          setRecentProfile(recent)
+        const recentProfile = await getMostRecentProfile()
+        if (recentProfile) {
+          setRecentProfile(recentProfile)
+          setShowGoogleHint(true)
         }
       } catch (error) {
         console.error('Error checking stored profiles:', error)
@@ -100,11 +84,15 @@ export function LoginForm() {
     if (recentProfile) {
       setShowGoogleHint(true)
     }
+
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next') ?? '/messages'
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
         queryParams: { prompt: 'select_account' }
       }
     })
@@ -126,11 +114,15 @@ export function LoginForm() {
     
     setError('')
     setIsLoading(true)
+
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next') ?? '/messages'
+    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
     
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin
+        emailRedirectTo,
       }
     })
     
@@ -144,43 +136,12 @@ export function LoginForm() {
     }
   }
 
-  const handleDevLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
-    
-    if (devUsername === 'admin' && devPassword === 'admin123' && process.env.NODE_ENV === 'development') {
-      // Set a cookie to bypass auth in development
-      document.cookie = 'dev_admin=true; path=/; max-age=86400' // 24 hours
-      
-      // Set a local user state for the app to use
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('dev_user', JSON.stringify({
-          id: 'dev-admin-id',
-          email: 'admin@dev.local',
-          name: 'Dev Admin',
-          avatar_url: null
-        }))
-      }
-      
-      // Use window.location for hard redirect to bypass Next.js router
-      window.location.href = '/messages'
-    } else {
-      setError('Invalid dev credentials')
-      setIsLoading(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      {/* Background boundary removed to avoid clash with page gradient */}
       
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-2xl rounded-3xl border border-white/30 overflow-hidden">
           {/* Header */}
           <div className="px-8 pt-10 pb-8 text-center">
             <div className="flex justify-center mb-6">
@@ -317,46 +278,9 @@ export function LoginForm() {
                   <Chrome className="mr-3 h-5 w-5 text-indigo-500" />
                   Continue with Google
                 </Button>
-                
-                {process.env.NODE_ENV === 'development' && (
-                  <>
-                    {!showDevLogin ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowDevLogin(true)}
-                        className="w-full text-sm text-gray-500 hover:text-gray-700 underline"
-                      >
-                        Or sign in with dev account
-                      </button>
-                    ) : (
-                      <form onSubmit={handleDevLogin} className="space-y-3 mt-4 p-4 bg-gray-50 rounded-xl">
-                        <p className="text-xs text-gray-600 text-center">Dev Login (Development Only)</p>
-                        <Input
-                          type="text"
-                          placeholder="Username (admin)"
-                          value={devUsername}
-                          onChange={(e) => setDevUsername(e.target.value)}
-                          className="w-full h-10"
-                        />
-                        <Input
-                          type="password"
-                          placeholder="Password (admin123)"
-                          value={devPassword}
-                          onChange={(e) => setDevPassword(e.target.value)}
-                          className="w-full h-10"
-                        />
-                        <Button
-                          type="submit"
-                          disabled={isLoading}
-                          className="w-full h-10 bg-gray-700 hover:bg-gray-800"
-                        >
-                          Sign in as Dev Admin
-                        </Button>
-                      </form>
-                    )}
-                  </>
-                )}
               </div>
+              {/* Wallet connect/link section */}
+              <AuthWalletSection />
             </div>
           </div>
         </div>
@@ -379,4 +303,3 @@ export function LoginForm() {
     </div>
   )
 }
-

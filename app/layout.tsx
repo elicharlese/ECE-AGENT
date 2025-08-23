@@ -2,22 +2,22 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
+import '@livekit/components-styles'
 import { UserProvider } from '@/contexts/user-context'
 import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
+import { Toaster } from '@/components/ui/toaster'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'AGENT - Advanced Generative ENgineering Toolkit',
   description: 'AGENT - Advanced Generative ENgineering Toolkit',
-  generator: 'AGENT',
-  applicationName: 'AGENT',
-  keywords: ['AGENT', 'AI', 'Generative', 'Engineering', 'Toolkit'],
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -30,9 +30,14 @@ html {
         `}</style>
       </head>
       <body>
-        <UserProvider>
-          {children}
-        </UserProvider>
+        <Providers>
+          <SolanaWalletProvider>
+            <UserProvider>
+              {children}
+              <Toaster />
+            </UserProvider>
+          </SolanaWalletProvider>
+        </Providers>
       </body>
     </html>
   )

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Send, Bot, User } from 'lucide-react'
+import { Bot, User } from 'lucide-react'
+import { RichMessageInput } from '@/components/messages/rich-message-input'
 
 interface Message {
   id: string
@@ -26,9 +27,9 @@ export default function TestMessagesPage() {
       isOwn: false
     }
   ])
-  const [inputMessage, setInputMessage] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [density, setDensity] = useState<'compact' | 'comfortable' | 'airy'>('comfortable')
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -38,12 +39,12 @@ export default function TestMessagesPage() {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return
+  const handleSendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return
 
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: inputMessage,
+      content: messageText,
       timestamp: new Date().toISOString(),
       senderId: 'dev-admin',
       senderName: 'Dev Admin',
@@ -52,8 +53,6 @@ export default function TestMessagesPage() {
     }
 
     setMessages(prev => [...prev, newMessage])
-    const messageText = inputMessage
-    setInputMessage('')
 
     // Check if message is for AI (starts with @ai)
     if (messageText.toLowerCase().startsWith('@ai ')) {
@@ -101,6 +100,18 @@ export default function TestMessagesPage() {
         <p className="text-sm text-gray-600 mt-1">
           Test realtime messaging and AI chat (@ai prefix)
         </p>
+        <div className="mt-3">
+          <label className="text-xs text-gray-500 mr-2">Density:</label>
+          <select
+            value={density}
+            onChange={(e) => setDensity(e.target.value as 'compact' | 'comfortable' | 'airy')}
+            className="border border-gray-300 rounded px-2 py-1 text-sm"
+          >
+            <option value="compact">Compact</option>
+            <option value="comfortable">Comfortable</option>
+            <option value="airy">Airy</option>
+          </select>
+        </div>
       </div>
 
       {/* Messages Area */}
@@ -160,25 +171,16 @@ export default function TestMessagesPage() {
       </div>
 
       {/* Input Area */}
-      <div className="bg-white border-t px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Type a message... (use @ai prefix for AI chat)"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              onClick={handleSendMessage}
-              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Send
-            </button>
-          </div>
+      <div className="bg-white border-t">
+        <RichMessageInput
+          className="px-6"
+          placeholder="Type a message... (use @ai prefix for AI chat)"
+          density={density}
+          onTyping={() => setIsTyping(true)}
+          onStopTyping={() => setIsTyping(false)}
+          onSendMessage={(content) => handleSendMessage(content)}
+        />
+        <div className="max-w-4xl mx-auto px-6 pb-4">
           <div className="mt-2 text-xs text-gray-500">
             • Regular messages will be echoed by a test user (simulating realtime)
             <br />

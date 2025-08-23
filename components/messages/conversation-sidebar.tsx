@@ -4,8 +4,8 @@ import * as React from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import { Bot, Users, MessageSquare } from 'lucide-react'
 import { useConversations } from '@/hooks/use-conversations'
+import { NewConversationModal } from './NewConversationModal'
 
 interface ConversationSidebarProps {
   selectedConversation: string | null
@@ -19,14 +19,25 @@ export function ConversationSidebar({
   refreshToken,
 }: ConversationSidebarProps) {
   const { conversations, loading, error, fetchConversations } = useConversations()
+  const [modalOpen, setModalOpen] = React.useState(false)
   React.useEffect(() => {
     // Refetch when the refresh token changes
     fetchConversations()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshToken])
   return (
-    <ScrollArea className="flex-1">
-      <div className="p-2">
+    <>
+      <ScrollArea className="flex-1">
+        <div className="p-2">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs text-gray-500">Your conversations</span>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="text-xs px-2 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
+          >
+            New
+          </button>
+        </div>
         {loading && (
           <div className="text-center text-sm text-gray-500 py-4">Loading conversations...</div>
         )}
@@ -63,8 +74,16 @@ export function ConversationSidebar({
             </div>
           </button>
         ))}
-      </div>
-    </ScrollArea>
+        </div>
+      </ScrollArea>
+      <NewConversationModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        onCreated={(id) => {
+          onSelectConversation(id)
+        }}
+      />
+    </>
   )
 }
 
