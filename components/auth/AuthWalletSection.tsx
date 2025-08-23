@@ -83,26 +83,32 @@ export function AuthWalletSection() {
         </p>
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <WalletMultiButton className="!h-11 !px-5 !rounded-xl !bg-violet-600 hover:!bg-violet-700 !text-white !font-semibold shadow-md">
-              Select Wallet
+          <div className="space-y-3">
+            <WalletMultiButton className="!w-full !h-12 !border-2 !border-gray-200 hover:!border-indigo-300 !text-gray-700 hover:!bg-gradient-to-r hover:!from-blue-50 hover:!to-indigo-50 !font-semibold !rounded-xl !transition-all !duration-200 !bg-white/70 !backdrop-blur-sm !justify-center">
+              {/* match Google button aesthetic */}
+              <span className="inline-flex items-center">
+                {/* Using Wallet icon with brand tint */}
+                <svg className="mr-3 h-5 w-5 text-indigo-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7a2 2 0 0 0-2-2H5a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h14a2 2 0 0 0 2-2v-5z"></path><path d="M21 10h-8a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h8"></path></svg>
+                Connect Wallet
+              </span>
             </WalletMultiButton>
             {connected && connectedAddress && (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {truncate(connectedAddress)}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  {truncate(connectedAddress)}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  aria-label="Copy address"
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
+              </div>
             )}
-            {connected && connectedAddress && (
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="inline-flex items-center justify-center h-7 w-7 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
-                aria-label="Copy address"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </button>
-            )}
+
           </div>
 
           <div className="flex items-center justify-between rounded-xl bg-gray-50/80 px-3.5 py-2.5 border border-gray-100">

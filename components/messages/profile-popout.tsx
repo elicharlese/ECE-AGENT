@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { X, User, Mail, Phone, Globe, Twitter, Github, Linkedin, Wallet, Copy, Check } from 'lucide-react'
+import type React from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { X, User, Mail, Phone, Globe, Twitter, Github, Linkedin, Wallet, Copy, Check, Camera } from 'lucide-react'
 import { profileService } from '@/services/profile-service'
 import { supabase } from '@/lib/supabase/client'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -19,6 +20,8 @@ export function ProfilePopout({ userId, onClose }: ProfilePopoutProps) {
   const [copied, setCopied] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const { density, setDensity } = useDensity()
+  const [coverUploading, setCoverUploading] = useState(false)
+  const coverInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -45,6 +48,36 @@ export function ProfilePopout({ userId, onClose }: ProfilePopoutProps) {
     window.location.href = '/auth'
   }
 
+  const handleCoverSelect = () => coverInputRef.current?.click()
+
+  const handleCoverChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = e.target.files?.[0]
+      if (!file) return
+      setCoverUploading(true)
+
+      const { data: auth } = await supabase.auth.getUser()
+      const uid = auth?.user?.id
+      if (!uid) throw new Error('Not authenticated')
+
+      const ext = file.name.split('.').pop() || 'jpg'
+      const path = `covers/${uid}-${Date.now()}.${ext}`
+      const { error: uploadErr } = await supabase.storage.from('profiles').upload(path, file, { upsert: true })
+      if (uploadErr) throw uploadErr
+
+      const { data: pub } = supabase.storage.from('profiles').getPublicUrl(path)
+      const url = pub.publicUrl
+
+      await profileService.updateProfile(uid, { cover_url: url })
+      setProfile((prev: any) => ({ ...prev, cover_url: url }))
+    } catch (err) {
+      console.error('Cover upload failed', err)
+    } finally {
+      setCoverUploading(false)
+      if (e.target) e.target.value = ''
+    }
+  }
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -62,14 +95,42 @@ export function ProfilePopout({ userId, onClose }: ProfilePopoutProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="bg-white rounded-2xl shadow-2xl w-96 max-h-[90vh] overflow-hidden">
-        {/* Header with gradient */}
-        <div className="relative h-32 bg-gradient-to-r from-purple-500 to-blue-500">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur rounded-full hover:bg-white/30 transition-colors"
-          >
-            <X className="w-5 h-5 text-white" />
-          </button>
+        {/* Header with cover image (editable) */}
+        <div className="relative h-32">
+          {profile?.cover_url ? (
+            <img src={profile.cover_url} alt="Profile cover" className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-blue-500" />
+          )}
+
+          {/* Cover controls */}
+          <div className="absolute inset-x-0 top-0 flex justify-end p-3">
+            <button
+              onClick={onClose}
+              className="p-2 bg-black/20 backdrop-blur rounded-full hover:bg-black/30 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+          </div>
+          <div className="absolute bottom-3 right-3">
+            <button
+              onClick={handleCoverSelect}
+              className="px-2.5 py-1.5 text-xs font-medium bg-white/80 hover:bg-white rounded-md shadow-sm flex items-center gap-1"
+              aria-label="Change cover photo"
+              disabled={coverUploading}
+            >
+              <Camera className="w-4 h-4" />
+              {coverUploading ? 'Uploading…' : 'Change cover'}
+            </button>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverChange}
+            />
+          </div>
         </div>
 
         {/* Profile content */}
