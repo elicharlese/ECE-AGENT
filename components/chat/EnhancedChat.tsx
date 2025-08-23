@@ -8,6 +8,7 @@ import { ReadReceipts, MessageStatus } from './ReadReceipts'
 import { MediaThumbnail, MediaLightbox, MediaGallery } from './MediaPreview'
 import { RichMessageInput } from '@/components/messages/rich-message-input'
 import { useDensity } from '@/contexts/density-context'
+import { useMessages, useRealtimeMessages } from '@/hooks/use-messages'
 
 interface Message {
   id: string
@@ -70,75 +71,68 @@ export function EnhancedChat({
   onEditMessage,
 }: EnhancedChatProps) {
   const { density } = useDensity()
-  const [messages, setMessages] = useState<Message[]>([])
   const [lightboxMedia, setLightboxMedia] = useState<any>(null)
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // Load messages via react-query and subscribe to realtime updates
+  const {
+    data: messagesData,
+    isLoading: messagesLoading,
+    error: messagesError,
+  } = useMessages({ conversationId, pageSize: 50 })
+
+  useEffect(() => {
+    // Subscribe to realtime changes for this conversation
+    const cleanup = useRealtimeMessages(conversationId)
+    return () => {
+      cleanup?.()
+    }
+  }, [conversationId])
+
+  // Flatten, sort ascending by created_at, and apply search filter
+  const fetchedMessages = React.useMemo(() => {
+    const raw: any = messagesData as any
+    const arrays: any[] = Array.isArray(raw?.pages) ? raw.pages.flat() : Array.isArray(raw) ? raw : []
+    const sorted = arrays
+      .slice()
+      .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    const filtered = searchQuery.trim().length
+      ? sorted.filter((m: any) => m.content?.toLowerCase().includes(searchQuery.toLowerCase()))
+      : sorted
+    // Map to UI Message shape
+    const mapped: Message[] = filtered.map((m: any) => ({
+      id: m.id,
+      content: m.content,
+      senderId: m.user_id,
+      senderName: (m.user && (m.user.name || m.user.full_name)) || (m.user_id === currentUserId ? 'You' : 'Member'),
+      senderAvatar: m.user?.avatar_url || undefined,
+      timestamp: new Date(m.created_at),
+      status: 'sent',
+      reactions: Array.isArray(m.reactions)
+        ? (m.reactions as any[]).map((r: any) => ({ emoji: r.emoji, users: [] as string[] }))
+        : undefined,
+      media: undefined,
+      isEdited: !!m.edited_at,
+      replyTo: undefined,
+    }))
+    return mapped
+  }, [messagesData, searchQuery, currentUserId])
+
   // Auto-scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [fetchedMessages?.length])
 
   const handleSendRich = async (content: string, media?: File[]) => {
     if (!content.trim() && (!media || media.length === 0)) return
-
-    const newMessage: Message = {
-      id: Math.random().toString(36).substr(2, 9),
-      content,
-      senderId: currentUserId,
-      senderName: 'You',
-      timestamp: new Date(),
-      status: 'sending',
-      replyTo: replyingTo || undefined,
-    }
-
-    setMessages(prev => [...prev, newMessage])
     setReplyingTo(null)
-
-    try {
-      await onSendMessage(content, media)
-      setMessages(prev => prev.map(m => 
-        m.id === newMessage.id ? { ...m, status: 'sent' } : m
-      ))
-    } catch (error) {
-      setMessages(prev => prev.map(m => 
-        m.id === newMessage.id ? { ...m, status: 'error' } : m
-      ))
-    }
+    await onSendMessage(content, media)
   }
 
   const handleReaction = (messageId: string, emoji: string) => {
-    setMessages(prev => prev.map(msg => {
-      if (msg.id !== messageId) return msg
-      
-      const reactions = msg.reactions || []
-      const existingReaction = reactions.find(r => r.emoji === emoji)
-      
-      if (existingReaction) {
-        if (existingReaction.users.includes(currentUserId)) {
-          // Remove reaction
-          existingReaction.users = existingReaction.users.filter(u => u !== currentUserId)
-          if (existingReaction.users.length === 0) {
-            return {
-              ...msg,
-              reactions: reactions.filter(r => r.emoji !== emoji)
-            }
-          }
-        } else {
-          // Add user to reaction
-          existingReaction.users.push(currentUserId)
-        }
-      } else {
-        // Add new reaction
-        reactions.push({ emoji, users: [currentUserId] })
-      }
-      
-      return { ...msg, reactions }
-    }))
-    
     onReaction?.(messageId, emoji)
   }
 
@@ -169,7 +163,7 @@ export function EnhancedChat({
   }
 
   // Group messages by date
-  const groupedMessages = messages.reduce((groups, message) => {
+  const groupedMessages = fetchedMessages.reduce((groups: Record<string, Message[]>, message: Message) => {
     const date = formatDate(message.timestamp)
     if (!groups[date]) {
       groups[date] = []
@@ -238,6 +232,14 @@ export function EnhancedChat({
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
+        {messagesError && (
+          <div className="mb-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded p-2">
+            Failed to load messages{typeof messagesError === 'object' && (messagesError as any)?.message ? `: ${(messagesError as any).message}` : ''}
+          </div>
+        )}
+        {messagesLoading && (
+          <div className="mb-2 text-xs text-muted-foreground">Loading messages...</div>
+        )}
         {Object.entries(groupedMessages).map(([date, dateMessages]) => (
           <div key={date}>
             {/* Date Separator */}

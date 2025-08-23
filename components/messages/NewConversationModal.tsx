@@ -11,6 +11,8 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { listProfiles, type Profile } from '@/services/profile-service'
 import { useConversations } from '@/hooks/use-conversations'
+import { useUser } from '@/contexts/user-context'
+import { dmService } from '@/services/dm-service'
 
 const FormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -31,13 +33,24 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
   const [loading, setLoading] = React.useState(false)
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const { user } = useUser()
+  const [dmBusyId, setDmBusyId] = React.useState<string | null>(null)
+  const DEBOUNCE_MS = 350
+  const [debouncedSearch, setDebouncedSearch] = React.useState(search)
+
+  // Debounce raw input to avoid firing a request per keystroke
+  React.useEffect(() => {
+    const id = window.setTimeout(() => setDebouncedSearch(search), DEBOUNCE_MS)
+    return () => window.clearTimeout(id)
+  }, [search])
 
   React.useEffect(() => {
     let cancelled = false
     const run = async () => {
       setLoading(true)
       try {
-        const rows = await listProfiles({ search, excludeSelf: true, limit: 50 })
+        // Include self so testers can verify rendering of their own row
+        const rows = await listProfiles({ search: debouncedSearch, excludeSelf: false, limit: 50 })
         if (!cancelled) setProfiles(rows)
       } catch (e) {
         if (!cancelled) setProfiles([])
@@ -49,7 +62,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
     return () => {
       cancelled = true
     }
-  }, [search])
+  }, [debouncedSearch])
 
   const hook = useConversations()
 
@@ -63,6 +76,22 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
     setSearch('')
     setProfiles([])
     setError(null)
+  }
+
+  const handleAddFriend = async (p: Profile) => {
+    if (!p?.username) return
+    if (p.user_id === user?.id) return // no DM with self
+    try {
+      setDmBusyId(p.user_id)
+      const conv = await dmService.startDirectMessageByUsername(p.username)
+      onOpenChange(false)
+      resetForm()
+      if (conv?.id && onCreated) onCreated(conv.id)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to start DM')
+    } finally {
+      setDmBusyId(null)
+    }
   }
 
   const handleCreate = async () => {
@@ -106,7 +135,7 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
           <div>
             <label className="block text-sm font-medium mb-1">Add participants</label>
             <Input
-              placeholder="Search people by username or name"
+              placeholder="Search by username or email"
               value={search}
               onChange={(e) => setSearch(e.currentTarget.value)}
             />
@@ -124,31 +153,53 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
                   {!loading && profiles.length === 0 && (
                     <div className="text-sm text-muted-foreground p-3">No results</div>
                   )}
-                  {!loading && profiles.map((p) => (
-                    <button
-                      type="button"
-                      key={p.user_id}
-                      onClick={() => toggleParticipant(p.user_id)}
-                      className={cn(
-                        'w-full flex items-center gap-3 p-3 hover:bg-accent/40 text-left',
-                        participants.includes(p.user_id) && 'bg-accent/60'
-                      )}
-                    >
-                      <Checkbox
-                        checked={participants.includes(p.user_id)}
-                        onCheckedChange={() => toggleParticipant(p.user_id)}
-                        className="mr-1"
-                      />
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={p.avatar_url ?? undefined} alt={p.username} />
-                        <AvatarFallback>{p.username?.charAt(0)?.toUpperCase() ?? 'U'}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate">{p.full_name || p.username}</div>
-                        <div className="text-xs text-muted-foreground truncate">@{p.username}</div>
+                  {!loading && profiles.map((p) => {
+                    const isSelf = p.user_id === user?.id
+                    const selected = participants.includes(p.user_id)
+                    return (
+                      <div
+                        key={p.user_id}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-3 hover:bg-accent/40',
+                          selected && 'bg-accent/60'
+                        )}
+                      >
+                        <Checkbox
+                          checked={selected}
+                          onCheckedChange={() => toggleParticipant(p.user_id)}
+                          className="mr-1"
+                          disabled={isSelf}
+                        />
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={p.avatar_url ?? undefined} alt={p.username} />
+                          <AvatarFallback>{p.username?.charAt(0)?.toUpperCase() ?? 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm font-medium truncate">
+                            {p.full_name || p.username} {isSelf && <span className="text-xs text-muted-foreground">(You)</span>}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">@{p.username}</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleAddFriend(p)}
+                            disabled={isSelf || dmBusyId === p.user_id}
+                          >
+                            {dmBusyId === p.user_id ? 'Adding…' : 'Add friend'}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => toggleParticipant(p.user_id)}
+                            disabled={isSelf}
+                          >
+                            {selected ? 'Added' : 'Add to chat'}
+                          </Button>
+                        </div>
                       </div>
-                    </button>
-                  ))}
+                    )
+                  })}
                 </div>
               </ScrollArea>
             </div>
