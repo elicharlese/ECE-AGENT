@@ -94,7 +94,7 @@ export function CollapsibleSidebar({
       return {
         width: state === 'hidden' ? 0 : '100%',
         position: 'fixed' as const,
-        height: '100%',
+        height: '100dvh',
         zIndex: state === 'hidden' ? -1 : 50,
       }
     }
@@ -130,7 +130,7 @@ export function CollapsibleSidebar({
         onClick={toggleState}
         className={cn(
           // Higher z-index to stay above main content
-          'absolute z-50 p-1.5 bg-background border rounded-md shadow-sm',
+          'absolute z-50 p-1.5 bg-background border rounded-md shadow-sm hidden md:block',
           'hover:bg-accent transition-colors',
           // When hidden on desktop, keep the toggle closer to the rail
           state === 'hidden'
@@ -181,7 +181,7 @@ export function CollapsibleSidebar({
       {isMobile && state !== 'hidden' && (
         <button
           onClick={() => setState('hidden')}
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed left-0 top-0 w-screen h-[100dvh] bg-black/50 z-40 md:hidden"
           aria-label="Close sidebar"
         />
       )}

@@ -50,14 +50,17 @@ export function ProfileSigninPopup({ isOpen, onClose, onSignIn }: ProfileSigninP
   const handleProfileSignIn = async (profile: StoredProfile) => {
     setIsLoading(true)
     
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next') ?? '/messages'
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // Use server callback to exchange code and set cookies, then redirect to /messages
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo,
         queryParams: {
-          hd: profile.email.split('@')[1], // Hint to use the same domain
-          prompt: 'select_account'
+          login_hint: profile.email,
+          hd: profile.email.split('@')[1]
         }
       }
     })

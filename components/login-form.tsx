@@ -78,6 +78,49 @@ export function LoginForm() {
 
   const handleGoogleLogin = async () => {
     setError('')
+    // If we have recent profiles, optimize flow:
+    // - 1 profile: quick OAuth with login_hint + show hint
+    // - 2+ profiles: open quick-select modal
+    try {
+      const stored = localStorage.getItem('recent_profiles')
+      if (stored) {
+        const profiles = JSON.parse(stored)
+        if (Array.isArray(profiles) && profiles.length > 0) {
+          if (profiles.length === 1 && profiles[0]?.email) {
+            setShowGoogleHint(true)
+            setIsLoading(true)
+
+            const params = new URLSearchParams(window.location.search)
+            const next = params.get('next') ?? '/messages'
+            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+
+            const { error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo,
+                queryParams: {
+                  login_hint: profiles[0].email
+                }
+              }
+            })
+
+            setIsLoading(false)
+            if (error) {
+              setError('Google login failed. Please try again.')
+              console.error('Google login error:', error)
+              setShowGoogleHint(false)
+            }
+            return
+          } else if (profiles.length >= 2) {
+            setShowProfilePopup(true)
+            return
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Unable to read recent profiles from localStorage', e)
+    }
+
     setIsLoading(true)
     
     // Show the "Is this you?" hint if we have a recent profile
@@ -103,6 +146,31 @@ export function LoginForm() {
       setError('Google login failed. Please try again.')
       console.error('Google login error:', error)
       setShowGoogleHint(false)
+    }
+  }
+
+  const handleQuickContinue = async (emailHint: string) => {
+    setError('')
+    setIsLoading(true)
+
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next') ?? '/messages'
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+        queryParams: {
+          login_hint: emailHint
+        }
+      }
+    })
+
+    setIsLoading(false)
+    if (error) {
+      setError('Google quick sign-in failed. Please try again.')
+      console.error('Google quick sign-in error:', error)
     }
   }
 
@@ -143,7 +211,7 @@ export function LoginForm() {
       <div className="w-full max-w-md relative z-10">
         <div className="bg-white/90 backdrop-blur-2xl rounded-3xl border border-white/30 overflow-hidden">
           {/* Header */}
-          <div className="px-8 pt-10 pb-8 text-center">
+          <div className="p-8 text-center">
             <div className="flex justify-center mb-6">
               <div className="relative">
                 {/* Smooth glow effect */}
@@ -163,9 +231,9 @@ export function LoginForm() {
           </div>
 
           {/* Form Content */}
-          <div className="px-8 pb-8">
+          <div className="p-8">
             {step === 'email' ? (
-              <form onSubmit={handleEmailSubmit} className="space-y-5">
+              <form onSubmit={handleEmailSubmit} className="space-y-5 md:space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email address
@@ -192,7 +260,7 @@ export function LoginForm() {
                 </Button>
               </form>
             ) : (
-              <form onSubmit={handlePasswordSubmit} className="space-y-5">
+              <form onSubmit={handlePasswordSubmit} className="space-y-5 md:space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-md">
@@ -258,7 +326,7 @@ export function LoginForm() {
             )}
 
             {/* Alternative Sign In */}
-            <div className="mt-6">
+            <div className="mt-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200" />
@@ -268,7 +336,7 @@ export function LoginForm() {
                 </div>
               </div>
 
-              <div className="mt-6 space-y-3">
+              <div className="mt-6 space-y-4">
                 <Button
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
@@ -278,9 +346,8 @@ export function LoginForm() {
                   <Chrome className="mr-3 h-5 w-5 text-indigo-500" />
                   Continue with Google
                 </Button>
+                <AuthWalletSection />
               </div>
-              {/* Wallet connect/link section */}
-              <AuthWalletSection />
             </div>
           </div>
         </div>
@@ -299,6 +366,7 @@ export function LoginForm() {
         isVisible={showGoogleHint}
         userProfile={recentProfile}
         onClose={() => setShowGoogleHint(false)}
+        onContinue={handleQuickContinue}
       />
     </div>
   )

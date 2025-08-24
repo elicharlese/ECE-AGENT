@@ -9,6 +9,10 @@ import { MediaThumbnail, MediaLightbox, MediaGallery } from './MediaPreview'
 import { RichMessageInput } from '@/components/messages/rich-message-input'
 import { useDensity } from '@/contexts/density-context'
 import { useMessages, useRealtimeMessages } from '@/hooks/use-messages'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
+import { toast } from '@/components/ui/use-toast'
+import { supabase } from '@/lib/supabase/client'
+import { SidebarTrigger } from '@/components/layout/CollapsibleSidebar'
 
 interface Message {
   id: string
@@ -76,6 +80,7 @@ export function EnhancedChat({
   const [searchQuery, setSearchQuery] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [muted, setMuted] = useState(false)
 
   // Load messages via react-query and subscribe to realtime updates
   const {
@@ -84,13 +89,8 @@ export function EnhancedChat({
     error: messagesError,
   } = useMessages({ conversationId, pageSize: 50 })
 
-  useEffect(() => {
-    // Subscribe to realtime changes for this conversation
-    const cleanup = useRealtimeMessages(conversationId)
-    return () => {
-      cleanup?.()
-    }
-  }, [conversationId])
+  // Subscribe to realtime changes for this conversation
+  useRealtimeMessages(conversationId)
 
   // Flatten, sort ascending by created_at, and apply search filter
   const fetchedMessages = React.useMemo(() => {
@@ -175,8 +175,10 @@ export function EnhancedChat({
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 md:px-16 pb-3 border-b pt-[env(safe-area-inset-top)] md:pt-3">
         <div className="flex items-center gap-3">
+          {/* Mobile: open left sidebar */}
+          <SidebarTrigger side="left" />
           <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center">
             {conversationName[0].toUpperCase()}
           </div>
@@ -192,6 +194,8 @@ export function EnhancedChat({
           <button
             onClick={() => setShowSearch(!showSearch)}
             className="p-2 hover:bg-accent rounded-md transition-colors"
+            aria-label={showSearch ? 'Hide search' : 'Show search'}
+            title={showSearch ? 'Hide search' : 'Show search'}
           >
             <Search className="h-4 w-4" />
           </button>
@@ -200,20 +204,86 @@ export function EnhancedChat({
               <button
                 onClick={() => onStartCall('audio')}
                 className="p-2 hover:bg-accent rounded-md transition-colors"
+                aria-label="Start audio call"
+                title="Start audio call"
               >
                 <Phone className="h-4 w-4" />
               </button>
               <button
                 onClick={() => onStartCall('video')}
                 className="p-2 hover:bg-accent rounded-md transition-colors"
+                aria-label="Start video call"
+                title="Start video call"
               >
                 <Video className="h-4 w-4" />
               </button>
             </>
           )}
-          <button className="p-2 hover:bg-accent rounded-md transition-colors">
-            <MoreVertical className="h-4 w-4" />
-          </button>
+          {/* Settings popout */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-2 hover:bg-accent rounded-md transition-colors"
+                aria-label="Conversation options"
+                title="Conversation options"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Conversation</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('conversation_participants')
+                      .update({ last_read_at: new Date().toISOString() })
+                      .eq('conversation_id', conversationId)
+                      .eq('user_id', currentUserId)
+                    toast({ title: 'Marked as read' })
+                  } catch (e) {
+                    toast({ title: 'Failed to mark as read', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
+                  }
+                }}
+              >
+                Mark all as read
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(conversationId)
+                    toast({ title: 'Conversation ID copied' })
+                  } catch (e) {
+                    toast({ title: 'Copy failed', description: 'Could not copy Conversation ID', variant: 'destructive' })
+                  }
+                }}
+              >
+                Copy Conversation ID
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuCheckboxItem
+                checked={muted}
+                onCheckedChange={(v) => {
+                  setMuted(!!v)
+                  toast({ title: !!v ? 'Notifications muted' : 'Notifications unmuted' })
+                }}
+              >
+                Mute notifications
+              </DropdownMenuCheckboxItem>
+              {conversationType !== 'dm' && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    toast({ title: 'Leave conversation', description: 'Coming soon', variant: 'default' })
+                  }}
+                  variant="destructive"
+                >
+                  Leave conversation
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {/* Mobile: open right sidebar */}
+          <SidebarTrigger side="right" />
         </div>
       </div>
 
@@ -279,7 +349,7 @@ export function EnhancedChat({
                   )}
 
                   {/* Message Content */}
-                  <div className={cn('max-w-[70%]', isOwn && 'items-end')}>
+                  <div className={cn('max-w-[82%] max-[380px]:max-w-[62%] sm:max-w-[75%] md:max-w-[70%]', isOwn && 'items-end')}>
                     {/* Sender Name */}
                     {!isOwn && conversationType !== 'dm' && (
                       <p className="text-xs font-medium text-muted-foreground mb-1">
@@ -318,7 +388,7 @@ export function EnhancedChat({
 
                       {/* Text Content */}
                       {message.content && (
-                        <p className="text-sm whitespace-pre-wrap break-words">
+                        <p className="text-sm whitespace-pre-wrap break-words [hyphens:auto]">
                           {message.content}
                         </p>
                       )}
@@ -374,7 +444,7 @@ export function EnhancedChat({
       </div>
 
       {/* Input Area */}
-      <div className="border-t">
+      <div className="border-t pb-[env(safe-area-inset-bottom)]">
         <RichMessageInput
           className="px-4"
           placeholder="Type a message..."

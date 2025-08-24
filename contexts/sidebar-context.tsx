@@ -47,6 +47,17 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // On first load without stored prefs, default both sidebars to hidden on small screens
+  useEffect(() => {
+    // Avoid SSR references and avoid overriding stored preferences
+    if (typeof window === 'undefined') return
+    if (localStorage.getItem(STORAGE_KEY)) return
+    if (window.innerWidth < 768) {
+      setLeftSidebarState('hidden')
+      setRightSidebarState('hidden')
+    }
+  }, [])
+
   // Save preferences to localStorage
   useEffect(() => {
     const prefs = {

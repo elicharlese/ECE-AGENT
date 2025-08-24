@@ -98,7 +98,14 @@ export function IntegratedChatLayout() {
     async function resolveHeaderProfile() {
       try {
         if (activeConversation?.type === 'dm' && activeConversation?.name) {
-          const prof = await getProfileByIdentifier(activeConversation.name)
+          const raw = (activeConversation.name || '').trim()
+          // Only try to resolve profiles for DM names that look like @username
+          if (!raw.startsWith('@')) {
+            if (!cancelled) setHeaderProfile(null)
+            return
+          }
+          const identifier = raw.slice(1)
+          const prof = await getProfileByIdentifier(identifier)
           if (!cancelled) setHeaderProfile(prof ? { user_id: prof.user_id, username: prof.username, avatar_url: prof.avatar_url } : null)
           return
         }
@@ -180,12 +187,12 @@ export function IntegratedChatLayout() {
     if (!activeConversation?.id || !currentUserId) return
     const markRead = async () => {
       try {
+        // Our schema tracks read position per user in conversation_participants.last_read_at
         await supabase
-          .from('messages')
-          .update({ read_at: new Date().toISOString() })
+          .from('conversation_participants')
+          .update({ last_read_at: new Date().toISOString() })
           .eq('conversation_id', activeConversation.id)
-          .neq('user_id', currentUserId)
-          .is('read_at', null)
+          .eq('user_id', currentUserId)
       } catch (e) {
         console.warn('markRead failed', e)
         toast({
@@ -243,7 +250,7 @@ export function IntegratedChatLayout() {
   }, [selectConversation])
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-[100dvh] md:h-screen bg-background">
       {/* Left Sidebar - Conversations */}
       <CollapsibleSidebar
         side="left"
@@ -317,7 +324,7 @@ export function IntegratedChatLayout() {
                   <div className="mb-3">
                     <div className="space-y-2">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="w-full p-3 rounded-lg border bg-card/40">
+                        <div key={i} className="w-full p-3 rounded-lg bg-card/40">
                           <div className="flex items-start gap-3">
                             <Skeleton className="h-4 w-4 mt-0.5 rounded" />
                             <div className="flex-1 min-w-0 space-y-2">
