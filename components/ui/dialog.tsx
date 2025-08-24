@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { Root as VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -83,14 +82,13 @@ function DialogContent({
         aria-labelledby={hiddenTitleId}
         aria-describedby={hiddenDescId}
       >
-        <VisuallyHidden asChild>
-          <DialogPrimitive.Title id={hiddenTitleId}>{title}</DialogPrimitive.Title>
-        </VisuallyHidden>
-        <VisuallyHidden asChild>
-          <DialogPrimitive.Description id={hiddenDescId}>
-            {description}
-          </DialogPrimitive.Description>
-        </VisuallyHidden>
+        {/* Use our DialogTitle/DialogDescription so Radix detects them reliably */}
+        <DialogTitle id={hiddenTitleId} className="sr-only">
+          {title}
+        </DialogTitle>
+        <DialogDescription id={hiddenDescId} className="sr-only">
+          {description}
+        </DialogDescription>
         {children}
         {showCloseButton && (
           <DialogPrimitive.Close

@@ -14,9 +14,10 @@ interface GoogleAuthHintProps {
     avatar_url?: string
   }
   onClose: () => void
+  onContinue?: (email: string) => void
 }
 
-export function GoogleAuthHint({ isVisible, userProfile, onClose }: GoogleAuthHintProps) {
+export function GoogleAuthHint({ isVisible, userProfile, onClose, onContinue }: GoogleAuthHintProps) {
   const [shouldShow, setShouldShow] = useState(false)
 
   useEffect(() => {
@@ -93,6 +94,20 @@ export function GoogleAuthHint({ isVisible, userProfile, onClose }: GoogleAuthHi
               }}
             />
           </div>
+
+          {/* Quick continue CTA for returning users */}
+          <Button
+            className="mt-4 w-full h-10 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold hover:from-blue-700 hover:to-indigo-700"
+            onClick={() => {
+              if (userProfile?.email) {
+                onContinue?.(userProfile.email)
+              }
+              setShouldShow(false)
+              onClose()
+            }}
+          >
+            Continue as {userProfile?.email}
+          </Button>
         </CardContent>
       </Card>
       
