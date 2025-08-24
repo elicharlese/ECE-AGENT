@@ -6,7 +6,7 @@ import { LoginForm } from "@/components/login-form"
 import { ChatSidebar } from "@/components/chat/chat-sidebar"
 import { ChatWindow } from "@/components/chat/chat-window"
 import { AgentSidebar } from "@/components/chat/agent-sidebar"
-import { AgentChatWindow } from "@/components/chat/agent-chat-window"
+import { MiniChatWidget } from "@/components/chat/MiniChatWidget"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
@@ -24,7 +24,9 @@ export default function ChatApp() {
     return (
       <div className="flex min-h-full items-center justify-center">
         <div className="text-lg">Loading...</div>
-      </div>
+        {/* Portaled Quick Chat available globally */}
+      <MiniChatWidget title="Quick Chat" initialMinimized={true} />
+    </div>
     )
   }
   
@@ -38,7 +40,6 @@ function AuthenticatedChatApp() {
   const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
   const [showAgentSidebar, setShowAgentSidebar] = useState(true)
-  const [activeView, setActiveView] = useState<"chat" | "agent">("chat")
   const isMobile = useIsMobile()
   const { screenSize, orientation, canShowDualSidebars, shouldCollapseSidebars } = useResponsiveLayout()
 
@@ -55,22 +56,13 @@ function AuthenticatedChatApp() {
 
   const handleSelectAgent = (agentId: string) => {
     setSelectedAgentId(agentId)
-    setActiveView("agent")
     if (isMobile || screenSize === "tablet") {
       setRightSidebarCollapsed(true)
     }
   }
 
-  const handleBackToChat = () => {
-    setActiveView("chat")
-    if (screenSize === "mobile") {
-      setSelectedAgentId(undefined)
-    }
-  }
-
   const handleSelectChat = (chatId: string) => {
     setSelectedChatId(chatId)
-    setActiveView("chat")
     if (isMobile) {
       setLeftSidebarCollapsed(true)
     }
@@ -90,11 +82,7 @@ function AuthenticatedChatApp() {
     return "w-80"
   }
 
-  const getAgentChatWidth = () => {
-    if (screenSize === "tablet") return "w-80"
-    if (screenSize === "wide") return "w-96"
-    return "w-96"
-  }
+  // Note: Right sidebar is config-only; Quick Chat handles ad-hoc messaging.
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
@@ -121,19 +109,11 @@ function AuthenticatedChatApp() {
 
           {/* Main Content Area */}
           <div className="flex-1 flex flex-col min-w-0">
-            {activeView === "chat" ? (
-              <ChatWindow
-                chatId={selectedChatId}
-                onToggleSidebar={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-                sidebarCollapsed={leftSidebarCollapsed}
-              />
-            ) : (
-              <AgentChatWindow
-                agentId={selectedAgentId}
-                onToggleAgentSidebar={handleBackToChat}
-                agentSidebarCollapsed={rightSidebarCollapsed}
-              />
-            )}
+            <ChatWindow
+              chatId={selectedChatId}
+              onToggleSidebar={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
+              sidebarCollapsed={leftSidebarCollapsed}
+            />
           </div>
         </div>
       ) : (
@@ -175,36 +155,12 @@ function AuthenticatedChatApp() {
                 maxSize={45}
                 className={rightSidebarCollapsed ? "min-w-0" : ""}
               >
-                {rightSidebarCollapsed ? (
-                  <AgentSidebar
-                    selectedAgentId={selectedAgentId}
-                    onSelectAgent={handleSelectAgent}
-                    collapsed={rightSidebarCollapsed}
-                    onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-                  />
-                ) : (
-                  /* Nested resizable panels for agent list vs chat */
-                  <ResizablePanelGroup direction="vertical" className="h-full">
-                    <ResizablePanel defaultSize={35} minSize={20} maxSize={60}>
-                      <AgentSidebar
-                        selectedAgentId={selectedAgentId}
-                        onSelectAgent={handleSelectAgent}
-                        collapsed={rightSidebarCollapsed}
-                        onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-                      />
-                    </ResizablePanel>
-                    
-                    <ResizableHandle />
-                    
-                    <ResizablePanel defaultSize={65} minSize={40}>
-                      <AgentChatWindow
-                        agentId={selectedAgentId}
-                        onToggleAgentSidebar={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-                        agentSidebarCollapsed={rightSidebarCollapsed}
-                      />
-                    </ResizablePanel>
-                  </ResizablePanelGroup>
-                )}
+                <AgentSidebar
+                  selectedAgentId={selectedAgentId}
+                  onSelectAgent={handleSelectAgent}
+                  collapsed={rightSidebarCollapsed}
+                  onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+                />
               </ResizablePanel>
             </>
           )}
@@ -268,6 +224,9 @@ function AuthenticatedChatApp() {
           style={{ touchAction: "none" }}
         />
       )}
+
+      {/* Portaled Quick Chat available globally */}
+      <MiniChatWidget title="Quick Chat" initialMinimized={true} />
     </div>
   )
 }

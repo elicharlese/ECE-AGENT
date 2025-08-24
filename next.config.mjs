@@ -26,8 +26,10 @@ const nextConfig = {
   // Optimize for production
   productionBrowserSourceMaps: false,
   // Ensure CSS is correctly extracted so the loader doesn't error about missing plugin
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
+  webpack: (config, { isServer, dev }) => {
+    // Only inject MiniCssExtractPlugin in production client builds.
+    // In dev, forcing this plugin breaks Next's dev asset serving, causing 404s for chunks.
+    if (!isServer && !dev) {
       const hasMiniCss = config.plugins?.some(
         (p) => p && p.constructor && p.constructor.name === 'MiniCssExtractPlugin'
       )
