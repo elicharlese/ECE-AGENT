@@ -1,5 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+'use client'
+
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client';
+
+interface Message {
+  id: string
+  text: string
+  sender: 'user' | 'other' | 'ai'
+  senderName?: string
+  timestamp: Date
+  conversationId: string
+  type?: 'text' | 'image' | 'video' | 'audio' | 'document' | 'system' | 'gif' | 'app'
+  mediaUrl?: string
+  fileName?: string
+  fileSize?: string
+  isPinned?: boolean
+  isLiked?: boolean
+  likeCount?: number
+  status?: 'sent' | 'delivered' | 'read'
+  appData?: {
+    appId: string
+    appName: string
+    data: any
+  }
+}
 
 interface WebSocketMessage {
   type: string;
@@ -9,9 +33,12 @@ interface WebSocketMessage {
 export function useWebSocket() {
   console.log('useWebSocket hook called');
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<WebSocketMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Record<string, { name: string; timestamp: number }>>({});
+
   const wsRef = useRef<WebSocket | null>(null);
-  
+
   const connect = async () => {
     console.log('connect function called');
     // Get the current session token from Supabase
@@ -22,11 +49,12 @@ export function useWebSocket() {
       console.error('No authentication token available');
       return;
     }
-    
+
     console.log('Creating WebSocket connection');
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
     
-    wsRef.current = new WebSocket('ws://localhost:3001');
+    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
+    wsRef.current = new WebSocket(wsUrl);
     
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
@@ -75,43 +103,131 @@ export function useWebSocket() {
     setIsConnected(false);
   };
   
-  const sendMessage = (message: WebSocketMessage) => {
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(message));
-    } else {
-      console.error('WebSocket is not connected');
-    }
-  };
-  
-  const joinConversation = (conversationId: string) => {
-    sendMessage({
-      type: 'join_conversation',
-      conversationId
-    });
-  };
-  
-  const leaveConversation = (conversationId: string) => {
-    sendMessage({
-      type: 'leave_conversation',
-      conversationId
-    });
-  };
-  
-  const sendChatMessage = (conversationId: string, content: string) => {
-    sendMessage({
-      type: 'send_message',
+  const sendMessage = useCallback((text: string, conversationId: string) => {
+    const newMessage: Message = {
+      id: `${Date.now()}-${Math.random()}`,
+      text,
+      sender: 'user',
+      timestamp: new Date(),
       conversationId,
-      content
-    });
-  };
-  
-  const sendTyping = (conversationId: string) => {
-    sendMessage({
-      type: 'typing',
-      conversationId
-    });
-  };
-  
+      type: 'text',
+      status: 'sent'
+    }
+    
+    // Add message optimistically
+    setMessages(prev => [...prev, newMessage])
+    
+    // Simulate status updates
+    setTimeout(() => {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === newMessage.id ? { ...msg, status: 'delivered' } : msg
+        )
+      )
+    }, 500)
+    
+    setTimeout(() => {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === newMessage.id ? { ...msg, status: 'read' } : msg
+        )
+      )
+    }, 1500)
+    
+    // Simulate AI response if message contains "ai" or "help"
+    if (text.toLowerCase().includes('ai') || text.toLowerCase().includes('help')) {
+      // Show typing indicator
+      const typingId = 'ai-assistant'
+      setTypingUsers(prev => ({
+        ...prev,
+        [typingId]: { name: 'AI Assistant', timestamp: Date.now() }
+      }))
+      
+      setTimeout(() => {
+        // Remove typing indicator
+        setTypingUsers(prev => {
+          const newTyping = { ...prev }
+          delete newTyping[typingId]
+          return newTyping
+        })
+        
+        // Add AI response
+        const aiResponse: Message = {
+          id: `${Date.now()}-ai-${Math.random()}`,
+          text: 'I can help you with that! What specific assistance do you need?',
+          sender: 'ai',
+          senderName: 'AI Assistant',
+          timestamp: new Date(),
+          conversationId,
+          type: 'text',
+          status: 'read'
+        }
+        setMessages(prev => [...prev, aiResponse])
+      }, 2000)
+    }
+  }, [])
+
+  const sendTyping = useCallback((conversationId: string) => {
+    console.log(`Sending typing indicator for: ${conversationId}`)
+    // In a real implementation, this would emit to the WebSocket server
+  }, [])
+
+  const joinConversation = useCallback((conversationId: string) => {
+    console.log(`Joining conversation: ${conversationId}`)
+    setCurrentConversationId(conversationId)
+    setMessages([]) // Clear messages when switching conversations
+  }, [])
+
+  const leaveConversation = useCallback((conversationId: string) => {
+    console.log(`Leaving conversation: ${conversationId}`)
+    if (currentConversationId === conversationId) {
+      setCurrentConversationId(null)
+      setMessages([])
+    }
+  }, [currentConversationId])
+
+  // Mock connection on mount
+  useEffect(() => {
+    const mockConnect = () => {
+      console.log('Mock WebSocket connected')
+      setIsConnected(true)
+      
+      // Simulate receiving some initial messages after joining
+      if (currentConversationId) {
+        setTimeout(() => {
+          const mockHistoricalMessages: Message[] = [
+            {
+              id: 'mock1',
+              text: 'Welcome to the conversation!',
+              sender: 'other',
+              senderName: 'System',
+              timestamp: new Date(Date.now() - 3600000),
+              conversationId: currentConversationId,
+              status: 'read'
+            },
+            {
+              id: 'mock2',
+              text: 'This is a real-time messaging demo.',
+              sender: 'ai',
+              senderName: 'AI Assistant',
+              timestamp: new Date(Date.now() - 1800000),
+              conversationId: currentConversationId,
+              status: 'read'
+            }
+          ]
+          setMessages(mockHistoricalMessages)
+        }, 500)
+      }
+    }
+
+    mockConnect()
+
+    return () => {
+      console.log('Mock WebSocket cleanup')
+      setIsConnected(false)
+    }
+  }, [currentConversationId])
+
   useEffect(() => {
     // Connect when the hook is initialized
     connect();
@@ -120,7 +236,7 @@ export function useWebSocket() {
       disconnect();
     };
   }, []);
-  
+
   return {
     isConnected,
     messages,
@@ -128,7 +244,9 @@ export function useWebSocket() {
     disconnect,
     joinConversation,
     leaveConversation,
-    sendChatMessage,
-    sendTyping
+    sendMessage,
+    sendChatMessage: sendMessage, // Alias for compatibility
+    sendTyping,
+    typingUsers
   };
 }

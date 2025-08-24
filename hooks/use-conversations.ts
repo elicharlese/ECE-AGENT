@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Conversation } from '@/services/conversation-service'
 import * as conversationService from '@/services/conversation-service'
+import { supabase } from '@/lib/supabase/client'
 
 export function useConversations() {
   const [conversations, setConversations] = useState<Conversation[]>([])
@@ -35,6 +36,26 @@ export function useConversations() {
     }
   }
 
+  const createConversationWithParticipants = async (
+    title: string,
+    participantIds: string[] = [],
+    agentId?: string,
+  ) => {
+    try {
+      const newConversation = await conversationService.createConversationWithParticipants(
+        title,
+        participantIds,
+        agentId,
+      )
+      setConversations(prev => [newConversation, ...prev])
+      return newConversation
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create conversation')
+      console.error('Error creating conversation with participants:', err)
+      throw err
+    }
+  }
+
   const updateConversation = async (id: string, updates: Partial<Conversation>) => {
     try {
       const updatedConversation = await conversationService.updateConversation(id, updates)
@@ -62,6 +83,23 @@ export function useConversations() {
 
   useEffect(() => {
     fetchConversations()
+    // Subscribe to conversation updates so sidebar stays fresh
+    const channel = supabase
+      .channel('conversations-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   return {
@@ -70,6 +108,7 @@ export function useConversations() {
     error,
     fetchConversations,
     createConversation,
+    createConversationWithParticipants,
     updateConversation,
     deleteConversation
   }
