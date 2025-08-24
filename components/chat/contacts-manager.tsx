@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -25,11 +25,13 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { PhoneCallUI } from "../calls/phone-call-ui"
 import { VideoCallUI } from "../calls/video-call-ui"
+import { supabase } from "@/lib/supabase/client"
+import { profileService, type Profile } from "@/services/profile-service"
 
 interface Contact {
   id: string
+  username: string
   name: string
-  email: string
   phone?: string
   avatar?: string
   status: "online" | "away" | "busy" | "offline"
@@ -40,106 +42,75 @@ interface Contact {
   notes?: string
 }
 
-const mockContacts: Contact[] = [
-  {
-    id: "1",
-    name: "Sarah Wilson",
-    email: "sarah.wilson@example.com",
-    phone: "+1 (555) 234-5678",
-    status: "online",
-    customStatus: "Working from home 🏠",
-    isFavorite: true,
-  },
-  {
-    id: "2",
-    name: "Alex Chen",
-    email: "alex.chen@example.com",
-    status: "away",
-    lastSeen: new Date(Date.now() - 1000 * 60 * 15),
-    isFavorite: false,
-  },
-  {
-    id: "3",
-    name: "Maria Garcia",
-    email: "maria.garcia@example.com",
-    phone: "+1 (555) 345-6789",
-    status: "busy",
-    customStatus: "In a meeting",
-    isFavorite: true,
-  },
-  {
-    id: "4",
-    name: "David Kim",
-    email: "david.kim@example.com",
-    status: "offline",
-    lastSeen: new Date(Date.now() - 1000 * 60 * 60 * 2),
-    isFavorite: false,
-  },
-  {
-    id: "5",
-    name: "Emma Thompson",
-    email: "emma.thompson@example.com",
-    status: "online",
-    isFavorite: false,
-  },
-]
-
 interface ContactsManagerProps {
-  onStartChat: (contactId: string) => void
+  // Pass a user identifier (username or email) to start a DM
+  onStartChat: (identifier: string) => void
 }
 
 export function ContactsManager({ onStartChat }: ContactsManagerProps) {
-  const [contacts, setContacts] = useState<Contact[]>(mockContacts)
+  const [profiles, setProfiles] = useState<Profile[]>([])
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState("")
-  const [newContact, setNewContact] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    notes: "",
-    status: "offline" as const,
-  })
   const [activePhoneCall, setActivePhoneCall] = useState<Contact | null>(null)
   const [activeVideoCall, setActiveVideoCall] = useState<Contact | null>(null)
+
+  // Map profiles -> contacts, preserving favorites
+  const contacts = useMemo<Contact[]>(() => {
+    const favs = favoriteIds
+    return profiles.map((p) => ({
+      id: p.user_id,
+      username: p.username,
+      name: p.full_name || p.username,
+      avatar: p.avatar_url || undefined,
+      status: "offline",
+      isFavorite: favs.has(p.user_id),
+    }))
+  }, [profiles, favoriteIds])
+
+  // Fetch profiles on mount and when search changes
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      const data = await profileService.listProfiles({ search: searchQuery, excludeSelf: true, limit: 100 })
+      if (!cancelled) setProfiles(data)
+    }
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [searchQuery])
+
+  // Realtime: refresh on any profile change
+  useEffect(() => {
+    const channel = supabase
+      .channel('profiles-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        profileService.listProfiles({ search: searchQuery, excludeSelf: true, limit: 100 }).then(setProfiles)
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [searchQuery])
 
   const filteredContacts = contacts.filter(
     (contact) =>
       contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      contact.username.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   const favoriteContacts = filteredContacts.filter((contact) => contact.isFavorite)
   const regularContacts = filteredContacts.filter((contact) => !contact.isFavorite)
 
-  const handleAddContact = () => {
-    if (!newContact.email.trim() || !newContact.name.trim()) return
-
-    const contact: Contact = {
-      id: Date.now().toString(),
-      name: newContact.name,
-      email: newContact.email,
-      phone: newContact.phone || undefined,
-      company: newContact.company || undefined,
-      notes: newContact.notes || undefined,
-      status: newContact.status,
-      isFavorite: false,
-    }
-
-    setContacts([...contacts, contact])
-    setNewContact({
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      notes: "",
-      status: "offline",
-    })
-  }
-
+  // Favorites are kept client-side for now
   const toggleFavorite = (contactId: string) => {
-    setContacts(
-      contacts.map((contact) => (contact.id === contactId ? { ...contact, isFavorite: !contact.isFavorite } : contact)),
-    )
+    setFavoriteIds(prev => {
+      const next = new Set(prev)
+      if (next.has(contactId)) next.delete(contactId)
+      else next.add(contactId)
+      return next
+    })
   }
 
   const handlePhoneCall = (contact: Contact) => {
@@ -183,10 +154,9 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
         </DialogHeader>
 
         <Tabs defaultValue="all" className="flex-1 flex flex-col min-h-0">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
             <TabsTrigger value="all">All Contacts</TabsTrigger>
             <TabsTrigger value="favorites">Favorites</TabsTrigger>
-            <TabsTrigger value="add">Add Contact</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="flex-1 flex flex-col min-h-0 space-y-4">
@@ -277,101 +247,6 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
               )}
             </div>
           </TabsContent>
-
-          <TabsContent value="add" className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto space-y-4 min-h-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Full Name *
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter full name..."
-                    value={newContact.name}
-                    onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    Email Address *
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter email address..."
-                    value={newContact.email}
-                    onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Smartphone className="h-4 w-4" />
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="Enter phone number..."
-                    value={newContact.phone}
-                    onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="company">Company</Label>
-                  <Input
-                    id="company"
-                    placeholder="Enter company name..."
-                    value={newContact.company}
-                    onChange={(e) => setNewContact({ ...newContact, company: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="status">Initial Status</Label>
-                  <Select
-                    value={newContact.status}
-                    onValueChange={(value: any) => setNewContact({ ...newContact, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="online">Online</SelectItem>
-                      <SelectItem value="away">Away</SelectItem>
-                      <SelectItem value="busy">Busy</SelectItem>
-                      <SelectItem value="offline">Offline</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Add any notes about this contact..."
-                    value={newContact.notes}
-                    onChange={(e) => setNewContact({ ...newContact, notes: e.target.value })}
-                    rows={3}
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={handleAddContact}
-                className="w-full"
-                disabled={!newContact.name.trim() || !newContact.email.trim()}
-              >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add Contact
-              </Button>
-            </div>
-          </TabsContent>
         </Tabs>
       </DialogContent>
       {activePhoneCall && (
@@ -397,7 +272,7 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
 
 interface ContactItemProps {
   contact: Contact
-  onStartChat: (contactId: string) => void
+  onStartChat: (identifier: string) => void
   onToggleFavorite: (contactId: string) => void
   onPhoneCall: (contact: Contact) => void
   onVideoCall: (contact: Contact) => void
@@ -440,7 +315,7 @@ function ContactItem({
             </Badge>
           )}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{contact.email}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 truncate">@{contact.username}</p>
         {contact.customStatus && (
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{contact.customStatus}</p>
         )}
@@ -450,7 +325,8 @@ function ContactItem({
       </div>
 
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" onClick={() => onStartChat(contact.id)}>
+        {/* Use username to start DM */}
+        <Button variant="ghost" size="sm" onClick={() => onStartChat(contact.username)}>
           <MessageCircle className="h-4 w-4" />
         </Button>
         <Button variant="ghost" size="sm" onClick={() => onPhoneCall(contact)}>

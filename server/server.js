@@ -1,10 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const fetch = require('node-fetch');
+const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
+// 1) server/.env
 dotenv.config();
+// 2) root .env.local (to access NEXT_PUBLIC_* for local dev)
+const rootEnvLocal = path.resolve(__dirname, '..', '.env.local');
+if (fs.existsSync(rootEnvLocal)) {
+  dotenv.config({ path: rootEnvLocal, override: false });
+}
 
 // Initialize Express app
 const app = express();
@@ -16,7 +23,7 @@ app.use(express.json());
 
 // Supabase setup
 const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -325,6 +332,119 @@ app.get('/api/conversations/agent/:agentId', authenticateUser, async (req, res) 
   } catch (error) {
     console.error('Get conversations error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// --- Remote GitHub MCP Proxy (HTTP/SSE) ---
+// Proxies MCP Streamable HTTP transport to GitHub's hosted MCP server without persisting any data locally
+// Reference: https://github.com/github/github-mcp-server
+app.post('/api/mcp/github', async (req, res) => {
+  try {
+    const remoteUrl = 'https://api.githubcopilot.com/mcp/';
+    const pat = req.headers['x-github-pat'] || req.headers['authorization'];
+    const sessionId = req.headers['mcp-session-id'];
+
+    if (!pat) {
+      return res.status(400).json({ error: 'Missing GitHub PAT or Authorization header' });
+    }
+
+    const upstream = await fetch(remoteUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Always send Bearer form to remote MCP
+        'Authorization': String(pat).startsWith('Bearer ') ? String(pat) : `Bearer ${pat}`,
+        ...(sessionId ? { 'Mcp-Session-Id': String(sessionId) } : {}),
+      },
+      body: JSON.stringify(req.body ?? {}),
+    });
+
+    // Expose session header for browser access
+    const upstreamSessionId = upstream.headers.get('Mcp-Session-Id');
+    if (upstreamSessionId) {
+      res.setHeader('Mcp-Session-Id', upstreamSessionId);
+    }
+    res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
+
+    const text = await upstream.text();
+    res.status(upstream.status).type(upstream.headers.get('content-type') || 'application/json').send(text);
+  } catch (err) {
+    console.error('MCP proxy POST error:', err);
+    res.status(500).json({ error: 'MCP proxy POST failed' });
+  }
+});
+
+// GET – stream SSE notifications
+app.get('/api/mcp/github', async (req, res) => {
+  try {
+    const remoteUrl = 'https://api.githubcopilot.com/mcp/';
+    const pat = req.headers['x-github-pat'] || req.headers['authorization'];
+    const sessionId = req.headers['mcp-session-id'];
+
+    if (!pat) {
+      return res.status(400).json({ error: 'Missing GitHub PAT or Authorization header' });
+    }
+    if (!sessionId) {
+      return res.status(400).json({ error: 'Missing Mcp-Session-Id header' });
+    }
+
+    const upstream = await fetch(remoteUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': String(pat).startsWith('Bearer ') ? String(pat) : `Bearer ${pat}`,
+        'Mcp-Session-Id': String(sessionId),
+      },
+    });
+
+    // Propagate headers suitable for SSE
+    res.setHeader('Content-Type', upstream.headers.get('content-type') || 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
+    const upstreamSessionId = upstream.headers.get('Mcp-Session-Id');
+    if (upstreamSessionId) {
+      res.setHeader('Mcp-Session-Id', upstreamSessionId);
+    }
+
+    if (!upstream.body) {
+      res.status(502).end('Upstream returned no body');
+      return;
+    }
+
+    // Stream body to client
+    const { Readable } = require('stream');
+    Readable.fromWeb(upstream.body).pipe(res);
+  } catch (err) {
+    console.error('MCP proxy GET error:', err);
+    if (!res.headersSent) res.status(500).end('MCP proxy GET failed');
+  }
+});
+
+// DELETE – terminate session upstream
+app.delete('/api/mcp/github', async (req, res) => {
+  try {
+    const remoteUrl = 'https://api.githubcopilot.com/mcp/';
+    const pat = req.headers['x-github-pat'] || req.headers['authorization'];
+    const sessionId = req.headers['mcp-session-id'];
+
+    if (!pat || !sessionId) {
+      return res.status(400).json({ error: 'Missing credentials or session id' });
+    }
+
+    const upstream = await fetch(remoteUrl, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': String(pat).startsWith('Bearer ') ? String(pat) : `Bearer ${pat}`,
+        'Mcp-Session-Id': String(sessionId),
+      },
+    });
+
+    const text = await upstream.text();
+    res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
+    res.status(upstream.status).type(upstream.headers.get('content-type') || 'application/json').send(text);
+  } catch (err) {
+    console.error('MCP proxy DELETE error:', err);
+    res.status(500).json({ error: 'MCP proxy DELETE failed' });
   }
 });
 
