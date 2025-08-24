@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { Message } from '@/types/message'
+import { useEffect } from 'react'
 
 interface UseMessagesOptions {
   conversationId: string
@@ -153,53 +154,57 @@ export function useEditMessage() {
 export function useRealtimeMessages(conversationId: string) {
   const queryClient = useQueryClient()
 
-  // Set up realtime subscription
-  const channel = supabase
-    .channel(`messages:${conversationId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${conversationId}`,
-      },
-      (payload) => {
-        if (payload.eventType === 'INSERT') {
-          const row: any = payload.new
-          const normalized: Message = {
-            id: row.id,
-            conversation_id: row.conversation_id,
-            user_id: row.user_id,
-            content: row.content,
-            created_at: row.timestamp ?? row.created_at,
-            edited_at: row.edited_at ?? null,
-            read_at: row.read_at ?? null,
-            role: row.role,
-            is_ai: row.role === 'assistant' || row.is_ai,
-            metadata: row.metadata ?? null,
-            type: row.type,
-            user: row.user,
-            reactions: row.reactions,
-          }
-          queryClient.setQueryData(
-            ['messages', conversationId],
-            (old: any) => {
-              if (!old) return { pages: [[normalized]], pageParams: [0] }
-              return {
-                ...old,
-                pages: [[normalized, ...old.pages[0]], ...old.pages.slice(1)],
-              }
-            }
-          )
-        } else {
-          queryClient.invalidateQueries({ queryKey: ['messages', conversationId] })
-        }
-      }
-    )
-    .subscribe()
+  useEffect(() => {
+    if (!conversationId) return
 
-  return () => {
-    supabase.removeChannel(channel)
-  }
+    // Set up realtime subscription
+    const channel = supabase
+      .channel(`messages:${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const row: any = payload.new
+            const normalized: Message = {
+              id: row.id,
+              conversation_id: row.conversation_id,
+              user_id: row.user_id,
+              content: row.content,
+              created_at: row.timestamp ?? row.created_at,
+              edited_at: row.edited_at ?? null,
+              read_at: row.read_at ?? null,
+              role: row.role,
+              is_ai: row.role === 'assistant' || row.is_ai,
+              metadata: row.metadata ?? null,
+              type: row.type,
+              user: row.user,
+              reactions: row.reactions,
+            }
+            queryClient.setQueryData(
+              ['messages', conversationId],
+              (old: any) => {
+                if (!old) return { pages: [[normalized]], pageParams: [0] }
+                return {
+                  ...old,
+                  pages: [[normalized, ...old.pages[0]], ...old.pages.slice(1)],
+                }
+              }
+            )
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['messages', conversationId] })
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [conversationId, queryClient])
 }

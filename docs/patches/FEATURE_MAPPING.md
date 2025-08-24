@@ -44,6 +44,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 **Directory**: `docs/patches/patch_feature/mobile_desktop_consistency/`
 
 **Mapped Patches**:
+
 - patch-1: Mobile-responsive design that works across devices
 - patch-4: Cross-platform UI consistency
 - patch-7: Mobile interaction improvements
@@ -80,7 +81,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 **Key Files**:
 
-- __tests__/* (test files)
+- `__tests__/*` (test files)
 - jest.config.js
 - jest.setup.ts
 
@@ -130,6 +131,22 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 - docs/batches/BATCH_GUIDELINES.md
 - docs/guidelines.md
 - END_GOAL.md
+
+### 9. Keyboard shortcuts and command palette
+
+**Directory**: `docs/patches/keyboard_shortcuts/`
+
+**Mapped Patches**:
+
+- patch-1: Global hotkeys provider, reusable hook, and initial shortcuts
+
+**Key Files**:
+
+- hooks/use-hotkeys.ts
+- components/hotkeys/HotkeysProvider.tsx
+- components/hotkeys/CommandPalette.tsx
+- components/hotkeys/ShortcutsHelp.tsx
+- app/providers.tsx
 
 ## Implementation Notes
 

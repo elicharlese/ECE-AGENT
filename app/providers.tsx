@@ -6,6 +6,7 @@ import { queryClient } from '@/lib/query-client'
 import { ThemeProvider } from 'next-themes'
 import { Toaster } from '@/components/ui/toaster'
 import { DensityProvider } from '@/contexts/density-context'
+import { HotkeysProvider } from '@/components/hotkeys/HotkeysProvider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -17,9 +18,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
         disableTransitionOnChange
       >
         <DensityProvider>
-          {children}
-          <Toaster />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <HotkeysProvider>
+            {children}
+            <Toaster />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </HotkeysProvider>
         </DensityProvider>
       </ThemeProvider>
     </QueryClientProvider>

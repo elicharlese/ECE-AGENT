@@ -19,6 +19,10 @@ const FormSchema = z.object({
   participantIds: z.array(z.string()).default([]),
 })
 
+const InviteSchema = z.object({
+  email: z.string().email(),
+})
+
 export type NewConversationModalProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -37,6 +41,11 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
   const [dmBusyId, setDmBusyId] = React.useState<string | null>(null)
   const DEBOUNCE_MS = 350
   const [debouncedSearch, setDebouncedSearch] = React.useState(search)
+
+  // Invite-by-email state
+  const [inviteEmail, setInviteEmail] = React.useState('')
+  const [inviteStatus, setInviteStatus] = React.useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [inviteError, setInviteError] = React.useState<string | null>(null)
 
   // Debounce raw input to avoid firing a request per keystroke
   React.useEffect(() => {
@@ -76,6 +85,9 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
     setSearch('')
     setProfiles([])
     setError(null)
+    setInviteEmail('')
+    setInviteStatus('idle')
+    setInviteError(null)
   }
 
   const handleAddFriend = async (p: Profile) => {
@@ -111,6 +123,31 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
       setError(e?.message || 'Failed to create')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleInvite = async () => {
+    setInviteError(null)
+    const parsed = InviteSchema.safeParse({ email: inviteEmail.trim() })
+    if (!parsed.success) {
+      setInviteError('Please enter a valid email address')
+      return
+    }
+    setInviteStatus('sending')
+    try {
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined
+      const res = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: parsed.data.email, redirectTo }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json?.error || 'Failed to send invite')
+      setInviteStatus('sent')
+      setInviteEmail('')
+    } catch (e: any) {
+      setInviteStatus('error')
+      setInviteError(e?.message || 'Failed to send invite')
     }
   }
 
@@ -198,23 +235,55 @@ export function NewConversationModal({ open, onOpenChange, onCreated }: NewConve
                           </Button>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
+                  )
+                })}
+              </div>
+            </ScrollArea>
           </div>
-
-          {error && <div className="text-sm text-destructive">{error}</div>}
         </div>
 
-        <DialogFooter className="pt-2">
-          <Button variant="ghost" onClick={() => { onOpenChange(false); resetForm() }} disabled={submitting}>Cancel</Button>
-          <Button onClick={handleCreate} disabled={submitting || !title.trim()}>
-            {submitting ? 'Creating…' : 'Create'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
+        {/* Invite by email */}
+        <div className="pt-4 mt-4 border-t">
+          <label className="block text-sm font-medium mb-1">Invite by email</label>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="name@example.com"
+              value={inviteEmail}
+              onChange={(e) => {
+                setInviteEmail(e.currentTarget.value)
+                setInviteError(null)
+                if (inviteStatus === 'sent' || inviteStatus === 'error') setInviteStatus('idle')
+              }}
+            />
+            <Button
+              variant="secondary"
+              onClick={handleInvite}
+              disabled={inviteStatus === 'sending' || inviteEmail.trim().length === 0}
+            >
+              {inviteStatus === 'sending' ? 'Sending…' : 'Send invite'}
+            </Button>
+          </div>
+          <div className="h-5 mt-1">
+            {inviteStatus === 'sent' && (
+              <span className="text-xs text-emerald-600">Invite sent.</span>
+            )}
+            {inviteError && (
+              <span className="text-xs text-destructive">{inviteError}</span>
+            )}
+          </div>
+        </div>
+
+        {error && <div className="text-sm text-destructive">{error}</div>}
+      </div>
+
+      <DialogFooter className="pt-2">
+        <Button variant="ghost" onClick={() => { onOpenChange(false); resetForm() }} disabled={submitting}>Cancel</Button>
+        <Button onClick={handleCreate} disabled={submitting || !title.trim()}>
+          {submitting ? 'Creating…' : 'Create'}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+)
 }

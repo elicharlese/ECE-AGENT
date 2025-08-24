@@ -21,6 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};
@@ -29,7 +30,7 @@ html {
 }
         `}</style>
       </head>
-      <body>
+      <body className="pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
         <Providers>
           <SolanaWalletProvider>
             <UserProvider>

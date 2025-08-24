@@ -38,8 +38,8 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    // Exact case-insensitive match (no wildcards)
-    .ilike('username', normalized)
+    // Exact match on normalized username
+    .eq('username', normalized)
     .single()
 
   if (error) {

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Send, Paperclip, Smile, MoreVertical, Phone, Video, ArrowLeft, Bot, Sparkles, Zap, Shield, Code, Loader2 } from 'lucide-react'
+import { Send, Paperclip, Smile, Phone, Video, ArrowLeft, Bot, Sparkles, Zap, Shield, Code, Loader2 } from 'lucide-react'
 import { useWebSocket } from '@/hooks/use-websocket'
 import { agentService, Agent } from '@/services/agent-service'
 import { AgentMCPIntegration } from '@/components/agents/agent-mcp-integration'
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { VideoCallUI } from '@/components/calls/video-call-ui'
+import { AgentMenu } from '@/components/chat/AgentMenu'
 
 interface AgentChatWindowProps {
   agentId?: string
@@ -139,9 +140,12 @@ export function AgentChatWindow({ agentId, onToggleAgentSidebar, agentSidebarCol
             <button className="p-2 hover:bg-gray-100 rounded-lg" onClick={() => setIsVideoOpen(true)}>
               <Video className="w-5 h-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <MoreVertical className="w-5 h-5 text-gray-600" />
-            </button>
+            <AgentMenu
+              agentId={agentInfo.id}
+              showMCPTools={showMCPTools}
+              onToggleMCPTools={(v) => setShowMCPTools(!!v)}
+              className="p-2 hover:bg-gray-100 rounded-lg"
+            />
           </div>
         </div>
       </div>

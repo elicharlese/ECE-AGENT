@@ -175,6 +175,11 @@ class MCPService {
     } catch (e) {
       if ((e as any)?.name === 'AbortError') return
       console.warn('MCP stream error:', e)
+    } finally {
+      // When stream finishes or is aborted, clear the controller so UI reflects non-streaming state
+      if (this.mcpStreamAbort === ctrl) {
+        this.mcpStreamAbort = undefined
+      }
     }
   }
 
@@ -196,6 +201,30 @@ class MCPService {
       this.mcpSessionId = null
       if (typeof window !== 'undefined') {
         localStorage.removeItem('github_mcp_session')
+      }
+    }
+  }
+
+  // Public: start or resume SSE streaming. If there's no session, initialize it.
+  public async startMcpStreaming(): Promise<void> {
+    if (!this.githubToken) throw new Error('GitHub not connected')
+    if (!this.mcpSessionId) {
+      await this.initRemoteGitHubMCP()
+      return
+    }
+    // Resume streaming with existing session
+    void this.startMcpStream()
+  }
+
+  // Public: stop/pause SSE streaming without terminating upstream session
+  public stopMcpStreaming(): void {
+    if (this.mcpStreamAbort) {
+      try {
+        this.mcpStreamAbort.abort()
+      } catch (_) {
+        // noop
+      } finally {
+        this.mcpStreamAbort = undefined
       }
     }
   }

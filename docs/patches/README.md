@@ -12,6 +12,7 @@ This directory contains patches organized by feature rather than sequential numb
 - `zod_validation` - Runtime validation with Zod schemas
 - `ci_cd_deployment` - Deployment pipeline and automation
 - `documentation_mapping` - Documentation organization and tracking
+- `keyboard_shortcuts` - Global hotkeys, command palette, and help overlay
 
 ## Organization Benefits
 

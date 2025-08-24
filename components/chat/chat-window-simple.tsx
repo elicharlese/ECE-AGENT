@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { MoreVertical, Bot, Wrench, Phone, Video, Info, Smile } from "lucide-react"
+import { Bot, Wrench, Phone, Video, Info, Smile } from "lucide-react"
 import { cn } from '@/lib/utils'
 import { MessageReactions } from '@/components/chat/message-reactions'
 import { listMessages, sendMessage as sendDbMessage, subscribeToMessages, DBMessage } from '@/services/message-service'
@@ -11,6 +11,7 @@ import { aiService } from '@/services/ai-service'
 import { VideoCallUI } from '@/components/calls/video-call-ui'
 import { RichMessageInput } from '@/components/messages/rich-message-input'
 import { useDensity } from '@/contexts/density-context'
+import { ConversationMenu } from '@/components/chat/ConversationMenu'
 
 // Simple ReadReceipt component since it was removed
 function ReadReceipt({ status }: { status?: 'sent' | 'delivered' | 'read' }) {
@@ -60,6 +61,7 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
   const [currentUser, setCurrentUser] = React.useState<{ id: string, name: string }>({ id: '', name: 'You' })
   const [conversationTitle, setConversationTitle] = React.useState<string>('')
   const [isVideoOpen, setIsVideoOpen] = React.useState(false)
+  const [creatorUserId, setCreatorUserId] = React.useState<string | undefined>(undefined)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -80,11 +82,18 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
   React.useEffect(() => {
     if (!chatId) {
       setConversationTitle('')
+      setCreatorUserId(undefined)
       return
     }
     getConversationById(chatId)
-      .then((conv) => setConversationTitle(conv?.title || ''))
-      .catch(() => setConversationTitle(''))
+      .then((conv) => {
+        setConversationTitle(conv?.title || '')
+        setCreatorUserId(conv?.user_id)
+      })
+      .catch(() => {
+        setConversationTitle('')
+        setCreatorUserId(undefined)
+      })
   }, [chatId])
 
   // Map DB message to UI message
@@ -235,9 +244,13 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
           >
             <Info className="w-5 h-5 text-gray-600" />
           </button>
-          <button className="p-2 rounded-md hover:bg-gray-100" onClick={() => onOpenMCPSettings?.()}>
-            <MoreVertical className="w-5 h-5 text-gray-600" />
-          </button>
+          <ConversationMenu
+            chatId={chatId}
+            currentUserId={currentUser.id}
+            creatorUserId={creatorUserId}
+            onOpenMCPSettings={onOpenMCPSettings}
+            className="p-2 rounded-md hover:bg-gray-100"
+          />
         </div>
       </div>
 

@@ -250,6 +250,33 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
                 {formatLastEvent(mcpStatus.lastEventAt ?? null)}
               </div>
             </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={async () => {
+                  try {
+                    await mcpService.startMcpStreaming?.()
+                  } finally {
+                    setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+                  }
+                }}
+                disabled={!!mcpStatus.streaming}
+                className="px-2 py-1 text-xs rounded bg-blue-600 text-white disabled:bg-gray-300 flex items-center gap-1"
+                title="Start MCP stream"
+              >
+                <Play className="w-3 h-3" /> Start Stream
+              </button>
+              <button
+                onClick={() => {
+                  mcpService.stopMcpStreaming?.()
+                  setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+                }}
+                disabled={!mcpStatus.streaming}
+                className="px-2 py-1 text-xs rounded bg-gray-200 text-gray-800 disabled:bg-gray-100 flex items-center gap-1"
+                title="Stop MCP stream (session persists)"
+              >
+                <X className="w-3 h-3" /> Stop Stream
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-2">
@@ -392,6 +419,12 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
             <div className="flex items-center gap-2 mb-2">
               <Github className="w-4 h-4 text-gray-700" />
               <h4 className="text-sm font-medium">GitHub MCP Stream</h4>
+              <button
+                onClick={() => setMcpEvents([])}
+                className="ml-auto text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Clear
+              </button>
             </div>
             <pre className="text-xs whitespace-pre-wrap max-h-56 overflow-auto bg-white p-2 rounded border">
               {mcpEvents.join('\n\n')}

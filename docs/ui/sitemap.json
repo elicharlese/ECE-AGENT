@@ -1,5 +1,5 @@
 {
-  "generated": "2025-08-22T02:24:47.439Z",
+  "generated": "2025-08-24T17:30:56.390Z",
   "baseUrl": "http://localhost:3000",
   "routes": [
     {
@@ -9,10 +9,10 @@
       "description": "Main landing page",
       "requiresAuth": false,
       "screenshots": [
-        "docs/ui/layouts/desktop/home-2025-08-22.png",
-        "docs/ui/layouts/mobile/home-2025-08-22.png"
+        "docs/ui/layouts/desktop/home-2025-08-24.png",
+        "docs/ui/layouts/mobile/home-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/messages",
@@ -20,8 +20,11 @@
       "category": "layouts",
       "description": "Messages layout with sidebars",
       "requiresAuth": true,
-      "screenshots": [],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "screenshots": [
+        "docs/ui/layouts/desktop/messages-2025-08-24.png",
+        "docs/ui/layouts/mobile/messages-2025-08-24.png"
+      ],
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/profile",
@@ -30,10 +33,10 @@
       "description": "User profile page",
       "requiresAuth": true,
       "screenshots": [
-        "docs/ui/layouts/desktop/profile-2025-08-22.png",
-        "docs/ui/layouts/mobile/profile-2025-08-22.png"
+        "docs/ui/layouts/desktop/profile-2025-08-24.png",
+        "docs/ui/layouts/mobile/profile-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/auth",
@@ -42,9 +45,10 @@
       "description": "Authentication login page",
       "requiresAuth": false,
       "screenshots": [
-        "docs/ui/user-flows/desktop/auth-login-2025-08-22.png"
+        "docs/ui/user-flows/desktop/auth-login-2025-08-24.png",
+        "docs/ui/user-flows/mobile/auth-login-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/auth",
@@ -53,10 +57,10 @@
       "description": "Authentication page (Google and email/password)",
       "requiresAuth": false,
       "screenshots": [
-        "docs/ui/user-flows/desktop/auth-google-2025-08-22.png",
-        "docs/ui/user-flows/mobile/auth-google-2025-08-22.png"
+        "docs/ui/user-flows/desktop/auth-google-2025-08-24.png",
+        "docs/ui/user-flows/mobile/auth-google-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/messages",
@@ -65,10 +69,10 @@
       "description": "Messages with agent sidebar open",
       "requiresAuth": true,
       "screenshots": [
-        "docs/ui/components/desktop/messages-with-agents-2025-08-22.png",
-        "docs/ui/components/mobile/messages-with-agents-2025-08-22.png"
+        "docs/ui/components/desktop/messages-with-agents-2025-08-24.png",
+        "docs/ui/components/mobile/messages-with-agents-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/messages",
@@ -76,8 +80,11 @@
       "category": "components",
       "description": "Messages with MCP tools open",
       "requiresAuth": true,
-      "screenshots": [],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "screenshots": [
+        "docs/ui/components/desktop/messages-with-tools-2025-08-24.png",
+        "docs/ui/components/mobile/messages-with-tools-2025-08-24.png"
+      ],
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/calls/test",
@@ -86,10 +93,10 @@
       "description": "LiveKit call testing interface",
       "requiresAuth": true,
       "screenshots": [
-        "docs/ui/components/desktop/calls-test-2025-08-22.png",
-        "docs/ui/components/mobile/calls-test-2025-08-22.png"
+        "docs/ui/components/desktop/calls-test-2025-08-24.png",
+        "docs/ui/components/mobile/calls-test-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/mcp-test",
@@ -98,10 +105,10 @@
       "description": "MCP testing interface",
       "requiresAuth": false,
       "screenshots": [
-        "docs/ui/components/desktop/mcp-test-2025-08-22.png",
-        "docs/ui/components/mobile/mcp-test-2025-08-22.png"
+        "docs/ui/components/desktop/mcp-test-2025-08-24.png",
+        "docs/ui/components/mobile/mcp-test-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     },
     {
       "path": "/profile-test",
@@ -110,10 +117,10 @@
       "description": "Profile testing page",
       "requiresAuth": false,
       "screenshots": [
-        "docs/ui/components/desktop/profile-test-2025-08-22.png",
-        "docs/ui/components/mobile/profile-test-2025-08-22.png"
+        "docs/ui/components/desktop/profile-test-2025-08-24.png",
+        "docs/ui/components/mobile/profile-test-2025-08-24.png"
       ],
-      "lastCaptured": "2025-08-22T02:24:47.439Z"
+      "lastCaptured": "2025-08-24T17:30:56.390Z"
     }
   ]
 }
