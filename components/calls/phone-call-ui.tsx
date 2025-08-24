@@ -1,11 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, MessageCircle, UserPlus } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
+import { useUser } from "@/contexts/user-context"
+import { LiveKitRoom, AudioConference } from "@livekit/components-react"
 
 interface PhoneCallUIProps {
   isOpen: boolean
@@ -27,6 +29,14 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
   const [isMuted, setIsMuted] = useState(false)
   const [isSpeaker, setIsSpeaker] = useState(false)
   const { triggerHaptic } = useHaptics()
+  const { user } = useUser()
+  const [lkToken, setLkToken] = useState<string | null>(null)
+  const [lkWsUrl, setLkWsUrl] = useState<string | null>(null)
+  const [lkLoading, setLkLoading] = useState(false)
+  const [lkError, setLkError] = useState<string | null>(null)
+  // Stable guest identity across this component's lifetime
+  const [guestId] = useState(() => `guest-${Math.random().toString(36).slice(2)}`)
+  const [roomConnected, setRoomConnected] = useState(false)
 
   useEffect(() => {
     if (callStatus === "connected") {
@@ -37,16 +47,42 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
     }
   }, [callStatus])
 
-  useEffect(() => {
-    if (callType === "outgoing" && callStatus === "connecting") {
-      // Simulate connection after 2 seconds
-      const timer = setTimeout(() => {
-        setCallStatus("connected")
-        triggerHaptic("success")
-      }, 2000)
-      return () => clearTimeout(timer)
+  const joinCall = useCallback(async () => {
+    try {
+      setLkLoading(true)
+      setLkError(null)
+      const res = await fetch("/api/livekit/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomName: String(contact.id || "default-room"),
+          identity: user?.id || guestId,
+          metadata: { name: user?.email || "Guest" },
+          grants: { canPublish: true, canSubscribe: true, canPublishData: true },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data?.token || !data?.wsUrl) {
+        throw new Error(data?.error || "Failed to mint LiveKit token")
+      }
+      setLkToken(data.token)
+      setLkWsUrl(data.wsUrl)
+      setCallStatus("connected")
+      triggerHaptic("success")
+    } catch (e: any) {
+      console.error("LiveKit join error", e)
+      setLkError(e?.message || "Failed to join LiveKit")
+    } finally {
+      setLkLoading(false)
     }
-  }, [callType, callStatus, triggerHaptic])
+  }, [contact.id, triggerHaptic, user?.email, user?.id])
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (callType === "outgoing" && callStatus === "connecting") {
+      joinCall()
+    }
+  }, [isOpen, callType, callStatus, joinCall])
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -55,8 +91,9 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
   }
 
   const handleAnswer = () => {
-    setCallStatus("connected")
+    setCallStatus("connecting")
     triggerHaptic("success")
+    joinCall()
   }
 
   const handleDecline = () => {
@@ -97,7 +134,7 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-sm mx-auto bg-gradient-to-b from-gray-900 to-black text-white border-none">
         <div className="flex flex-col items-center space-y-8 py-8">
           {/* Contact Info */}
@@ -115,6 +152,9 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
               <h2 className="text-2xl font-semibold">AGENT - {contact.name}</h2>
               {contact.phone && <p className="text-gray-300">{contact.phone}</p>}
               <p className="text-gray-400 mt-2">{getStatusText()}</p>
+              {lkError && (
+                <p className="text-red-400 text-sm mt-2">{lkError}</p>
+              )}
             </div>
           </div>
 
@@ -140,44 +180,6 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
                   <Phone className="h-6 w-6" />
                 </Button>
               </>
-            ) : callStatus === "connected" ? (
-              <>
-                {/* Active Call Controls */}
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className={`h-14 w-14 rounded-full ${
-                    isMuted
-                      ? "bg-red-500 hover:bg-red-600 border-red-500"
-                      : "bg-gray-700 hover:bg-gray-600 border-gray-600"
-                  } text-white`}
-                  onClick={toggleMute}
-                >
-                  {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600 border-red-500 text-white"
-                  onClick={handleEndCall}
-                >
-                  <PhoneOff className="h-6 w-6" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className={`h-14 w-14 rounded-full ${
-                    isSpeaker
-                      ? "bg-blue-500 hover:bg-blue-600 border-blue-500"
-                      : "bg-gray-700 hover:bg-gray-600 border-gray-600"
-                  } text-white`}
-                  onClick={toggleSpeaker}
-                >
-                  {isSpeaker ? <Volume2 className="h-5 w-5" /> : <VolumeX className="h-5 w-5" />}
-                </Button>
-              </>
             ) : callStatus === "connecting" ? (
               <Button
                 variant="outline"
@@ -191,16 +193,27 @@ export function PhoneCallUI({ isOpen, onClose, contact, callType }: PhoneCallUIP
           </div>
 
           {/* Additional Actions (for connected calls) */}
-          {callStatus === "connected" && (
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Message
-              </Button>
-              <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white">
-                <UserPlus className="h-5 w-5 mr-2" />
-                Add Call
-              </Button>
+          {callStatus === "connected" && lkToken && lkWsUrl && (
+            <div className="w-full">
+              <LiveKitRoom
+                key={lkToken}
+                token={lkToken}
+                serverUrl={lkWsUrl}
+                data-lk-theme="default"
+                video={false}
+                audio={false}
+                onConnected={() => setRoomConnected(true)}
+                onDisconnected={() => {
+                  setRoomConnected(false)
+                  onClose()
+                }}
+              >
+                {roomConnected ? (
+                  <AudioConference />
+                ) : (
+                  <div className="p-4 text-center text-sm text-gray-300">Connecting…</div>
+                )}
+              </LiveKitRoom>
             </div>
           )}
         </div>
