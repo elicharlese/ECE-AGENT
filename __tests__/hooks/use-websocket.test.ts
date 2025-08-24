@@ -29,7 +29,8 @@ describe('useWebSocket', () => {
     expect(result.current.sendChatMessage).toBeDefined();
     expect(result.current.joinConversation).toBeDefined();
     expect(result.current.leaveConversation).toBeDefined();
-    expect(result.current.isConnected).toBe(false);
+    // Hook establishes a mock connection on mount
+    expect(result.current.isConnected).toBe(true);
     expect(result.current.messages).toEqual([]);
   });
 });
