@@ -3,7 +3,6 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { UserProvider } from '@/contexts/user-context'
-import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
 
 export const metadata: Metadata = {
   title: 'AGENT - Advanced Generative ENgineering Toolkit',
