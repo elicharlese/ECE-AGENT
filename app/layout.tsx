@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   generator: 'AGENT',
   applicationName: 'AGENT',
   keywords: ['AGENT', 'AI', 'Generative', 'Engineering', 'Toolkit'],
+  icons: {
+    icon: '/placeholder-logo.png',
+    shortcut: '/placeholder-logo.png',
+    apple: '/placeholder-logo.png',
+  },
 }
 
 export default function RootLayout({
@@ -21,6 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Favicon fallbacks */}
+        <link rel="icon" href="/placeholder-logo.png" sizes="any" />
+        <link rel="apple-touch-icon" href="/placeholder-logo.png" />
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};

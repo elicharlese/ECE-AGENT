@@ -44,6 +44,8 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // Serve a favicon to avoid 404s from browsers requesting /favicon.ico
+      { source: '/favicon.ico', destination: '/placeholder-logo.png' },
       // Nested: /u/:id -> /messages
       { source: '/u/:id([\\w-]+)', destination: '/messages' },
       // Nested passthrough: /u/:id/<path> -> /<path>
