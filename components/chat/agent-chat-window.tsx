@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Send, Paperclip, Smile, Phone, Video, ArrowLeft, Bot, Sparkles, Zap, Shield, Code, Loader2 } from 'lucide-react'
 import { useWebSocket } from '@/hooks/use-websocket'
 import { agentService, Agent } from '@/services/agent-service'
-import { AgentMCPIntegration } from '@/components/agents/agent-mcp-integration'
+import { AgentMCPIntegration } from '@/components/agents/AgentMCPIntegration'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
