@@ -31,13 +31,20 @@ interface WebSocketMessage {
 }
 
 export function useWebSocket() {
-  console.log('useWebSocket hook called');
+  if (process.env.NODE_ENV !== 'production') {
+    // lightweight trace in dev only
+    // console.debug('useWebSocket init')
+  }
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, { name: string; timestamp: number }>>({});
 
   const wsRef = useRef<WebSocket | null>(null);
+  const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL; // Build-time public env
+  const DEFER_UNTIL_INTERACTION =
+    (process.env.NEXT_PUBLIC_WS_DEFER_UNTIL_INTERACTION || '').toLowerCase() === '1' ||
+    (process.env.NEXT_PUBLIC_WS_DEFER_UNTIL_INTERACTION || '').toLowerCase() === 'true'
 
   const connect = async () => {
     console.log('connect function called');
@@ -50,11 +57,17 @@ export function useWebSocket() {
       return;
     }
 
+    if (!WS_URL) {
+      console.warn('NEXT_PUBLIC_WEBSOCKET_URL is not set. Skipping real WS connect.');
+      return;
+    }
+
     console.log('Creating WebSocket connection');
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
     
-    const wsUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3001';
-    wsRef.current = new WebSocket(wsUrl);
+    wsRef.current = new WebSocket(WS_URL);
     
     wsRef.current.onopen = () => {
       console.log('WebSocket connected');
@@ -186,8 +199,9 @@ export function useWebSocket() {
     }
   }, [currentConversationId])
 
-  // Mock connection on mount
+  // Mock connection only when no WS URL is configured
   useEffect(() => {
+    if (WS_URL) return;
     const mockConnect = () => {
       console.log('Mock WebSocket connected')
       setIsConnected(true)
@@ -226,16 +240,64 @@ export function useWebSocket() {
       console.log('Mock WebSocket cleanup')
       setIsConnected(false)
     }
-  }, [currentConversationId])
+  }, [WS_URL, currentConversationId])
 
   useEffect(() => {
-    // Connect when the hook is initialized
-    connect();
-    
+    // Defer connect until the page is visible and the browser is idle.
+    if (!WS_URL) return;
+    let canceled = false
+
+    const scheduleIdle = () => {
+      if ('requestIdleCallback' in window) {
+        ;(window as any).requestIdleCallback(() => {
+          if (!canceled) connect()
+        }, { timeout: 1500 })
+      } else {
+        setTimeout(() => { if (!canceled) connect() }, 200)
+      }
+    }
+
+    const scheduleWhenVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        const onVisible = () => {
+          if (document.visibilityState === 'visible') {
+            document.removeEventListener('visibilitychange', onVisible)
+            scheduleIdle()
+          }
+        }
+        document.addEventListener('visibilitychange', onVisible)
+      } else {
+        scheduleIdle()
+      }
+    }
+
+    if (typeof window !== 'undefined' && DEFER_UNTIL_INTERACTION) {
+      const once = () => {
+        cleanup()
+        scheduleWhenVisible()
+      }
+      const cleanup = () => {
+        window.removeEventListener('pointerdown', once)
+        window.removeEventListener('keydown', once)
+        window.removeEventListener('touchstart', once)
+        window.removeEventListener('focus', once, true)
+      }
+      window.addEventListener('pointerdown', once, { passive: true })
+      window.addEventListener('keydown', once)
+      window.addEventListener('touchstart', once, { passive: true })
+      window.addEventListener('focus', once, true)
+      // Safety: also schedule after 5s in case no interaction occurs
+      const safety = setTimeout(() => { cleanup(); scheduleWhenVisible() }, 5000)
+      return () => { canceled = true; cleanup(); clearTimeout(safety); disconnect() }
+    }
+
+    scheduleWhenVisible()
+
     return () => {
-      disconnect();
-    };
-  }, []);
+      canceled = true
+      disconnect()
+    }
+  }, [WS_URL, DEFER_UNTIL_INTERACTION])
 
   return {
     isConnected,

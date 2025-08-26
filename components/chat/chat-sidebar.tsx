@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Search, Plus, Archive, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AgentBranding } from "@/components/agent-branding"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -52,10 +51,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <AgentBranding variant="compact" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Messages</h1>
-          </div>
+          <div />
           <div className="flex items-center gap-2">
             <ContactsManager onStartChat={handleStartChat} />
             <Button variant="ghost" size="sm">

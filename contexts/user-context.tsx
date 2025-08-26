@@ -24,19 +24,53 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    // Small helper to avoid indefinite hangs on network/env issues
+    const withTimeout = <T,>(p: PromiseLike<T>, ms = 5000): Promise<T> =>
+      new Promise((resolve, reject) => {
+        const t = setTimeout(() => reject(new Error('timeout')), ms)
+        Promise.resolve(p).then(
+          (v: T) => {
+            clearTimeout(t)
+            resolve(v)
+          },
+          (e: unknown) => {
+            clearTimeout(t)
+            reject(e)
+          }
+        )
+      })
+
     // Check if user is already logged in
     const checkUser = async () => {
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser()
-      if (supabaseUser) {
-        setUser({
-          id: supabaseUser.id,
-          email: supabaseUser.email || null,
-          created_at: supabaseUser.created_at
-        })
+      // Fast-path: skip network call if there is clearly no Supabase auth cookie
+      try {
+        const cookieStr = typeof document !== 'undefined' ? document.cookie : ''
+        const hasSbCookie = /(?:^|; )sb-access-token=/.test(cookieStr) || /(?:^|; )sb-[^=]*-access-token=/.test(cookieStr)
+        if (!hasSbCookie) {
+          setIsLoading(false)
+          return
+        }
+      } catch (_) {
+        // ignore
       }
-      setIsLoading(false)
+      try {
+        const { data: { user: supabaseUser } } = await withTimeout(supabase.auth.getUser(), 4000)
+        if (supabaseUser) {
+          setUser({
+            id: supabaseUser.id,
+            email: supabaseUser.email || null,
+            created_at: supabaseUser.created_at
+          })
+        }
+      } catch (e) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.debug('auth.getUser failed/timeout; continuing unauthenticated')
+        }
+      } finally {
+        setIsLoading(false)
+      }
     }
-    
+
     checkUser()
     
     // Listen for auth state changes
@@ -75,7 +109,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // If admin doesn't exist, create it
         if (error) {
           console.log('Admin user not found, creating admin account...')
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          const { error: signUpError } = await supabase.auth.signUp({
             email: adminEmail,
             password: adminPassword,
             options: {
@@ -86,13 +120,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
               }
             }
           })
-          
           if (signUpError) {
             console.error('Admin user creation error:', signUpError.message)
             return false
           }
-          
-          data = signUpData as typeof data;
+          // Immediately sign in after creating the admin user
+          const { data: signInAfter, error: signInAfterErr } = await supabase.auth.signInWithPassword({
+            email: adminEmail,
+            password: adminPassword
+          })
+          if (signInAfterErr) {
+            console.error('Admin post-signup login failed:', signInAfterErr.message)
+            return false
+          }
+          data = signInAfter
         }
         
         if (data.user) {
@@ -158,7 +199,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     // If demo user doesn't exist, create it
     if (error) {
       console.log('Demo user not found, creating demo account...')
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: demoEmail,
         password: demoPassword,
         options: {
@@ -174,8 +215,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
         console.error('Demo user creation error:', signUpError.message)
         return false
       }
-      
-      data = signUpData as typeof data;
+      // Immediately sign in after creating the demo user
+      const { data: signInAfter, error: signInErr } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword
+      })
+      if (signInErr) {
+        console.error('Demo post-signup login failed:', signInErr.message)
+        return false
+      }
+      data = signInAfter
     }
     
     if (data.user) {

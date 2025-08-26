@@ -3,23 +3,40 @@
 import { useState, useRef, useEffect } from "react"
 import { Phone, Video, Menu, Bot } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AgentBranding } from "@/components/agent-branding"
 import { MessageBubble } from "./message-bubble"
 import { UserProfile } from "./user-profile"
 import { PinnedMessages } from "./pinned-messages"
 import { MobileMessageInput } from "./mobile-message-input"
 import { PullToRefresh } from "./pull-to-refresh"
-import { AppLauncher } from "../apps/app-launcher"
-import { AppMessage } from "../apps/app-message"
-import { CalculatorApp } from "../apps/mini-apps/calculator-app"
-import { TicTacToeApp } from "../apps/mini-apps/tic-tac-toe-app"
-import { EventPlannerApp } from "../apps/mini-apps/event-planner-app"
+import dynamic from "next/dynamic"
+const AppLauncher = dynamic(() => import("../apps/app-launcher").then(m => m.AppLauncher), {
+  ssr: false,
+  loading: () => <div className="text-xs text-gray-400">Loading…</div>,
+})
+const AppMessage = dynamic(() => import("../apps/app-message").then(m => m.AppMessage), {
+  ssr: false,
+})
+const CalculatorApp = dynamic(() => import("../apps/mini-apps/calculator-app").then(m => m.CalculatorApp), {
+  ssr: false,
+})
+const TicTacToeApp = dynamic(() => import("../apps/mini-apps/tic-tac-toe-app").then(m => m.TicTacToeApp), {
+  ssr: false,
+})
+const EventPlannerApp = dynamic(() => import("../apps/mini-apps/event-planner-app").then(m => m.EventPlannerApp), {
+  ssr: false,
+})
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useHaptics } from "@/hooks/use-haptics"
-import { AgentIntegration } from "../agents/agent-integration"
-import { PhoneCallUI } from "../calls/phone-call-ui"
-import { VideoCallUI } from "../calls/video-call-ui"
+const AgentIntegration = dynamic(() => import("../agents/agent-integration").then(m => m.AgentIntegration), {
+  ssr: false,
+})
+const PhoneCallUI = dynamic(() => import("../calls/phone-call-ui").then(m => m.PhoneCallUI), {
+  ssr: false,
+})
+const VideoCallUI = dynamic(() => import("../calls/video-call-ui").then(m => m.VideoCallUI), {
+  ssr: false,
+})
 import { LogoutButton } from "../logout-button"
 import { useWebSocket } from "@/hooks/use-websocket"
 import { TypingIndicator } from "./typing-indicator"
@@ -117,11 +134,10 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
   const [showAgentIntegration, setShowAgentIntegration] = useState(false)
   const [showPhoneCall, setShowPhoneCall] = useState(false)
   const [showVideoCall, setShowVideoCall] = useState(false)
-  const [typingUsers, setTypingUsers] = useState<Record<string, {name: string, timestamp: number}>>({})
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
   const { triggerHaptic } = useHaptics()
-  const { isConnected, messages: wsMessages, joinConversation, sendChatMessage, sendTyping } = useWebSocket()
+  const { isConnected, messages: wsMessages, joinConversation, sendChatMessage, sendTyping, typingUsers: wsTypingUsers } = useWebSocket()
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -139,62 +155,27 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
   }, [isConnected, chatId])
 
   useEffect(() => {
-    // Handle incoming WebSocket messages
-    if (wsMessages.length > 0) {
-      const latestMessage = wsMessages[wsMessages.length - 1];
-      
-      // Handle different message types
-      switch (latestMessage.type) {
-        case 'message':
-          // Add new message to the messages state
-          const newMessage: Message = {
-            id: latestMessage.id || Date.now().toString(),
-            content: latestMessage.content,
-            timestamp: new Date(latestMessage.timestamp || Date.now()),
-            senderId: latestMessage.senderId || 'unknown',
-            senderName: latestMessage.senderName || 'Unknown',
-            type: latestMessage.messageType || 'text',
-            isOwn: latestMessage.senderId === '1', // Assuming '1' is the current user ID
-          };
-          
-          setMessages((prev) => [...prev, newMessage]);
-          
-          // Remove typing indicator for this user
-          setTypingUsers(prev => {
-            const newTypingUsers = { ...prev };
-            delete newTypingUsers[latestMessage.senderId || 'unknown'];
-            return newTypingUsers;
-          });
-          break;
-        
-        case 'typing':
-          // Handle typing indicators
-          if (latestMessage.userId && latestMessage.userName && latestMessage.userId !== '1') {
-            setTypingUsers(prev => ({
-              ...prev,
-              [latestMessage.userId]: {
-                name: latestMessage.userName,
-                timestamp: Date.now()
-              }
-            }));
-            
-            // Remove typing indicator after 5 seconds
-            setTimeout(() => {
-              setTypingUsers(prev => {
-                const newTypingUsers = { ...prev };
-                if (newTypingUsers[latestMessage.userId] && 
-                    newTypingUsers[latestMessage.userId].timestamp === Date.now()) {
-                  delete newTypingUsers[latestMessage.userId];
-                }
-                return newTypingUsers;
-              });
-            }, 5000);
-          }
-          break;
-          
-        default:
-          console.log('Unknown WebSocket message type:', latestMessage.type);
+    // Map the latest useWebSocket message (shape: { id, text, sender, senderName?, timestamp, conversationId, type? })
+    if (wsMessages.length === 0) return
+    const latest: any = wsMessages[wsMessages.length - 1]
+    if (latest && typeof latest === 'object' && 'text' in latest) {
+      const mapped: Message = {
+        id: latest.id || Date.now().toString(),
+        content: latest.text || '',
+        timestamp: latest.timestamp instanceof Date ? latest.timestamp : new Date(latest.timestamp || Date.now()),
+        senderId: latest.sender === 'user' ? '1' : latest.sender === 'ai' ? 'ai-assistant' : 'other',
+        senderName: latest.senderName || (latest.sender === 'user' ? 'You' : latest.sender === 'ai' ? 'AI Assistant' : 'Other'),
+        type: latest.type || 'text',
+        isOwn: latest.sender === 'user',
+        mediaUrl: latest.mediaUrl,
+        fileName: latest.fileName,
+        fileSize: latest.fileSize,
+        isPinned: latest.isPinned,
+        isLiked: latest.isLiked,
+        likeCount: latest.likeCount,
+        appData: latest.appData ? { appId: latest.appData.appId, appName: latest.appData.appName } : undefined,
       }
+      setMessages(prev => (prev.some(m => m.id === mapped.id) ? prev : [...prev, mapped]))
     }
   }, [wsMessages])
 
@@ -202,20 +183,8 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
     if (!newMessage.trim()) return
 
     // Send message via WebSocket
-    sendChatMessage(chatId, newMessage)
-
-    // Add message to local state for immediate feedback
-    const message: Message = {
-      id: Date.now().toString(),
-      content: newMessage,
-      timestamp: new Date(),
-      senderId: "1",
-      senderName: "You",
-      type: "text",
-      isOwn: true,
-    }
-
-    setMessages((prev) => [...prev, message])
+    // useWebSocket expects (text, conversationId)
+    sendChatMessage(newMessage, chatId)
     setNewMessage("")
   }
 
@@ -367,7 +336,6 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
               <Menu className="h-4 w-4" />
             </Button>
           )}
-          <AgentBranding variant="compact" className="hidden md:flex" />
           <UserProfile user={chatInfo} isOwnProfile={false} />
         </div>
 
@@ -410,7 +378,7 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
                 ),
               )}
               {/* Typing Indicators */}
-              {Object.entries(typingUsers).map(([userId, userInfo]) => (
+              {Object.entries(wsTypingUsers).map(([userId, userInfo]) => (
                 <TypingIndicator 
                   key={userId} 
                   userId={userId} 

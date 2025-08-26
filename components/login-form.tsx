@@ -6,26 +6,24 @@ import { supabase } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AgentBranding } from '@/components/agent-branding'
-import { Loader2, Mail, Lock, Chrome } from 'lucide-react'
+import { Loader2, Chrome } from 'lucide-react'
+import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
+import { useRouter } from 'next/navigation'
 
 // Dynamically import Solana components to avoid SSR issues
-const SolanaLoginButton = dynamic(
-  () => import('@/components/solana-login-button').then(mod => mod.SolanaLoginButton),
+const ConnectWalletButton = dynamic<{ className?: string }>(
+  () => import('@/components/solana-login-button').then(mod => mod.ConnectWalletButton),
   { ssr: false }
 );
 
-export function LoginForm() {
+export function LoginForm({ returnTo }: { returnTo?: string }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email')
   const { login } = useUser()
+  const router = useRouter()
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +53,9 @@ export function LoginForm() {
     
     if (!success) {
       setError('The email or password you entered is incorrect.')
+    } else {
+      // Navigate on successful login; server routes also validate cookies
+      router.replace(returnTo ?? '/messages')
     }
   }
 
@@ -68,10 +69,11 @@ export function LoginForm() {
     setError('')
     setIsLoading(true)
     
+    const next = `${window.location.origin}/auth/callback${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin
+        redirectTo: next
       }
     })
     
@@ -92,10 +94,11 @@ export function LoginForm() {
     setError('')
     setIsLoading(true)
     
+    const next = `${window.location.origin}/auth/callback${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin
+        emailRedirectTo: next
       }
     })
     
@@ -110,29 +113,24 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0b1020] dark:via-[#0a0f1a] dark:to-[#0b1020] flex items-center justify-center p-6">
+      <div className="w-full max-w-md">
+        <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur rounded-3xl shadow-xl border border-white/60 dark:border-gray-800 overflow-hidden">
           {/* Header */}
-          <div className="px-8 pt-12 pb-8 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-2xl">A</span>
-              </div>
+          <div className="px-8 pt-10 pb-6 text-center">
+            <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold shadow-md">
+              A
             </div>
-            <h1 className="text-2xl font-semibold text-gray-900 mb-2">
-              Sign in to AGENT
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Enter your credentials to continue
-            </p>
+            <h1 className="mt-4 text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100">Welcome to AGENT</h1>
+            <p className="mt-1 text-gray-600 dark:text-gray-300 text-sm">Sign in to access your AI-powered workspace</p>
           </div>
 
           {/* Form Content */}
           <div className="px-8 pb-8">
             {step === 'email' ? (
               <form onSubmit={handleEmailSubmit} className="space-y-6">
-                <div>
+                <div className="text-left">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email address</label>
                   <Input
                     id="email"
                     name="email"
@@ -141,15 +139,15 @@ export function LoginForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    placeholder="Email address"
-                    className="w-full h-12 px-4 text-base border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                    placeholder="Enter your email"
+                    className="w-full h-12 px-4 text-base border-gray-300 dark:border-gray-700 rounded-xl focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-900 dark:text-gray-100"
                   />
                 </div>
 
                 <Button
                   type="submit"
                   disabled={isLoading || !email}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
                 >
                   Continue
                 </Button>
@@ -157,14 +155,14 @@ export function LoginForm() {
             ) : (
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      <span className="text-gray-600 text-sm font-medium">
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                      <span className="text-gray-600 dark:text-gray-200 text-sm font-medium">
                         {email.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {email}
                       </p>
                       <button
@@ -187,7 +185,7 @@ export function LoginForm() {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Password"
-                      className="w-full h-12 px-4 text-base border-gray-300 rounded-lg focus:border-blue-500 focus:ring-blue-500 bg-white"
+                      className="w-full h-12 px-4 text-base border-gray-300 dark:border-gray-700 rounded-xl focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-900 dark:text-gray-100"
                       autoFocus
                     />
                   </div>
@@ -196,7 +194,7 @@ export function LoginForm() {
                 <Button
                   type="submit"
                   disabled={isLoading || !password}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
                 >
                   {isLoading ? (
                     <>
@@ -212,31 +210,19 @@ export function LoginForm() {
 
             {/* Error Display */}
             {error && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="mt-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-900 rounded-xl">
+                <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
               </div>
             )}
-
-            {/* Demo Credentials */}
-            <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 text-center mb-2">
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-xs text-blue-700 text-center">
-                <p><strong>Admin:</strong> admin / admin</p>
-                <p><strong>Demo:</strong> test / test</p>
-                <p><strong>Email:</strong> test@example.com / password123</p>
-              </div>
-            </div>
 
             {/* Alternative Sign In */}
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
+                  <div className="w-full border-t border-gray-200 dark:border-gray-800" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or</span>
+                  <span className="px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">Or continue with</span>
                 </div>
               </div>
 
@@ -245,16 +231,25 @@ export function LoginForm() {
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                   variant="outline"
-                  className="w-full h-12 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium rounded-lg transition-colors"
+                  className="w-full h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
                 >
                   <Chrome className="mr-2 h-5 w-5" />
                   Continue with Google
                 </Button>
               </div>
+              {/* Connect Wallet button styled like Google button */}
+              <div className="mt-3">
+                <SolanaWalletProvider>
+                  <ConnectWalletButton />
+                </SolanaWalletProvider>
+              </div>
             </div>
+
+            {/* Removed bulky wallet card; replaced with simple Connect Wallet button above */}
           </div>
         </div>
       </div>
     </div>
   )
 }
+

@@ -23,15 +23,49 @@ export interface Message {
 }
 
 export async function getConversations(): Promise<Conversation[]> {
+  // Helper to prevent indefinite hangs when network/env is misconfigured
+  const withTimeout = <T,>(p: PromiseLike<T>, ms = 5000): Promise<T> =>
+    new Promise((resolve, reject) => {
+      const t = setTimeout(() => reject(new Error('timeout')), ms)
+      Promise.resolve(p).then(
+        (v: T) => {
+          clearTimeout(t)
+          resolve(v)
+        },
+        (e: any) => {
+          clearTimeout(t)
+          reject(e)
+        }
+      )
+    })
+
   // Avoid querying if not authenticated
-  const { data: auth } = await supabase.auth.getUser()
+  let auth
+  try {
+    const res = await withTimeout(supabase.auth.getUser(), 3000)
+    auth = res.data
+  } catch (e) {
+    console.warn('getConversations auth check failed/timeout, returning empty')
+    return []
+  }
   if (!auth?.user) return []
 
   // First fetch conversation ids where the user is a participant
-  const { data: memberRows, error: memberErr } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', auth.user.id)
+  let memberRows: { conversation_id: string }[] | null = null
+  let memberErr: any = null
+  try {
+    const res = await withTimeout<any>(
+      supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', auth.user.id) as unknown as PromiseLike<any>,
+      4000
+    )
+    memberRows = (res?.data ?? null) as any
+    memberErr = (res as any)?.error ?? null
+  } catch (e) {
+    memberErr = e
+  }
 
   if (memberErr) {
     console.warn('getConversations membership error', memberErr)
@@ -42,12 +76,23 @@ export async function getConversations(): Promise<Conversation[]> {
   if (!ids.length) return []
 
   // Fetch only necessary columns and cap results for faster initial render
-  const { data, error } = await supabase
-    .from('conversations')
-    .select('id, title, created_at, updated_at, user_id, agent_id')
-    .in('id', ids)
-    .order('updated_at', { ascending: false })
-    .limit(50)
+  let data: Conversation[] | null = null
+  let error: any = null
+  try {
+    const res = await withTimeout<any>(
+      supabase
+        .from('conversations')
+        .select('id, title, created_at, updated_at, user_id, agent_id')
+        .in('id', ids)
+        .order('updated_at', { ascending: false })
+        .limit(50) as unknown as PromiseLike<any>,
+      5000
+    )
+    data = (res?.data ?? null) as any
+    error = (res as any)?.error ?? null
+  } catch (e) {
+    error = e
+  }
 
   if (error) {
     const shape = {

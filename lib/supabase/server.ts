@@ -1,9 +1,10 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-export function getSupabaseServer() {
-  // In some Next versions, cookies is a function; ensure we invoke it
-  const cookieStore: any = (cookies as any)()
+export async function getSupabaseServer() {
+  // Next 15: cookies() is an async dynamic API; await it to access request cookies.
+  const cookieStore: any = await (cookies as any)()
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -14,13 +15,17 @@ export function getSupabaseServer() {
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        try {
+          return cookieStore?.get?.(name)?.value
+        } catch {
+          return undefined
+        }
       },
-      set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
+      set(_name: string, _value: string, _options: any) {
+        // No-op: cookie mutation is not allowed in Server Components.
       },
-      remove(name: string, options: any) {
-        cookieStore.set({ name, value: '', ...options })
+      remove(_name: string, _options: any) {
+        // No-op: cookie mutation is not allowed in Server Components.
       },
     },
   })

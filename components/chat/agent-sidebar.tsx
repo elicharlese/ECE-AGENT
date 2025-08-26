@@ -141,7 +141,7 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-          <h2 className="font-semibold text-gray-900 dark:text-white">AGENT - AI Agents</h2>
+          {/* Removed branding text */}
         </div>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm">

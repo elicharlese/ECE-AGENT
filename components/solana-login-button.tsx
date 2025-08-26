@@ -1,20 +1,44 @@
 "use client"
 
 import { useState } from 'react';
-import { useWallet, useConnection } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useUser } from '@/contexts/user-context';
-import { supabase } from '@/lib/supabase/client';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Wallet, Shield, CheckCircle } from 'lucide-react';
 
-export function SolanaLoginButton() {
+type Props = { className?: string; onLinked?: () => void }
+
+// A minimal, UI-matching wallet connect button that only opens the wallet modal.
+// Styled to match the "Continue with Google" outline button on the /auth page.
+export function ConnectWalletButton({ className }: Props) {
+  const { setVisible } = useWalletModal();
+  return (
+    <Button
+      type="button"
+      onClick={() => setVisible(true)}
+      variant="outline"
+      className={`w-full h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors ${className ?? ''}`}
+    >
+      <span className="inline-flex items-center">
+        <Wallet className="mr-2 h-5 w-5" />
+        Connect Wallet
+      </span>
+    </Button>
+  );
+}
+
+export function SolanaLoginButton({ className, onLinked }: Props) {
   const { publicKey, signMessage, connected } = useWallet();
-  const { connection } = useConnection();
-  const { login } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Helper to convert bytes to hex without Buffer (browser-safe)
+  const bytesToHex = (bytes: Uint8Array) =>
+    Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
 
   const handleSolanaLogin = async () => {
     if (!publicKey || !signMessage) {
@@ -25,6 +49,7 @@ export function SolanaLoginButton() {
     try {
       setIsLoading(true);
       setError('');
+      setSuccess('');
 
       // Create a message to sign with timestamp for security
       const timestamp = Date.now();
@@ -36,9 +61,9 @@ export function SolanaLoginButton() {
       const signature = await signMessage(message);
 
       // Convert signature to string for backend verification
-      const signatureString = Buffer.from(signature).toString('hex');
+      const signatureString = bytesToHex(signature);
       const publicKeyString = publicKey.toBase58();
-      const messageString = Buffer.from(message).toString('hex');
+      const messageString = bytesToHex(message);
 
       // Send to backend for verification and user creation/login
       const response = await fetch('/api/auth/solana', {
@@ -54,27 +79,31 @@ export function SolanaLoginButton() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Authentication failed');
+      // Handle linking vs. login flows
+      if (response.status === 401) {
+        // Not signed in; we currently only support post-auth wallet linking
+        setError('Please sign in with email/password or Google first, then link your wallet.');
+        return;
       }
 
-      const { access_token, refresh_token, user } = await response.json();
-      
-      // Set the session in Supabase with access and refresh tokens
-      if (access_token && refresh_token) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token,
-          refresh_token
-        });
-        if (sessionError) {
-          throw sessionError;
-        }
-        
-        // Login successful - the useUser context will handle the state update
-        console.log('Solana authentication successful', { user: user.id });
-      } else {
-        throw new Error('No tokens returned from authentication');
+      if (!response.ok) {
+        const t = await response.text().catch(() => '')
+        throw new Error(t || 'Authentication failed');
       }
+
+      const json = await response.json();
+      if ((json as any)?.linked) {
+        // Wallet linked to current Supabase user account
+        console.log('Solana wallet linked to account');
+        setError('');
+        setSuccess('Wallet successfully linked to your account.');
+        onLinked?.();
+        return;
+      }
+
+      // Future: support wallet-first login issuing Supabase tokens from backend
+      // For now, anything else is unexpected
+      throw new Error('Unsupported response from wallet auth endpoint');
       
     } catch (err) {
       console.error('Solana login error:', err);
@@ -94,10 +123,6 @@ export function SolanaLoginButton() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3">
-        <div className="wallet-adapter-button-trigger">
-          <WalletMultiButton className="!w-full !justify-center !bg-gradient-to-r !from-purple-600 !to-indigo-600 !border-purple-500/30 !text-white hover:!from-purple-700 hover:!to-indigo-700 !transition-all !duration-200" />
-        </div>
-        
         {connected && publicKey && (
           <div className="space-y-3">
             <div className="flex items-center justify-center gap-2 text-sm text-green-400">
@@ -107,7 +132,7 @@ export function SolanaLoginButton() {
             
             <Button 
               onClick={handleSolanaLogin}
-              disabled={isLoading}
+              disabled={isLoading || !signMessage}
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white transition-all duration-200 shadow-lg"
             >
               {isLoading ? (
@@ -122,6 +147,11 @@ export function SolanaLoginButton() {
                 </>
               )}
             </Button>
+            {!signMessage && (
+              <p className="text-xs text-amber-400 text-center">
+                Your connected wallet doesn&apos;t support message signing.
+              </p>
+            )}
           </div>
         )}
         
@@ -138,6 +168,14 @@ export function SolanaLoginButton() {
         )}
       </div>
       
+      {success && (
+        <Alert className="bg-emerald-900/20 border-emerald-500/50">
+          <AlertDescription className="text-emerald-300">
+            {success}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {error && (
         <Alert variant="destructive" className="bg-red-900/20 border-red-500/50">
           <AlertDescription className="text-red-300">

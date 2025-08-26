@@ -92,7 +92,8 @@ export function SettingsPanel() {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings)
   const [isOpen, setIsOpen] = useState(false)
 
-  const updateSettings = (section: keyof SettingsState, key: string, value: any) => {
+  type ObjectSections = 'notifications' | 'privacy' | 'chat'
+  const updateSettings = (section: ObjectSections, key: string, value: any) => {
     setSettings((prev) => ({
       ...prev,
       [section]: {
@@ -143,7 +144,7 @@ export function SettingsPanel() {
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>AGENT - Settings</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="general" className="w-full">

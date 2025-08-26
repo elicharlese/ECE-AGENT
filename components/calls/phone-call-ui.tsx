@@ -7,7 +7,14 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, MessageCircle, UserPlus } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
 import { useUser } from "@/contexts/user-context"
-import { LiveKitRoom, AudioConference } from "@livekit/components-react"
+import dynamic from "next/dynamic"
+
+// Lazy-load LiveKit only when a call connects
+const LiveKitRoom = dynamic(() => import("@livekit/components-react").then(m => m.LiveKitRoom), { ssr: false })
+const AudioConference = dynamic(() => import("@livekit/components-react").then(m => m.AudioConference), {
+  ssr: false,
+  loading: () => <div className="p-4 text-center text-sm text-gray-300">Connecting…</div>
+})
 
 interface PhoneCallUIProps {
   isOpen: boolean

@@ -9,9 +9,9 @@ import { getConversationById } from '@/services/conversation-service'
 import { supabase } from '@/lib/supabase/client'
 import { aiService } from '@/services/ai-service'
 import { VideoCallUI } from '@/components/calls/video-call-ui'
-import { RichMessageInput } from '@/components/messages/rich-message-input'
-import { useDensity } from '@/contexts/density-context'
 import { ConversationMenu } from '@/components/chat/ConversationMenu'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
 
 // Simple ReadReceipt component since it was removed
 function ReadReceipt({ status }: { status?: 'sent' | 'delivered' | 'read' }) {
@@ -53,7 +53,6 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContactInfo, onOpenMCPSettings }: ChatWindowProps) {
-  const { density } = useDensity()
   const [messages, setMessages] = React.useState<Message[]>([])
   const [isTyping, setIsTyping] = React.useState(false)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
@@ -62,6 +61,7 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
   const [conversationTitle, setConversationTitle] = React.useState<string>('')
   const [isVideoOpen, setIsVideoOpen] = React.useState(false)
   const [creatorUserId, setCreatorUserId] = React.useState<string | undefined>(undefined)
+  const [input, setInput] = React.useState<string>('')
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -349,16 +349,34 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
 
       {/* Input */}
       <div className="border-t border-gray-200">
-        <RichMessageInput
-          className="px-4"
-          placeholder={chatId === 'ai' ? 'Ask AI anything...' : 'Type a message...'}
-          density={density}
-          onTyping={() => setIsTyping(true)}
-          onStopTyping={() => setIsTyping(false)}
-          onSendMessage={async (content) => {
-            await sendMessage(content)
-          }}
-        />
+        <div className="px-4 py-3 flex items-end gap-2">
+          <div className="flex-1 relative">
+            <Textarea
+              value={input}
+              onChange={(e) => {
+                if (!isTyping) setIsTyping(true)
+                setInput(e.target.value)
+              }}
+              onBlur={() => setIsTyping(false)}
+              placeholder={chatId === 'ai' ? 'Ask AI anything...' : 'Type a message...'}
+              rows={1}
+              className="resize-none bg-gray-50 rounded-2xl min-h-[44px] max-h-[120px]"
+            />
+          </div>
+          <Button
+            onClick={async () => {
+              const content = input.trim()
+              if (!content) return
+              await sendMessage(content)
+              setInput('')
+              setIsTyping(false)
+            }}
+            disabled={!input.trim()}
+            className="rounded-full min-w-[44px] h-[44px]"
+          >
+            Send
+          </Button>
+        </div>
       </div>
       {/* Video Call Popout */}
       <VideoCallUI

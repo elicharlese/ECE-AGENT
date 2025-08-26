@@ -6,7 +6,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 1. Admin login (`admin/admin123`) works securely
 
-**Directory**: `docs/patches/patch_feature/admin_login/`
+**Directory**: `docs/patches/admin_login/`
 
 **Mapped Patches**:
 
@@ -24,7 +24,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 2. Responsive UI using React + Tailwind
 
-**Directory**: `docs/patches/patch_feature/responsive_ui/`
+**Directory**: `docs/patches/responsive_ui/`
 
 **Mapped Patches**:
 
@@ -41,7 +41,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 3. Mobile + desktop exhibits consistent design
 
-**Directory**: `docs/patches/patch_feature/mobile_desktop_consistency/`
+**Directory**: `docs/patches/mobile_desktop_consistency/`
 
 **Mapped Patches**:
 
@@ -57,7 +57,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 4. Routing works via Nx app layouts
 
-**Directory**: `docs/patches/patch_feature/nx_routing/`
+**Directory**: `docs/patches/nx_routing/`
 
 **Mapped Patches**:
 
@@ -71,7 +71,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 5. ≥ 90% test coverage
 
-**Directory**: `docs/patches/patch_feature/test_coverage/`
+**Directory**: `docs/patches/test_coverage/`
 
 **Mapped Patches**:
 
@@ -87,7 +87,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 6. Zod-based runtime validation
 
-**Directory**: `docs/patches/patch_feature/zod_validation/`
+**Directory**: `docs/patches/zod_validation/`
 
 **Mapped Patches**:
 
@@ -103,7 +103,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 7. CI/CD deploys via Kilo pipeline successfully
 
-**Directory**: `docs/patches/patch_feature/ci_cd_deployment/`
+**Directory**: `docs/patches/ci_cd_deployment/`
 
 **Mapped Patches**:
 
@@ -119,7 +119,7 @@ This document maps existing patches to the features outlined in END_GOAL.md.
 
 ### 8. All checklist items created and mapped in docs
 
-**Directory**: `docs/patches/patch_feature/documentation_mapping/`
+**Directory**: `docs/patches/documentation_mapping/`
 
 **Mapped Patches**:
 

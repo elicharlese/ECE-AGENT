@@ -17,7 +17,11 @@ const nextConfig = {
   experimental: {
     // Disabling optimizeCss to avoid missing 'critters' module in Vercel build
     optimizeCss: false,
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    // Disable optimizePackageImports in dev to avoid stale Webpack chunk errors like './80.js'
+    optimizePackageImports:
+      process.env.NODE_ENV === 'production'
+        ? ['lucide-react', '@radix-ui/react-icons']
+        : undefined,
   },
   // Enable strict mode for better performance
   reactStrictMode: true,
@@ -47,7 +51,7 @@ const nextConfig = {
   async rewrites() {
     return [
       // Serve a favicon to avoid 404s from browsers requesting /favicon.ico
-      { source: '/favicon.ico', destination: '/placeholder-logo.png' },
+      { source: '/favicon.ico', destination: '/agent-bot.svg' },
       // Nested: /u/:id -> /messages
       { source: '/u/:id([\\w-]+)', destination: '/messages' },
       // Nested passthrough: /u/:id/<path> -> /<path>
@@ -61,4 +65,5 @@ const nextConfig = {
 }
 
 export default nextConfig
+
 
