@@ -37,7 +37,6 @@ const PhoneCallUI = dynamic(() => import("../calls/phone-call-ui").then(m => m.P
 const VideoCallUI = dynamic(() => import("../calls/video-call-ui").then(m => m.VideoCallUI), {
   ssr: false,
 })
-import { LogoutButton } from "../logout-button"
 import { useWebSocket } from "@/hooks/use-websocket"
 import { TypingIndicator } from "./typing-indicator"
 
@@ -351,14 +350,13 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
           <Button variant="ghost" size="sm" onClick={handleVideoCall}>
             <Video className="h-4 w-4" />
           </Button>
-          <LogoutButton />
         </div>
       </div>
 
       {/* Messages with Pull to Refresh */}
       <div className="flex-1 min-h-0 overflow-hidden">
         <PullToRefresh onRefresh={handleRefresh}>
-          <div className={`h-full overflow-y-auto ${isMobile ? "px-3 py-2" : "p-4"}`}>
+          <div className={`h-full ${isMobile ? "px-3 py-2" : "p-4"}`}>
             <div className="space-y-4">
               {messages.map((message) =>
                 message.type === "app" ? (

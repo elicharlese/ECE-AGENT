@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -88,7 +88,7 @@ const languages = [
   { code: "zh", name: "中文", flag: "🇨🇳" },
 ]
 
-export function SettingsPanel() {
+export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
   const [settings, setSettings] = useState<SettingsState>(defaultSettings)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -137,10 +137,12 @@ export function SettingsPanel() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-xs">
-          <Settings className="h-3 w-3 mr-1" />
-          Settings
-        </Button>
+        {trigger ?? (
+          <Button variant="ghost" size="sm" className="text-xs">
+            <Settings className="h-3 w-3 mr-1" />
+            Settings
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
         <DialogHeader>

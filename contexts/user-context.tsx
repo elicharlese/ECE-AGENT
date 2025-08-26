@@ -42,10 +42,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
     // Check if user is already logged in
     const checkUser = async () => {
-      // Fast-path: skip network call if there is clearly no Supabase auth cookie
+      // Fast-path + hygiene: if there is an orphaned access-token cookie without a refresh-token,
+      // clear it to avoid Supabase auto-refresh throwing "Invalid Refresh Token" on load.
       try {
         const cookieStr = typeof document !== 'undefined' ? document.cookie : ''
-        const hasSbCookie = /(?:^|; )sb-access-token=/.test(cookieStr) || /(?:^|; )sb-[^=]*-access-token=/.test(cookieStr)
+        const hasAccess = /(?:^|; )sb-(?:[^=]*-)?access-token=/.test(cookieStr)
+        const hasRefresh = /(?:^|; )sb-(?:[^=]*-)?refresh-token=/.test(cookieStr)
+
+        if (hasAccess && !hasRefresh) {
+          // Proactively clear any sb-*access-token cookies at path=/
+          const names = cookieStr
+            .split('; ')
+            .map((kv) => kv.split('=')[0])
+            .filter((name) => /^sb-(?:[^=]*-)?access-token$/.test(name))
+          names.forEach((name) => {
+            try {
+              document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax`
+            } catch {}
+          })
+        }
+
+        // After cleanup, if still no Supabase cookie, skip the network call
+        const postCleanCookieStr = typeof document !== 'undefined' ? document.cookie : ''
+        const hasSbCookie = /(?:^|; )sb-(?:[^=]*-)?access-token=/.test(postCleanCookieStr) || /(?:^|; )sb-(?:[^=]*-)?refresh-token=/.test(postCleanCookieStr)
         if (!hasSbCookie) {
           setIsLoading(false)
           return

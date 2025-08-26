@@ -235,7 +235,7 @@ export function MobileMessageInput({
       )}
 
       {/* Input row with enhanced controls */}
-      <div className="flex items-end gap-2 p-3">
+      <div className="flex items-end gap-3 px-4 py-3">
         {!showActions && (
           <Button variant="ghost" size="sm" onClick={toggleActions} className="mb-1">
             <Plus className="h-4 w-4" />
@@ -291,14 +291,14 @@ export function MobileMessageInput({
           onClick={handleSend}
           disabled={!value.trim()}
           className={`
-            rounded-full min-w-[44px] h-[44px] p-0 mb-1
+            rounded-full h-8 w-8 p-0 mb-1
             ${agentMode ? "bg-indigo-500 hover:bg-indigo-600" : "bg-blue-500 hover:bg-blue-600"} text-white
             disabled:bg-gray-300 dark:disabled:bg-gray-600
             transition-all duration-200
-            ${value.trim() ? "scale-100" : "scale-90 opacity-50"}
+            ${value.trim() ? "scale-100" : "scale-95 opacity-50"}
           `}
         >
-          <Send className="h-5 w-5" />
+          <Send className="h-4 w-4" />
         </Button>
       </div>
     </div>

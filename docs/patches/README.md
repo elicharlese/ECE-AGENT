@@ -2,6 +2,8 @@
 
 This directory contains patches organized by feature rather than sequential numbering. Each subdirectory represents a distinct feature from the END_GOAL.md requirements.
 
+Note: Feature directories live under `docs/patches/patch_feature/`.
+
 ## Feature Directories
 
 - `admin_login` - Authentication and admin security features
@@ -24,7 +26,7 @@ This directory contains patches organized by feature rather than sequential numb
 
 ## How to Use
 
-1. Identify which feature your patch relates to
-2. Create your patch documentation in the appropriate feature directory
+1. Identify which feature your patch relates to (see `docs/patches/patch_feature/`)
+2. Create your patch documentation in the appropriate feature directory under `docs/patches/patch_feature/`
 3. Follow the standard patch guidelines for file naming and content structure
 4. Reference the END_GOAL.md requirements in your patch documentation

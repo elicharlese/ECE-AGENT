@@ -30,15 +30,20 @@ export type MiniChatWidgetProps = {
   conversationId?: string
 }
 
-const defaultX = () => (typeof window !== "undefined" ? Math.max(16, window.innerWidth - 360 - 16) : 16)
-const defaultY = () => (typeof window !== "undefined" ? Math.max(16, window.innerHeight - 420 - 16) : 16)
+const DEFAULT_W = 360
+const DEFAULT_H = 420
+const COMPACT_W = 280
+const COMPACT_H = 260
+
+const defaultX = () => (typeof window !== "undefined" ? Math.max(16, window.innerWidth - DEFAULT_W - 16) : 16)
+const defaultY = () => (typeof window !== "undefined" ? Math.max(16, window.innerHeight - DEFAULT_H - 16) : 16)
 
 const DEFAULT_STATE: MiniChatWidgetState = {
   minimized: true,
   x: defaultX(),
   y: defaultY(),
-  w: 360,
-  h: 420,
+  w: DEFAULT_W,
+  h: DEFAULT_H,
 }
 
 const STORAGE_KEY = "miniChatWidgetState"
@@ -214,6 +219,15 @@ export function MiniChatWidget({
     setState((s) => ({ ...s, minimized: !s.minimized }))
   }
 
+  // Resize helpers for header controls
+  const setCompactSize = () => {
+    setState((s) => ({ ...s, w: COMPACT_W, h: COMPACT_H }))
+  }
+
+  const setDefaultSize = () => {
+    setState((s) => ({ ...s, w: DEFAULT_W, h: DEFAULT_H }))
+  }
+
   const onSend = () => {
     const text = message.trim()
     if (!text) return
@@ -277,14 +291,22 @@ export function MiniChatWidget({
           <span className="text-sm font-medium">{title}</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleMinimize} title="Minimize">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={setCompactSize}
+            title="Minimize"
+          >
             <Minimize2 className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => setState(DEFAULT_STATE)}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={setDefaultSize}
             title="Reset size"
           >
             <Maximize2 className="h-4 w-4" />
@@ -293,6 +315,7 @@ export function MiniChatWidget({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={() => setState((s) => ({ ...s, minimized: true }))}
             title="Close"
           >

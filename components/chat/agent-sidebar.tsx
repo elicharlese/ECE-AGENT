@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -19,17 +19,23 @@ import {
   Clock,
   Star,
 } from "lucide-react"
+import { CreateAgentDialog } from "@/components/agents/CreateAgentDialog"
+import type { AgentRow } from "@/src/types/agent"
+import { useAgentsQuery } from "@/hooks/use-agents"
 
 interface AgentSidebarProps {
   selectedAgentId?: string
   onSelectAgent: (agentId: string) => void
-  collapsed: boolean
-  onToggleCollapse: () => void
+  panelState: "expanded" | "minimized" | "collapsed"
+  onSetPanelState: (state: "expanded" | "minimized" | "collapsed") => void
 }
 
-export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onToggleCollapse }: AgentSidebarProps) {
+export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSetPanelState }: AgentSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [createOpen, setCreateOpen] = useState(false)
+  const { data: userAgentsData, isLoading: loadingAgents } = useAgentsQuery()
 
+  // Pinned, always-available marketing/quick-access agents
   const agents = [
     {
       id: "smart-assistant",
@@ -94,6 +100,12 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
       agent.description.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
+  const filteredUserAgents = (userAgentsData ?? []).filter(
+    (a) =>
+      a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (a.description ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "online":
@@ -107,30 +119,65 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
     }
   }
 
-  if (collapsed) {
+  if (panelState === "collapsed") {
+    return null
+  }
+
+  if (panelState === "minimized") {
     return (
       <div className="w-full h-full bg-white dark:bg-gray-800 flex flex-col items-center py-4">
-        <Button variant="ghost" size="sm" onClick={onToggleCollapse} className="mb-4">
+        <Button variant="ghost" size="sm" onClick={() => onSetPanelState("expanded")} className="mb-3" aria-label="Expand agents sidebar">
           <Bot className="h-5 w-5" />
         </Button>
-        <div className="flex flex-col gap-2">
-          {agents.slice(0, 4).map((agent) => (
-            <Button
-              key={agent.id}
-              variant={selectedAgentId === agent.id ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onSelectAgent(agent.id)}
-              className="w-10 h-10 p-0 relative"
-            >
-              <agent.icon className="h-4 w-4" />
-              {agent.unread > 0 && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {agent.unread}
-                </div>
-              )}
-            </Button>
-          ))}
+        {/* Collapsed quick actions + scrollable pinned agents */}
+        <ScrollArea className="w-full flex-1 px-2">
+          <div className="flex flex-col items-center gap-2 pb-2">
+            {agents.map((agent) => (
+              <Button
+                key={agent.id}
+                title={agent.name}
+                aria-label={agent.name}
+                variant={selectedAgentId === agent.id ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onSelectAgent(agent.id)}
+                className={`w-10 h-10 p-0 relative ${selectedAgentId === agent.id ? "ring-2 ring-indigo-500" : ""}`}
+              >
+                <agent.icon className="h-4 w-4" />
+                {agent.unread > 0 && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {agent.unread}
+                  </div>
+                )}
+              </Button>
+            ))}
+          </div>
+        </ScrollArea>
+        {/* Bottom actions (collapsed) */}
+        <div className="w-full px-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2">
+          <Button
+            title="New Assistant"
+            aria-label="New Assistant"
+            variant="ghost"
+            size="sm"
+            onClick={() => setCreateOpen(true)}
+            className="w-10 h-10 p-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            title="Settings"
+            aria-label="Settings"
+            variant="ghost"
+            size="sm"
+            className="w-10 h-10 p-0"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
+        <CreateAgentDialog
+          open={createOpen}
+          onOpenChange={(o) => setCreateOpen(o)}
+        />
       </div>
     )
   }
@@ -141,16 +188,10 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-          {/* Removed branding text */}
+          <span className="text-sm font-medium text-gray-900 dark:text-white">AI Agents</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm">
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm" onClick={onToggleCollapse}>
+          <Button variant="ghost" size="sm" onClick={() => onSetPanelState("minimized")} aria-label="Minimize agents sidebar">
             <ChevronLeft className="h-4 w-4" />
           </Button>
         </div>
@@ -184,7 +225,7 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
         </div>
       </div>
 
-      {/* Agent List */}
+      {/* Agent List: Pinned + My Agents */}
       <ScrollArea className="flex-1">
         <div className="p-2">
           {filteredAgents.map((agent) => (
@@ -233,10 +274,49 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
               </div>
             </button>
           ))}
+          {/* My Agents */}
+          {(loadingAgents || filteredUserAgents.length > 0) && (
+            <div className="mt-4">
+              <div className="px-2 py-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">My Agents</div>
+              {loadingAgents && (
+                <div className="text-xs text-gray-500 px-2 py-2">Loading…</div>
+              )}
+              {filteredUserAgents.map((a) => (
+                <button
+                  key={a.id}
+                  onClick={() => onSelectAgent(a.id)}
+                  className={`
+                    w-full p-3 rounded-lg mb-2 text-left transition-all duration-200
+                    hover:bg-gray-50 dark:hover:bg-gray-700
+                    ${selectedAgentId === a.id ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800" : ""}
+                  `}
+                >
+                  <div className="flex items-start gap-3">
+                    {/* Default icon */}
+                    <div className="relative">
+                      <div className={`p-2 rounded-full bg-gray-500 text-white`}>
+                        <Bot className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-medium text-gray-900 dark:text-white truncate">{a.name}</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{a.status}</span>
+                      </div>
+                      {!!a.description && (
+                        <p className="text-sm text-gray-600 dark:text-gray-300 truncate mb-1">{a.description}</p>
+                      )}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{a.capabilities?.length ? `${a.capabilities.length} capabilities` : "custom"}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* No results */}
-        {filteredAgents.length === 0 && (
+        {filteredAgents.length === 0 && filteredUserAgents.length === 0 && (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p>No agents found</p>
@@ -248,13 +328,25 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, collapsed, onTogg
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-          <span>{filteredAgents.length} agents</span>
+          <span>{filteredAgents.length + filteredUserAgents.length} agents</span>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span>All systems online</span>
           </div>
         </div>
+        <div className="mt-2 flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
+      <CreateAgentDialog
+        open={createOpen}
+        onOpenChange={(o) => setCreateOpen(o)}
+      />
     </div>
   )
 }

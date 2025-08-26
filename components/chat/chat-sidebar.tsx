@@ -1,24 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Search, Plus, Archive, ChevronLeft } from "lucide-react"
+import { useState } from "react"
+import { Search, Plus, ChevronLeft, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
-import { SettingsPanel } from "./settings-panel"
 import { useConversations } from "@/hooks/use-conversations"
 
 interface ChatSidebarProps {
   selectedChatId: string
   onSelectChat: (chatId: string) => void
-  collapsed: boolean
-  onToggleCollapse: () => void
+  panelState: "expanded" | "minimized" | "collapsed"
+  onSetPanelState: (state: "expanded" | "minimized" | "collapsed") => void
 }
 
-export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleCollapse }: ChatSidebarProps) {
+export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPanelState }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const { conversations, loading, error, fetchConversations } = useConversations()
 
@@ -44,7 +43,49 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
     onSelectChat(contactId)
   }
 
-  if (collapsed) return null
+  if (panelState === "collapsed") return null
+
+  if (panelState === "minimized") {
+    // Compact rail with an expand button and a couple of quick actions
+    return (
+      <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-3 w-14">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onSetPanelState("expanded")}
+          aria-label="Expand conversations sidebar"
+          className="mb-2"
+        >
+          <Menu className="h-4 w-4" />
+        </Button>
+        <div className="flex-1 overflow-y-auto w-full px-2">
+          {/* Minimal list of recent conversations: just avatars */}
+          <div className="flex flex-col items-center gap-2">
+            {chats.slice(0, 12).map((chat) => (
+              <button
+                key={chat.id}
+                title={chat.name}
+                aria-label={chat.name}
+                onClick={() => onSelectChat(chat.id)}
+                className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition ${
+                  selectedChatId === chat.id ? "ring-2 ring-indigo-500" : ""
+                }`}
+              >
+                <span className="text-[10px] font-medium text-gray-600 dark:text-gray-200">
+                  {chat.name.split(" ").map((n: string) => n[0]).join("")}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="w-full px-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center">
+          <Button variant="ghost" size="sm" aria-label="New chat" className="w-10 h-10 p-0">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
@@ -53,12 +94,22 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
         <div className="flex items-center justify-between mb-4">
           <div />
           <div className="flex items-center gap-2">
-            <ContactsManager onStartChat={handleStartChat} />
-            <Button variant="ghost" size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onToggleCollapse}>
+            <Button variant="ghost" size="sm" onClick={() => onSetPanelState("minimized")}
+              aria-label="Minimize conversations sidebar">
               <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Profile + actions (moved from footer) */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="min-w-0 flex-1">
+            <UserProfile />
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <ContactsManager onStartChat={handleStartChat} />
+            <Button variant="ghost" size="sm" aria-label="New chat">
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -74,14 +125,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
           />
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex gap-2 mt-3">
-          <Button variant="ghost" size="sm" className="text-xs">
-            <Archive className="h-3 w-3 mr-1" />
-            Archived
-          </Button>
-          <SettingsPanel />
-        </div>
+        {/* Quick Actions removed; moved into UserProfile popout */}
       </div>
 
       {/* Chat List */}
@@ -117,10 +161,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, collapsed, onToggleC
         </div>
       </div>
 
-      {/* User Profile at Bottom */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <UserProfile />
-      </div>
+      {/* Footer removed: profile and actions moved to header */}
     </div>
   )
 }

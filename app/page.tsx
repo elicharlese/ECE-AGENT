@@ -69,7 +69,7 @@ export default async function HomePage() {
           </div>
           
           {/* Feature highlights (3-card horizontal stack) */}
-          <div className="mt-12 grid grid-cols-1 sm:[grid-template-columns:repeat(3,max-content)] gap-2 sm:gap-4 md:gap-6 lg:gap-8 text-left justify-center">
+          <div className="mt-10 grid grid-cols-1 sm:[grid-template-columns:repeat(3,max-content)] px-2 sm:px-0 gap-1.5 sm:gap-3 md:gap-4 lg:gap-5 text-left justify-center">
             <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-1.5 md:px-3 md:py-2.5 shadow-sm w-fit max-w-[22rem]">
               <div className="flex items-start gap-1 md:gap-1.5">
                 <div className="rounded-lg bg-indigo-50 dark:bg-indigo-900/40 p-0.5 md:p-1.5 text-indigo-600 dark:text-indigo-300">

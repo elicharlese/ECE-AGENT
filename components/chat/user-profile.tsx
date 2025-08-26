@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, Edit, Save, X } from "lucide-react"
+import { Camera, Edit, Save, X, LogOut, Archive, Settings } from "lucide-react"
+import { supabase } from "@/lib/supabase/client"
+import { SettingsPanel } from "./settings-panel"
 
 interface UserProfile {
   id: string
@@ -40,6 +43,7 @@ interface UserProfileProps {
 export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfileProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editedUser, setEditedUser] = useState<UserProfile>(user)
+  const router = useRouter()
 
   const handleSave = () => {
     // Here you would typically save to your backend
@@ -50,6 +54,16 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
   const handleCancel = () => {
     setEditedUser(user)
     setIsEditing(false)
+  }
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (e) {
+      // non-fatal; proceed with redirect
+    } finally {
+      router.push("/auth")
+    }
   }
 
   const statusColors = {
@@ -112,6 +126,19 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
                     <Edit className="h-4 w-4" />
                   </Button>
                 )}
+                <SettingsPanel
+                  trigger={
+                    <Button size="sm" variant="outline" title="Settings" aria-label="Settings">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  }
+                />
+                <Button size="sm" variant="outline" title="Archived" aria-label="Archived">
+                  <Archive className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={handleLogout} title="Logout" aria-label="Logout">
+                  <LogOut className="h-4 w-4" />
+                </Button>
               </div>
             )}
           </DialogTitle>

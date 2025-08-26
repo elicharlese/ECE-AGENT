@@ -86,7 +86,7 @@ export function PullToRefresh({ children, onRefresh, threshold = 80 }: PullToRef
 
       {/* Content */}
       <div
-        className="flex-1 overflow-y-auto transition-transform duration-200 ease-out"
+        className="flex-1 overflow-y-auto hide-scrollbar pr-4 -mr-4 transition-transform duration-200 ease-out"
         style={{ transform: `translateY(${pullDistance}px)` }}
       >
         {children}

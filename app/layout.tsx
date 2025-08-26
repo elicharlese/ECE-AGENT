@@ -5,6 +5,8 @@ import './globals.css'
 import { UserProvider } from '@/contexts/user-context'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { QueryProvider } from '@/components/providers/QueryProvider'
+import { Toaster } from '@/components/ui/sonner'
 
 export const metadata: Metadata = {
   title: 'AGENT - Advanced Generative ENgineering Toolkit',
@@ -42,11 +44,14 @@ html {
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <UserProvider>
-            {/* Global theme toggle */}
-            <div className="fixed top-4 right-4 z-50">
-              <ThemeToggle />
-            </div>
-            {children}
+            <QueryProvider>
+              {/* Global theme toggle */}
+              <div className="fixed top-4 right-4 z-50">
+                <ThemeToggle />
+              </div>
+              {children}
+              <Toaster richColors position="top-right" />
+            </QueryProvider>
           </UserProvider>
         </ThemeProvider>
       </body>

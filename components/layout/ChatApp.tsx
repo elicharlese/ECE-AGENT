@@ -44,51 +44,84 @@ export function ChatApp() {
 function AuthenticatedChatApp() {
   const [selectedChatId, setSelectedChatId] = useState<string>("1")
   const [selectedAgentId, setSelectedAgentId] = useState<string>()
-  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState(false)
-  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false)
+  const [leftPanelState, setLeftPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
+  const [rightPanelState, setRightPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
   const [showAgentSidebar, setShowAgentSidebar] = useState(true)
   const isMobile = useIsMobile()
   const { screenSize, orientation, canShowDualSidebars, shouldCollapseSidebars } = useResponsiveLayout()
 
   useEffect(() => {
     if (shouldCollapseSidebars) {
-      setLeftSidebarCollapsed(true)
-      setRightSidebarCollapsed(true)
+      setLeftPanelState("collapsed")
+      setRightPanelState("collapsed")
     } else if (canShowDualSidebars) {
-      setLeftSidebarCollapsed(false)
-      setRightSidebarCollapsed(false)
+      setLeftPanelState("expanded")
+      setRightPanelState("expanded")
     }
   }, [shouldCollapseSidebars, canShowDualSidebars])
 
   const handleSelectAgent = (agentId: string) => {
     setSelectedAgentId(agentId)
     if (isMobile || screenSize === "tablet") {
-      setRightSidebarCollapsed(true)
+        setRightPanelState("collapsed")
     }
   }
 
   const handleSelectChat = (chatId: string) => {
     setSelectedChatId(chatId)
     if (isMobile) {
-      setLeftSidebarCollapsed(true)
+      setLeftPanelState("collapsed")
     }
   }
 
   const getLeftSidebarWidth = () => {
-    if (leftSidebarCollapsed) return "w-0"
+    if (leftPanelState === "collapsed") return "w-0"
+    if (leftPanelState === "minimized") return "w-14"
     if (screenSize === "mobile") return "w-full"
     if (screenSize === "tablet") return "w-72"
     return "w-80"
   }
 
   const getRightSidebarWidth = () => {
-    if (rightSidebarCollapsed) return "w-16"
+    if (rightPanelState === "collapsed") return "w-0"
+    if (rightPanelState === "minimized") return "w-14"
     if (screenSize === "tablet") return "w-72"
     return "w-80"
   }
 
+  const cycleLeft = () => {
+    setLeftPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "minimized"))
+  }
+
+  const cycleRight = () => {
+    setRightPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "minimized"))
+  }
+
   return (
-    <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
+      {/* Top-border hamburger pill controls */}
+      <div className="pointer-events-none absolute top-2 left-2 z-50 flex gap-2">
+        <button
+          onClick={cycleLeft}
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur px-3 py-1 text-xs text-gray-700 dark:text-gray-200 shadow-sm hover:bg-white dark:hover:bg-gray-800"
+          aria-label="Toggle left sidebar"
+        >
+          <span className="inline-block h-3 w-3 rounded-[999px] bg-gray-500" />
+          <span className="capitalize">{leftPanelState}</span>
+        </button>
+      </div>
+      {showAgentSidebar && (
+        <div className="pointer-events-none absolute top-2 right-2 z-50 flex gap-2">
+          <button
+            onClick={cycleRight}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur px-3 py-1 text-xs text-gray-700 dark:text-gray-200 shadow-sm hover:bg-white dark:hover:bg-gray-800"
+            aria-label="Toggle right sidebar"
+          >
+            <span className="inline-block h-3 w-3 rounded-[999px] bg-gray-500" />
+            <span className="capitalize">{rightPanelState}</span>
+          </button>
+        </div>
+      )}
       {isMobile || (screenSize === "tablet" && orientation === "portrait") ? (
         <div className="flex h-full">
           <div
@@ -103,59 +136,59 @@ function AuthenticatedChatApp() {
             <ChatSidebar
               selectedChatId={selectedChatId}
               onSelectChat={handleSelectChat}
-              collapsed={leftSidebarCollapsed}
-              onToggleCollapse={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
+              panelState={leftPanelState}
+              onSetPanelState={setLeftPanelState}
             />
           </div>
 
           <div className="flex-1 flex flex-col min-w-0">
             <ChatWindow
               chatId={selectedChatId}
-              onToggleSidebar={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-              sidebarCollapsed={leftSidebarCollapsed}
+              onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
+              sidebarCollapsed={leftPanelState !== "expanded"}
             />
           </div>
         </div>
       ) : (
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          <ResizablePanel 
-            defaultSize={20} 
-            minSize={15} 
+          <ResizablePanel
+            defaultSize={20}
+            minSize={leftPanelState === "minimized" ? 5 : 15}
             maxSize={35}
-            className={leftSidebarCollapsed ? "min-w-0" : ""}
+            className={leftPanelState === "collapsed" ? "min-w-0 basis-0" : leftPanelState === "minimized" ? "basis-[5%]" : ""}
           >
             <ChatSidebar
               selectedChatId={selectedChatId}
               onSelectChat={handleSelectChat}
-              collapsed={leftSidebarCollapsed}
-              onToggleCollapse={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
+              panelState={leftPanelState}
+              onSetPanelState={setLeftPanelState}
             />
           </ResizablePanel>
 
           <ResizableHandle />
 
-          <ResizablePanel defaultSize={50} minSize={30}>
+          <ResizablePanel defaultSize={50} minSize={30} className="min-w-0 overflow-hidden">
             <ChatWindow
               chatId={selectedChatId}
-              onToggleSidebar={() => setLeftSidebarCollapsed(!leftSidebarCollapsed)}
-              sidebarCollapsed={leftSidebarCollapsed}
+              onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
+              sidebarCollapsed={leftPanelState !== "expanded"}
             />
           </ResizablePanel>
 
           {showAgentSidebar && (
             <>
               <ResizableHandle />
-              <ResizablePanel 
-                defaultSize={30} 
-                minSize={20} 
+              <ResizablePanel
+                defaultSize={30}
+                minSize={rightPanelState === "minimized" ? 5 : 20}
                 maxSize={45}
-                className={rightSidebarCollapsed ? "min-w-0" : ""}
+                className={rightPanelState === "collapsed" ? "min-w-0 basis-0" : rightPanelState === "minimized" ? "basis-[5%]" : ""}
               >
                 <AgentSidebar
                   selectedAgentId={selectedAgentId}
                   onSelectAgent={handleSelectAgent}
-                  collapsed={rightSidebarCollapsed}
-                  onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+                  panelState={rightPanelState}
+                  onSetPanelState={setRightPanelState}
                 />
               </ResizablePanel>
             </>
@@ -163,56 +196,56 @@ function AuthenticatedChatApp() {
         </ResizablePanelGroup>
       )}
 
-      {showAgentSidebar && isMobile && !rightSidebarCollapsed && (
+      {showAgentSidebar && isMobile && rightPanelState === "expanded" && (
         <div className="fixed inset-y-0 right-0 z-50 w-80 safe-area-inset-right">
           <AgentSidebar
             selectedAgentId={selectedAgentId}
             onSelectAgent={handleSelectAgent}
-            collapsed={false}
-            onToggleCollapse={() => setRightSidebarCollapsed(true)}
+            panelState={"expanded"}
+            onSetPanelState={setRightPanelState}
           />
         </div>
       )}
 
-      {showAgentSidebar && screenSize === "tablet" && orientation === "portrait" && !rightSidebarCollapsed && (
+      {showAgentSidebar && screenSize === "tablet" && orientation === "portrait" && rightPanelState === "expanded" && (
         <div className="fixed inset-y-0 right-0 z-50 w-72">
           <AgentSidebar
             selectedAgentId={selectedAgentId}
             onSelectAgent={handleSelectAgent}
-            collapsed={false}
-            onToggleCollapse={() => setRightSidebarCollapsed(true)}
+            panelState={"expanded"}
+            onSetPanelState={setRightPanelState}
           />
         </div>
       )}
 
-      {isMobile && !leftSidebarCollapsed && (
+      {isMobile && leftPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setLeftSidebarCollapsed(true)}
+          onClick={() => setLeftPanelState("collapsed")}
           style={{ touchAction: "none" }}
         />
       )}
 
-      {isMobile && showAgentSidebar && !rightSidebarCollapsed && (
+      {isMobile && showAgentSidebar && rightPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setRightSidebarCollapsed(true)}
+          onClick={() => setRightPanelState("collapsed")}
           style={{ touchAction: "none" }}
         />
       )}
 
-      {screenSize === "tablet" && orientation === "portrait" && !leftSidebarCollapsed && (
+      {screenSize === "tablet" && orientation === "portrait" && leftPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setLeftSidebarCollapsed(true)}
+          onClick={() => setLeftPanelState("collapsed")}
           style={{ touchAction: "none" }}
         />
       )}
 
-      {screenSize === "tablet" && orientation === "portrait" && showAgentSidebar && !rightSidebarCollapsed && (
+      {screenSize === "tablet" && orientation === "portrait" && showAgentSidebar && rightPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setRightSidebarCollapsed(true)}
+          onClick={() => setRightPanelState("collapsed")}
           style={{ touchAction: "none" }}
         />
       )}

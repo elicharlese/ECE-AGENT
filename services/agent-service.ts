@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase/client'
+import type { AgentRow, AgentCreateInput } from '@/src/types/agent'
 
+// Service-facing Agent shape used by legacy components
 export interface Agent {
   id: string
   name: string
   description: string
-  avatar?: string
+  avatar?: string | null
   capabilities: string[]
   mcpTools: string[]
   status: 'online' | 'offline' | 'busy'
@@ -25,64 +27,79 @@ export interface AgentMessage {
 }
 
 class AgentService {
-  private agents: Agent[] = [
-    {
-      id: 'ai-assistant',
-      name: 'AI Assistant',
-      description: 'General purpose AI assistant with web search and analysis capabilities',
-      capabilities: ['search', 'analysis', 'coding', 'writing'],
-      mcpTools: ['brave-search', 'sequential-thinking', 'memory'],
-      status: 'online'
-    },
-    {
-      id: 'dev-agent',
-      name: 'Development Agent',
-      description: 'Specialized in coding, debugging, and technical documentation',
-      capabilities: ['coding', 'debugging', 'git', 'documentation'],
-      mcpTools: ['git', 'puppeteer', 'sequential-thinking'],
-      status: 'online'
-    },
-    {
-      id: 'project-manager',
-      name: 'Project Manager',
-      description: 'Handles project tracking, issue management, and team coordination',
-      capabilities: ['planning', 'tracking', 'reporting'],
-      mcpTools: ['linear', 'memory', 'sequential-thinking'],
-      status: 'online'
-    },
-    {
-      id: 'legal-assistant',
-      name: 'Legal Assistant',
-      description: 'Reviews contracts, compliance, and legal documentation',
-      capabilities: ['contracts', 'compliance', 'research'],
-      mcpTools: ['brave-search', 'memory', 'sequential-thinking'],
-      status: 'online'
-    },
-    {
-      id: 'finance-agent',
-      name: 'Finance Agent',
-      description: 'Manages payments, invoicing, and financial operations',
-      capabilities: ['payments', 'invoicing', 'reporting'],
-      mcpTools: ['stripe', 'supabase', 'memory'],
-      status: 'offline'
+  private cache: Map<string, Agent> = new Map()
+  private cachedList: Agent[] | null = null
+
+  private mapRowToAgent(row: AgentRow): Agent {
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description ?? '',
+      avatar: row.avatar_url ?? null,
+      capabilities: row.capabilities ?? [],
+      mcpTools: row.mcp_tools ?? [],
+      status: row.status,
     }
-    ,
-    {
-      id: 'research-agent',
-      name: 'Research Agent',
-      description: 'Performs deep web research and summarizes findings with sources.',
-      capabilities: ['research', 'summarization', 'source-citation'],
-      mcpTools: ['brave-search', 'sequential-thinking', 'memory'],
-      status: 'online'
+  }
+
+  private setCacheList(list: Agent[]) {
+    this.cachedList = list
+    this.cache.clear()
+    for (const a of list) {
+      this.cache.set(a.id, a)
     }
-  ]
+  }
+
+  invalidateCache() {
+    this.cachedList = null
+    this.cache.clear()
+  }
+
+  async listAgents(force = false): Promise<Agent[]> {
+    if (!force && this.cachedList) return this.cachedList
+    const res = await fetch('/api/agents', { method: 'GET' })
+    if (!res.ok) throw new Error(`Failed to load agents: ${res.status}`)
+    const json: { agents: AgentRow[] } = await res.json()
+    const mapped = (json.agents ?? []).map((r) => this.mapRowToAgent(r))
+    this.setCacheList(mapped)
+    return mapped
+  }
 
   async getAgents(): Promise<Agent[]> {
-    return this.agents
+    return this.listAgents(false)
   }
 
   async getAgent(agentId: string): Promise<Agent | null> {
-    return this.agents.find(a => a.id === agentId) || null
+    const cached = this.cache.get(agentId)
+    if (cached) return cached
+    // Try API detail endpoint
+    const res = await fetch(`/api/agents/${agentId}`, { method: 'GET' })
+    if (res.ok) {
+      const json: { agent: AgentRow | null } = await res.json()
+      if (json.agent) {
+        const mapped = this.mapRowToAgent(json.agent)
+        this.cache.set(mapped.id, mapped)
+        return mapped
+      }
+    }
+    // Fallback: refresh list
+    const list = await this.listAgents(true)
+    return list.find((a) => a.id === agentId) ?? null
+  }
+
+  async createAgent(input: AgentCreateInput): Promise<Agent> {
+    const res = await fetch('/api/agents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json?.error ?? 'Failed to create agent')
+    const mapped = this.mapRowToAgent(json.agent as AgentRow)
+    // Update caches
+    if (this.cachedList) this.cachedList = [mapped, ...this.cachedList]
+    this.cache.set(mapped.id, mapped)
+    return mapped
   }
 
   async sendMessage(

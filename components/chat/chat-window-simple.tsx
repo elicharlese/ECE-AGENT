@@ -349,7 +349,7 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
 
       {/* Input */}
       <div className="border-t border-gray-200">
-        <div className="px-4 py-3 flex items-end gap-2">
+        <div className="px-4 py-3 flex items-end gap-3">
           <div className="flex-1 relative">
             <Textarea
               value={input}
