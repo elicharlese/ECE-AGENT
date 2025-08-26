@@ -1,40 +1,27 @@
-# Batch 5 Summary
+# Summary — Batch 5: Professional UI Theme Update
 
-Status: Planned (not yet started)
+This batch delivers a modern, sleek UI across the chat experience with a focus on professional aesthetics, accessibility, and performance. It introduces foundational design tokens (color, typography, spacing, radii, elevation), updates core chat components, and ensures dark/light parity.
 
-This summary template adheres to `docs/batches/BATCH_GUIDELINES.md`.
+## Scope
+- Establish theme tokens and Tailwind utilities to standardize look-and-feel
+- Refresh chat UI: conversation list, header toolbars, message bubbles, composer, menus
+- A11y: focus states, keyboard navigation, WCAG AA contrast
+- Subtle motion and micro-interactions consistent with a professional product
+- Visual regressions and E2E coverage for primary chat flows
 
-## Chat Objectives
-TBD – define objectives via `/plan-feature-set` aligned to `END_GOAL.md`.
+## Deliverables
+- Design tokens integrated and documented
+- Updated `components/chat/*` with theme application
+- Updated tests (unit + e2e) and screenshots for visual regression checks
 
-## Chat Features
-TBD – enumerate planned messaging/communication capabilities.
+## Risks / Mitigations
+- Style regressions → snapshot & E2E checks, incremental rollout behind a flag
+- Contrast issues → tooling pass on colors + manual QA in dark/light modes
 
-## UI/UX Changes
-TBD – outline design improvements and user flows.
+## SLA / Timeline
+- Implementation: 3–5 days
+- QA/Polish: 1–2 days
 
-## Backend Changes
-TBD – APIs, infrastructure, data model, RLS policies.
-
-## Performance
-TBD – targets, benchmarks, and results.
-
-## Security Enhancements
-TBD – authentication, authorization, privacy.
-
-## Mobile Support
-TBD – cross-platform items (Expo/React Native) if in scope.
-
-## Breaking Changes
-TBD – list and provide migration guidance if any.
-
-## Migration
-TBD – steps for users/operators to upgrade.
-
-## Known Issues
-TBD – track limitations and follow-ups.
-
-## Verification & Links
-- Checklist: `docs/batches/batch-5/BATCH5_CHECKLIST.md`
-- CI: Kilo pipeline run URL (add once executed)
-- Release: Semantic release tag once published
+## Related
+- Patch 5 Checklist (chat UI modernization)
+- END_GOAL.md: Responsive UI, consistency, test coverage

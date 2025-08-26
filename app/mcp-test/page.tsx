@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Github, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { MCPToolsPanel } from '@/components/mcp/mcp-tools-panel'
 
 export default function MCPTestPage() {
   const [testResults, setTestResults] = useState<{
@@ -95,6 +96,12 @@ export default function MCPTestPage() {
               <p>{testResults.message}</p>
             </div>
           )}
+        </div>
+
+        {/* MCP Tools Panel */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">Interactive MCP Tools</h2>
+          <MCPToolsPanel chatId="mcp-test" />
         </div>
 
         {/* Capabilities */}

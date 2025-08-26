@@ -216,6 +216,9 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
           <Github className="w-4 h-4" />
           GitHub Gateway
         </h4>
+        <p className="text-xs text-gray-500 mb-2">
+          Tip: For presets like Open PR or Review File, use a PAT with <span className="font-medium">repo</span> scope. Read-only actions may work with minimal scopes.
+        </p>
         {gateways.find(g => g.type === 'github' && g.status === 'connected') ? (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
