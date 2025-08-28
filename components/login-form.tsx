@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Loader2, Chrome } from 'lucide-react'
+import { Icon } from '@/components/icons/Icon'
 import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
 import { useRouter } from 'next/navigation'
 
@@ -113,12 +113,12 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0b1020] dark:via-[#0a0f1a] dark:to-[#0b1020] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-[#0b1020] dark:via-[#0a0f1a] dark:to-[#0b1020] flex items-center justify-center px-4 py-6 sm:p-6">
       <div className="w-full max-w-md">
         <div className="bg-white/90 dark:bg-gray-900/80 backdrop-blur rounded-3xl shadow-xl border border-white/60 dark:border-gray-800 overflow-hidden">
           {/* Header */}
-          <div className="px-8 pt-10 pb-6 text-center">
-            <div className="mx-auto h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold shadow-md">
+          <div className="px-6 sm:px-8 pt-8 sm:pt-10 pb-5 sm:pb-6 text-center">
+            <div className="mx-auto h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold shadow-md">
               A
             </div>
             <h1 className="mt-4 text-2xl md:text-3xl font-semibold text-gray-900 dark:text-gray-100">Welcome to AGENT</h1>
@@ -126,7 +126,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
           </div>
 
           {/* Form Content */}
-          <div className="px-8 pb-8">
+          <div className="px-6 sm:px-8 pb-6 sm:pb-8">
             {step === 'email' ? (
               <form onSubmit={handleEmailSubmit} className="space-y-6">
                 <div className="text-left">
@@ -147,7 +147,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
                 <Button
                   type="submit"
                   disabled={isLoading || !email}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
+                  className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
                 >
                   Continue
                 </Button>
@@ -155,7 +155,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
             ) : (
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="flex items-center space-x-3 p-2.5 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center">
                       <span className="text-gray-600 dark:text-gray-200 text-sm font-medium">
                         {email.charAt(0).toUpperCase()}
@@ -185,7 +185,7 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Password"
-                      className="w-full h-12 px-4 text-base border-gray-300 dark:border-gray-700 rounded-xl focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-900 dark:text-gray-100"
+                      className="w-full h-11 sm:h-12 px-4 text-base border-gray-300 dark:border-gray-700 rounded-xl focus:border-indigo-500 focus:ring-indigo-500 bg-white dark:bg-gray-900 dark:text-gray-100"
                       autoFocus
                     />
                   </div>
@@ -194,11 +194,11 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
                 <Button
                   type="submit"
                   disabled={isLoading || !password}
-                  className="w-full h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
+                  className="w-full h-11 sm:h-12 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-medium shadow-sm hover:opacity-95 transition"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Icon name="loader" className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
                     </>
                   ) : (
@@ -231,9 +231,9 @@ export function LoginForm({ returnTo }: { returnTo?: string }) {
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
                   variant="outline"
-                  className="w-full h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
+                  className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
                 >
-                  <Chrome className="mr-2 h-5 w-5" />
+                  <Icon name="brand-google" className="mr-2 h-5 w-5" />
                   Continue with Google
                 </Button>
               </div>

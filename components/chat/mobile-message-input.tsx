@@ -12,6 +12,9 @@ import { FileUpload } from "./file-upload"
 import { GifPicker } from "./gif-picker"
 import { useHaptics } from "@/hooks/use-haptics"
 import { useMobileKeyboard } from "@/hooks/use-mobile-keyboard"
+import { CreditBadge } from "@/components/credits/CreditBadge"
+import { BuyCreditsButton } from "@/components/credits/BuyCreditsButton"
+import { CREDITS_ENABLED, CREDITS_PER_AI_REQUEST } from "@/lib/pricing"
 
 interface MobileMessageInputProps {
   value: string
@@ -69,10 +72,19 @@ export function MobileMessageInput({
     setIsExpanded(false)
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      // Cmd/Ctrl+Enter always sends
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault()
+        handleSend()
+        return
+      }
+      // Enter (no Shift) sends; Shift+Enter inserts newline
+      if (!e.shiftKey) {
+        e.preventDefault()
+        handleSend()
+      }
     }
   }
 
@@ -132,6 +144,13 @@ export function MobileMessageInput({
       ${isKeyboardOpen ? "pb-safe" : "pb-4"}
     `}
     >
+      {/* Credits UI moved from header into input area */}
+      {CREDITS_ENABLED && (
+        <div className="px-4 pt-2 pb-0 flex items-center gap-2 justify-end">
+          <CreditBadge />
+          <BuyCreditsButton size="sm" />
+        </div>
+      )}
       {/* Enhanced Action Panel */}
       {showActions && (
         <div className="border-b border-gray-200 dark:border-gray-700">
@@ -256,7 +275,7 @@ export function MobileMessageInput({
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={agentMode ? "Ask AI or type a message..." : placeholder}
             className={`
               resize-none border-0 bg-gray-50 dark:bg-gray-700 rounded-full px-4 py-3
@@ -281,9 +300,23 @@ export function MobileMessageInput({
             </div>
           )}
 
-          {/* Character count for long messages */}
+          {/* Character count and credit estimate */}
           {value.length > 100 && (
             <div className="absolute -top-6 right-2 text-xs text-gray-500 dark:text-gray-400">{value.length}/1000</div>
+          )}
+          {CREDITS_ENABLED && (
+            <div
+              className={
+                // Avoid overlap with AI badge and/or char counter
+                agentMode
+                  ? value.length > 100
+                    ? "absolute -top-10 right-2 text-xs text-gray-500 dark:text-gray-400"
+                    : "absolute -top-6 right-2 text-xs text-gray-500 dark:text-gray-400"
+                  : "absolute -top-6 left-2 text-xs text-gray-500 dark:text-gray-400"
+              }
+            >
+              Est. credits: {CREDITS_PER_AI_REQUEST}
+            </div>
           )}
         </div>
 

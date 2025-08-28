@@ -13,15 +13,16 @@ import {
   Sparkles,
   Scale,
   Palette,
-  ChevronLeft,
   Settings,
   Plus,
   Clock,
   Star,
+  X,
 } from "lucide-react"
 import { CreateAgentDialog } from "@/components/agents/CreateAgentDialog"
 import type { AgentRow } from "@/src/types/agent"
 import { useAgentsQuery } from "@/hooks/use-agents"
+import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
 
 interface AgentSidebarProps {
   selectedAgentId?: string
@@ -33,7 +34,13 @@ interface AgentSidebarProps {
 export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSetPanelState }: AgentSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [createOpen, setCreateOpen] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  const [filterMode, setFilterMode] = useState<"all" | "favorites" | "recents">("all")
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [recents, setRecents] = useState<Record<string, number>>({})
   const { data: userAgentsData, isLoading: loadingAgents } = useAgentsQuery()
+  const { screenSize, orientation, isMobile } = useResponsiveLayout()
+  const isSmallOverlay = isMobile || (screenSize === "tablet" && orientation === "portrait")
 
   // Pinned, always-available marketing/quick-access agents
   const agents = [
@@ -42,8 +49,8 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       name: "Smart Assistant",
       icon: Brain,
       status: "online",
-      lastMessage: "How can I help you today?",
-      timestamp: "2:34 PM",
+      lastMessage: "",
+      timestamp: "",
       unread: 0,
       color: "bg-indigo-500",
       description: "General AI helper for any task",
@@ -53,9 +60,9 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       name: "Code Companion",
       icon: Zap,
       status: "online",
-      lastMessage: "Ready to help with coding!",
-      timestamp: "1:15 PM",
-      unread: 2,
+      lastMessage: "",
+      timestamp: "",
+      unread: 0,
       color: "bg-orange-500",
       description: "Programming and development assistant",
     },
@@ -64,8 +71,8 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       name: "Creative Writer",
       icon: Sparkles,
       status: "online",
-      lastMessage: "Let's create something amazing",
-      timestamp: "12:45 PM",
+      lastMessage: "",
+      timestamp: "",
       unread: 0,
       color: "bg-pink-500",
       description: "Writing and content creation",
@@ -75,9 +82,9 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       name: "Legal Assistant",
       icon: Scale,
       status: "online",
-      lastMessage: "Legal research completed",
-      timestamp: "Yesterday",
-      unread: 1,
+      lastMessage: "",
+      timestamp: "",
+      unread: 0,
       color: "bg-blue-600",
       description: "Legal research and document analysis",
     },
@@ -86,8 +93,8 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       name: "Designer Agent",
       icon: Palette,
       status: "away",
-      lastMessage: "Design concepts ready for review",
-      timestamp: "Yesterday",
+      lastMessage: "",
+      timestamp: "",
       unread: 0,
       color: "bg-purple-500",
       description: "Creative design and visual content",
@@ -105,6 +112,66 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (a.description ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  // Persisted favorites/recents helpers
+  useEffect(() => {
+    try {
+      const fav = JSON.parse(localStorage.getItem("agentSidebar.favorites") || "[]")
+      const rec = JSON.parse(localStorage.getItem("agentSidebar.recents") || "{}")
+      if (Array.isArray(fav)) setFavorites(fav)
+      if (rec && typeof rec === "object") setRecents(rec)
+    } catch {}
+  }, [])
+
+  const saveFavorites = (next: string[]) => {
+    setFavorites(next)
+    try { localStorage.setItem("agentSidebar.favorites", JSON.stringify(next)) } catch {}
+  }
+
+  const toggleFavorite = (id: string) => {
+    const set = new Set(favorites)
+    if (set.has(id)) {
+      set.delete(id)
+    } else {
+      set.add(id)
+    }
+    saveFavorites(Array.from(set))
+  }
+
+  const recordRecent = (id: string) => {
+    const next = { ...recents, [id]: Date.now() }
+    setRecents(next)
+    try { localStorage.setItem("agentSidebar.recents", JSON.stringify(next)) } catch {}
+  }
+
+  const handleSelect = (id: string) => {
+    recordRecent(id)
+    onSelectAgent(id)
+  }
+
+  const applyFilterMode = <T extends { id: string }>(list: T[]): T[] => {
+    if (filterMode === "favorites") {
+      return list.filter((i) => favorites.includes(i.id))
+    }
+    if (filterMode === "recents") {
+      const withTs = list
+        .map((i) => ({ item: i, ts: recents[i.id] ?? 0 }))
+        .filter((x) => x.ts > 0)
+        .sort((a, b) => b.ts - a.ts)
+        .map((x) => x.item)
+      return withTs
+    }
+    return list
+  }
+
+  const displayAgents = applyFilterMode(filteredAgents)
+  const displayUserAgents = applyFilterMode(filteredUserAgents)
+
+  // Demo gating: show pinned agents only in demo mode or when there are no user agents
+  const hasAnyUserAgents = (userAgentsData?.length ?? 0) > 0
+  const demoMode = (process.env.NEXT_PUBLIC_DEMO_MODE ?? "").toLowerCase() === "true"
+  const shouldShowPinned = demoMode || !hasAnyUserAgents
+  const pinnedToRender = shouldShowPinned ? displayAgents : []
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -130,9 +197,9 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
           <Bot className="h-5 w-5" />
         </Button>
         {/* Collapsed quick actions + scrollable pinned agents */}
-        <ScrollArea className="w-full flex-1 px-2">
+        <ScrollArea className="w-full flex-1 px-2" hideScrollbar>
           <div className="flex flex-col items-center gap-2 pb-2">
-            {agents.map((agent) => (
+            {(pinnedToRender).map((agent) => (
               <Button
                 key={agent.id}
                 title={agent.name}
@@ -153,7 +220,7 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
           </div>
         </ScrollArea>
         {/* Bottom actions (collapsed) */}
-        <div className="w-full px-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2">
+        <div className="w-full px-2 pt-2 border-t border-transparent flex items-center justify-center gap-2">
           <Button
             title="New Assistant"
             aria-label="New Assistant"
@@ -185,59 +252,110 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
   return (
     <div className="w-full h-full bg-white dark:bg-gray-800 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-transparent">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           <span className="text-sm font-medium text-gray-900 dark:text-white">AI Agents</span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={() => onSetPanelState("minimized")} aria-label="Minimize agents sidebar">
-            <ChevronLeft className="h-4 w-4" />
+          {/* Moved quick-action icons to the header top-right */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-8 h-8 p-0"
+            onClick={() => setShowSearch((s) => !s)}
+            aria-label={showSearch ? "Hide search" : "Show search"}
+            title={showSearch ? "Hide search" : "Search"}
+          >
+            <Search className="h-4 w-4" />
           </Button>
+          <Button
+            variant={filterMode === "favorites" ? "default" : "ghost"}
+            size="sm"
+            className="w-8 h-8 p-0"
+            onClick={() => setFilterMode((m) => (m === "favorites" ? "all" : "favorites"))}
+            aria-label="Favorites"
+            title="Favorites"
+          >
+            <Star className={`h-4 w-4 ${filterMode === "favorites" ? "text-yellow-500" : ""}`} />
+          </Button>
+          <Button
+            variant={filterMode === "recents" ? "default" : "ghost"}
+            size="sm"
+            className="w-8 h-8 p-0"
+            onClick={() => setFilterMode((m) => (m === "recents" ? "all" : "recents"))}
+            aria-label="Recents"
+            title="Recents"
+          >
+            <Clock className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-8 h-8 p-0"
+            onClick={() => setCreateOpen(true)}
+            aria-label="New Assistant"
+            title="New Assistant"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-8 h-8 p-0"
+            aria-label="Settings"
+            title="Settings"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+          {isSmallOverlay && (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="Close agents sidebar"
+              onClick={() => onSetPanelState("collapsed")}
+              className="shrink-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Search */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Search agents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
-          />
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
-            <Star className="h-3 w-3" />
-            Favorites
-          </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
-            <Clock className="h-3 w-3" />
-            Recent
-          </Button>
-        </div>
+      {/* Toolbar: show search input only when toggled */}
+      <div className="p-2 border-b border-transparent">
+        {showSearch && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Search agents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-gray-50 dark:bg-gray-700 border-transparent"
+            />
+          </div>
+        )}
       </div>
 
       {/* Agent List: Pinned + My Agents */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" hideScrollbar>
         <div className="p-2">
-          {filteredAgents.map((agent) => (
-            <button
+          {pinnedToRender.map((agent) => (
+            <div
               key={agent.id}
-              onClick={() => onSelectAgent(agent.id)}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelect(agent.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSelect(agent.id) }
+              }}
               className={`
                 w-full p-3 rounded-lg mb-2 text-left transition-all duration-200
                 hover:bg-gray-50 dark:hover:bg-gray-700
                 ${
                   selectedAgentId === agent.id
-                    ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+                    ? "bg-blue-50 dark:bg-blue-900/20 border border-transparent"
                     : "hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
               `}
@@ -258,33 +376,53 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
                 {/* Agent Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-gray-900 dark:text-white truncate">{agent.name}</h3>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate">{agent.name}</h3>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); toggleFavorite(agent.id) }}
+                        className="text-xs text-gray-400 hover:text-yellow-500"
+                        aria-label={favorites.includes(agent.id) ? "Unfavorite" : "Favorite"}
+                        title={favorites.includes(agent.id) ? "Unfavorite" : "Favorite"}
+                      >
+                        <Star className={`h-3.5 w-3.5 ${favorites.includes(agent.id) ? "text-yellow-500" : ""}`} />
+                      </button>
+                    </div>
                     <div className="flex items-center gap-1">
                       {agent.unread > 0 && (
                         <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
                           {agent.unread}
                         </Badge>
                       )}
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{agent.timestamp}</span>
+                      {agent.timestamp && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{agent.timestamp}</span>
+                      )}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 truncate mb-1">{agent.lastMessage}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{agent.description}</p>
+                  {!!agent.lastMessage && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{agent.lastMessage}</p>
+                  )}
+                  {!!agent.description && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{agent.description}</p>
+                  )}
                 </div>
               </div>
-            </button>
+            </div>
           ))}
           {/* My Agents */}
-          {(loadingAgents || filteredUserAgents.length > 0) && (
+          {(loadingAgents || displayUserAgents.length > 0) && (
             <div className="mt-4">
               <div className="px-2 py-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">My Agents</div>
               {loadingAgents && (
                 <div className="text-xs text-gray-500 px-2 py-2">Loading…</div>
               )}
-              {filteredUserAgents.map((a) => (
-                <button
+              {displayUserAgents.map((a) => (
+                <div
                   key={a.id}
-                  onClick={() => onSelectAgent(a.id)}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleSelect(a.id)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSelect(a.id) } }}
                   className={`
                     w-full p-3 rounded-lg mb-2 text-left transition-all duration-200
                     hover:bg-gray-50 dark:hover:bg-gray-700
@@ -300,7 +438,18 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-gray-900 dark:text-white truncate">{a.name}</h3>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h3 className="font-medium text-gray-900 dark:text-white truncate">{a.name}</h3>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); toggleFavorite(a.id) }}
+                            className="text-xs text-gray-400 hover:text-yellow-500"
+                            aria-label={favorites.includes(a.id) ? "Unfavorite" : "Favorite"}
+                            title={favorites.includes(a.id) ? "Unfavorite" : "Favorite"}
+                          >
+                            <Star className={`h-3.5 w-3.5 ${favorites.includes(a.id) ? "text-yellow-500" : ""}`} />
+                          </button>
+                        </div>
                         <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">{a.status}</span>
                       </div>
                       {!!a.description && (
@@ -309,38 +458,42 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{a.capabilities?.length ? `${a.capabilities.length} capabilities` : "custom"}</p>
                     </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
         </div>
 
         {/* No results */}
-        {filteredAgents.length === 0 && filteredUserAgents.length === 0 && (
+        {pinnedToRender.length === 0 && displayUserAgents.length === 0 && (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p>No agents found</p>
             {searchTerm && <p className="text-sm">Try a different search term</p>}
           </div>
         )}
+
+        {/* My Agents zero state */}
+        {!loadingAgents && displayUserAgents.length === 0 && (
+          <div className="mt-4">
+            <div className="px-2 py-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">My Agents</div>
+            <div className="text-center py-6 text-sm text-gray-600 dark:text-gray-300">
+              <Bot className="h-6 w-6 mx-auto mb-2 opacity-50" />
+              <p>No custom agents yet.</p>
+              <Button size="sm" className="mt-2" onClick={() => setCreateOpen(true)}>Create agent</Button>
+            </div>
+          </div>
+        )}
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-transparent">
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-          <span>{filteredAgents.length + filteredUserAgents.length} agents</span>
+          <span>{pinnedToRender.length + displayUserAgents.length} agents</span>
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-green-500 rounded-full" />
             <span>All systems online</span>
           </div>
-        </div>
-        <div className="mt-2 flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Settings className="h-4 w-4" />
-          </Button>
         </div>
       </div>
       <CreateAgentDialog

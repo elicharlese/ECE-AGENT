@@ -1,0 +1,122 @@
+c8388bb9b3d2350ec052711676958821
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "ProfileDashboard", {
+    enumerable: true,
+    get: function() {
+        return ProfileDashboard;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _tabs = require("../ui/tabs");
+const _CheckInOverview = require("./CheckInOverview");
+const _RecentMessages = require("./RecentMessages");
+const _DocsSection = require("./DocsSection");
+const _MentionsSection = require("./MentionsSection");
+const _CalendarSync = require("./CalendarSync");
+const _ClickUpIntegration = require("./ClickUpIntegration");
+const _ErrorBoundary = require("../ErrorBoundary");
+function ProfileDashboard() {
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+        className: "w-full max-w-7xl mx-auto space-y-6",
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                className: "flex items-center justify-between w-full max-w-7xl mx-auto space-y-6",
+                children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                    children: [
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)("h1", {
+                            className: "text-2xl font-semibold text-gray-900 dark:text-gray-100",
+                            children: "Profile Dashboard"
+                        }),
+                        /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                            className: "text-sm text-gray-600 dark:text-gray-300 mt-1",
+                            children: "Your personalized workspace overview and integrations"
+                        })
+                    ]
+                })
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsxs)(_tabs.Tabs, {
+                defaultValue: "checkin",
+                className: "w-full",
+                children: [
+                    /*#__PURE__*/ (0, _jsxruntime.jsxs)(_tabs.TabsList, {
+                        className: "grid w-full grid-cols-6",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "checkin",
+                                children: "Check In"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "messages",
+                                children: "Messages"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "docs",
+                                children: "Documents"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "mentions",
+                                children: "Mentions"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "calendar",
+                                children: "Calendar"
+                            }),
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsTrigger, {
+                                value: "tasks",
+                                children: "Tasks"
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "checkin",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_CheckInOverview.CheckInOverview, {})
+                        })
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "messages",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_RecentMessages.RecentMessages, {})
+                        })
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "docs",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_DocsSection.DocsSection, {})
+                        })
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "mentions",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_MentionsSection.MentionsSection, {})
+                        })
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "calendar",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_CalendarSync.CalendarSync, {})
+                        })
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)(_tabs.TabsContent, {
+                        value: "tasks",
+                        className: "space-y-6",
+                        children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ErrorBoundary.ErrorBoundary, {
+                            children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_ClickUpIntegration.ClickUpIntegration, {})
+                        })
+                    })
+                ]
+            })
+        ]
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvRUNFLUFHRU5UL2NvbXBvbmVudHMvcHJvZmlsZS9Qcm9maWxlRGFzaGJvYXJkLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJcInVzZSBjbGllbnRcIlxuaW1wb3J0IHsgQ2FyZCwgQ2FyZENvbnRlbnQsIENhcmRIZWFkZXIsIENhcmRUaXRsZSB9IGZyb20gXCJAL2NvbXBvbmVudHMvdWkvY2FyZFwiXG5pbXBvcnQgeyBUYWJzLCBUYWJzQ29udGVudCwgVGFic0xpc3QsIFRhYnNUcmlnZ2VyIH0gZnJvbSBcIkAvY29tcG9uZW50cy91aS90YWJzXCJcbmltcG9ydCB7IENoZWNrSW5PdmVydmlldyB9IGZyb20gXCIuL0NoZWNrSW5PdmVydmlld1wiXG5pbXBvcnQgeyBSZWNlbnRNZXNzYWdlcyB9IGZyb20gXCIuL1JlY2VudE1lc3NhZ2VzXCJcbmltcG9ydCB7IERvY3NTZWN0aW9uIH0gZnJvbSBcIi4vRG9jc1NlY3Rpb25cIlxuaW1wb3J0IHsgTWVudGlvbnNTZWN0aW9uIH0gZnJvbSBcIi4vTWVudGlvbnNTZWN0aW9uXCJcbmltcG9ydCB7IENhbGVuZGFyU3luYyB9IGZyb20gXCIuL0NhbGVuZGFyU3luY1wiXG5pbXBvcnQgeyBDbGlja1VwSW50ZWdyYXRpb24gfSBmcm9tIFwiLi9DbGlja1VwSW50ZWdyYXRpb25cIlxuaW1wb3J0IHsgRXJyb3JCb3VuZGFyeSB9IGZyb20gXCJAL2NvbXBvbmVudHMvRXJyb3JCb3VuZGFyeVwiXG5cbmV4cG9ydCBmdW5jdGlvbiBQcm9maWxlRGFzaGJvYXJkKCkge1xuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwidy1mdWxsIG1heC13LTd4bCBteC1hdXRvIHNwYWNlLXktNlwiPlxuICAgICAgey8qIEhlYWRlciAqL31cbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHctZnVsbCBtYXgtdy03eGwgbXgtYXV0byBzcGFjZS15LTZcIj5cbiAgICAgICAgPGRpdj5cbiAgICAgICAgICA8aDEgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIGRhcms6dGV4dC1ncmF5LTEwMFwiPlxuICAgICAgICAgICAgUHJvZmlsZSBEYXNoYm9hcmRcbiAgICAgICAgICA8L2gxPlxuICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTYwMCBkYXJrOnRleHQtZ3JheS0zMDAgbXQtMVwiPlxuICAgICAgICAgICAgWW91ciBwZXJzb25hbGl6ZWQgd29ya3NwYWNlIG92ZXJ2aWV3IGFuZCBpbnRlZ3JhdGlvbnNcbiAgICAgICAgICA8L3A+XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG5cbiAgICAgIHsvKiBNYWluIERhc2hib2FyZCAqL31cbiAgICAgIDxUYWJzIGRlZmF1bHRWYWx1ZT1cImNoZWNraW5cIiBjbGFzc05hbWU9XCJ3LWZ1bGxcIj5cbiAgICAgICAgPFRhYnNMaXN0IGNsYXNzTmFtZT1cImdyaWQgdy1mdWxsIGdyaWQtY29scy02XCI+XG4gICAgICAgICAgPFRhYnNUcmlnZ2VyIHZhbHVlPVwiY2hlY2tpblwiPkNoZWNrIEluPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJtZXNzYWdlc1wiPk1lc3NhZ2VzPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJkb2NzXCI+RG9jdW1lbnRzPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJtZW50aW9uc1wiPk1lbnRpb25zPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJjYWxlbmRhclwiPkNhbGVuZGFyPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgICA8VGFic1RyaWdnZXIgdmFsdWU9XCJ0YXNrc1wiPlRhc2tzPC9UYWJzVHJpZ2dlcj5cbiAgICAgICAgPC9UYWJzTGlzdD5cblxuICAgICAgICA8VGFic0NvbnRlbnQgdmFsdWU9XCJjaGVja2luXCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgPEVycm9yQm91bmRhcnk+XG4gICAgICAgICAgICA8Q2hlY2tJbk92ZXJ2aWV3IC8+XG4gICAgICAgICAgPC9FcnJvckJvdW5kYXJ5PlxuICAgICAgICA8L1RhYnNDb250ZW50PlxuXG4gICAgICAgIDxUYWJzQ29udGVudCB2YWx1ZT1cIm1lc3NhZ2VzXCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgPEVycm9yQm91bmRhcnk+XG4gICAgICAgICAgICA8UmVjZW50TWVzc2FnZXMgLz5cbiAgICAgICAgICA8L0Vycm9yQm91bmRhcnk+XG4gICAgICAgIDwvVGFic0NvbnRlbnQ+XG5cbiAgICAgICAgPFRhYnNDb250ZW50IHZhbHVlPVwiZG9jc1wiIGNsYXNzTmFtZT1cInNwYWNlLXktNlwiPlxuICAgICAgICAgIDxFcnJvckJvdW5kYXJ5PlxuICAgICAgICAgICAgPERvY3NTZWN0aW9uIC8+XG4gICAgICAgICAgPC9FcnJvckJvdW5kYXJ5PlxuICAgICAgICA8L1RhYnNDb250ZW50PlxuXG4gICAgICAgIDxUYWJzQ29udGVudCB2YWx1ZT1cIm1lbnRpb25zXCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgPEVycm9yQm91bmRhcnk+XG4gICAgICAgICAgICA8TWVudGlvbnNTZWN0aW9uIC8+XG4gICAgICAgICAgPC9FcnJvckJvdW5kYXJ5PlxuICAgICAgICA8L1RhYnNDb250ZW50PlxuXG4gICAgICAgIDxUYWJzQ29udGVudCB2YWx1ZT1cImNhbGVuZGFyXCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgPEVycm9yQm91bmRhcnk+XG4gICAgICAgICAgICA8Q2FsZW5kYXJTeW5jIC8+XG4gICAgICAgICAgPC9FcnJvckJvdW5kYXJ5PlxuICAgICAgICA8L1RhYnNDb250ZW50PlxuXG4gICAgICAgIDxUYWJzQ29udGVudCB2YWx1ZT1cInRhc2tzXCIgY2xhc3NOYW1lPVwic3BhY2UteS02XCI+XG4gICAgICAgICAgPEVycm9yQm91bmRhcnk+XG4gICAgICAgICAgICA8Q2xpY2tVcEludGVncmF0aW9uIC8+XG4gICAgICAgICAgPC9FcnJvckJvdW5kYXJ5PlxuICAgICAgICA8L1RhYnNDb250ZW50PlxuICAgICAgPC9UYWJzPlxuICAgIDwvZGl2PlxuICApXG59XG4iXSwibmFtZXMiOlsiUHJvZmlsZURhc2hib2FyZCIsImRpdiIsImNsYXNzTmFtZSIsImgxIiwicCIsIlRhYnMiLCJkZWZhdWx0VmFsdWUiLCJUYWJzTGlzdCIsIlRhYnNUcmlnZ2VyIiwidmFsdWUiLCJUYWJzQ29udGVudCIsIkVycm9yQm91bmRhcnkiLCJDaGVja0luT3ZlcnZpZXciLCJSZWNlbnRNZXNzYWdlcyIsIkRvY3NTZWN0aW9uIiwiTWVudGlvbnNTZWN0aW9uIiwiQ2FsZW5kYXJTeW5jIiwiQ2xpY2tVcEludGVncmF0aW9uIl0sIm1hcHBpbmdzIjoiQUFBQTs7Ozs7K0JBV2dCQTs7O2VBQUFBOzs7O3NCQVR5QztpQ0FDekI7Z0NBQ0Q7NkJBQ0g7aUNBQ0k7OEJBQ0g7b0NBQ007K0JBQ0w7QUFFdkIsU0FBU0E7SUFDZCxxQkFDRSxzQkFBQ0M7UUFBSUMsV0FBVTs7MEJBRWIscUJBQUNEO2dCQUFJQyxXQUFVOzBCQUNiLGNBQUEsc0JBQUNEOztzQ0FDQyxxQkFBQ0U7NEJBQUdELFdBQVU7c0NBQTBEOztzQ0FHeEUscUJBQUNFOzRCQUFFRixXQUFVO3NDQUFnRDs7Ozs7MEJBT2pFLHNCQUFDRyxVQUFJO2dCQUFDQyxjQUFhO2dCQUFVSixXQUFVOztrQ0FDckMsc0JBQUNLLGNBQVE7d0JBQUNMLFdBQVU7OzBDQUNsQixxQkFBQ00saUJBQVc7Z0NBQUNDLE9BQU07MENBQVU7OzBDQUM3QixxQkFBQ0QsaUJBQVc7Z0NBQUNDLE9BQU07MENBQVc7OzBDQUM5QixxQkFBQ0QsaUJBQVc7Z0NBQUNDLE9BQU07MENBQU87OzBDQUMxQixxQkFBQ0QsaUJBQVc7Z0NBQUNDLE9BQU07MENBQVc7OzBDQUM5QixxQkFBQ0QsaUJBQVc7Z0NBQUNDLE9BQU07MENBQVc7OzBDQUM5QixxQkFBQ0QsaUJBQVc7Z0NBQUNDLE9BQU07MENBQVE7Ozs7a0NBRzdCLHFCQUFDQyxpQkFBVzt3QkFBQ0QsT0FBTTt3QkFBVVAsV0FBVTtrQ0FDckMsY0FBQSxxQkFBQ1MsNEJBQWE7c0NBQ1osY0FBQSxxQkFBQ0MsZ0NBQWU7OztrQ0FJcEIscUJBQUNGLGlCQUFXO3dCQUFDRCxPQUFNO3dCQUFXUCxXQUFVO2tDQUN0QyxjQUFBLHFCQUFDUyw0QkFBYTtzQ0FDWixjQUFBLHFCQUFDRSw4QkFBYzs7O2tDQUluQixxQkFBQ0gsaUJBQVc7d0JBQUNELE9BQU07d0JBQU9QLFdBQVU7a0NBQ2xDLGNBQUEscUJBQUNTLDRCQUFhO3NDQUNaLGNBQUEscUJBQUNHLHdCQUFXOzs7a0NBSWhCLHFCQUFDSixpQkFBVzt3QkFBQ0QsT0FBTTt3QkFBV1AsV0FBVTtrQ0FDdEMsY0FBQSxxQkFBQ1MsNEJBQWE7c0NBQ1osY0FBQSxxQkFBQ0ksZ0NBQWU7OztrQ0FJcEIscUJBQUNMLGlCQUFXO3dCQUFDRCxPQUFNO3dCQUFXUCxXQUFVO2tDQUN0QyxjQUFBLHFCQUFDUyw0QkFBYTtzQ0FDWixjQUFBLHFCQUFDSywwQkFBWTs7O2tDQUlqQixxQkFBQ04saUJBQVc7d0JBQUNELE9BQU07d0JBQVFQLFdBQVU7a0NBQ25DLGNBQUEscUJBQUNTLDRCQUFhO3NDQUNaLGNBQUEscUJBQUNNLHNDQUFrQjs7Ozs7OztBQU0vQiJ9

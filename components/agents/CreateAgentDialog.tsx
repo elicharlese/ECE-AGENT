@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { AgentInsertSchema, AgentCreateInput } from "@/src/types/agent"
+import type { Agent } from "@/services/agent-service"
 import { toast } from "sonner"
 import { Bot } from "lucide-react"
 import { useCreateAgentMutation } from "@/hooks/use-agents"
@@ -21,7 +22,7 @@ export function CreateAgentDialog({
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated?: (agent: any) => void
+  onCreated?: (agent: Agent) => void
 }) {
   // Local form schema keeps CSV fields as strings for inputs
   const FormSchema = z.object({
@@ -87,8 +88,9 @@ export function CreateAgentDialog({
       onOpenChange(false)
       reset()
       onCreated?.(created)
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to create agent")
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Failed to create agent"
+      toast.error(message)
     } finally {
       setSubmitting(false)
     }
@@ -110,7 +112,9 @@ export function CreateAgentDialog({
           <div>
             <Label htmlFor="name">Name</Label>
             <Input id="name" placeholder="My Research Agent" {...register("name")} />
-            {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name.message as any}</p>}
+            {errors.name?.message && (
+              <p className="text-xs text-red-600 mt-1">{errors.name.message}</p>
+            )}
           </div>
 
           <div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, ChevronLeft, Menu } from "lucide-react"
+import { Search, Plus, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,6 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
 import { useConversations } from "@/hooks/use-conversations"
+import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Switch } from "@/components/ui/switch"
+ 
 
 interface ChatSidebarProps {
   selectedChatId: string
@@ -19,17 +23,21 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPanelState }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const { conversations, loading, error, fetchConversations } = useConversations()
+  const [showArchived, setShowArchived] = useState(false)
+  const { conversations, loading, error, fetchConversations, createConversation } = useConversations()
+  const { isMobile, screenSize, orientation } = useResponsiveLayout()
+  const isSmallOverlay = isMobile || (screenSize === "tablet" && orientation === "portrait")
 
-  // Convert conversations to chat format for display
-  const chats = conversations.map(conv => ({
+  // Hide archived by default; toggle via Show archived
+  const visibleConversations = conversations.filter((conv) => showArchived || !conv.is_archived)
+  const chats = visibleConversations.map(conv => ({
     id: conv.id,
     name: conv.title || `Conversation ${conv.id.slice(0, 8)}`,
     lastMessage: "", // We would need to extract this from messages
     timestamp: new Date(conv.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     unreadCount: 0,
     isOnline: false,
-    isPinned: false,
+    isPinned: !!conv.is_pinned,
   }))
 
   const filteredChats = chats.filter(chat =>
@@ -39,8 +47,25 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   const pinnedChats = filteredChats.filter((chat) => chat.isPinned)
   const regularChats = filteredChats.filter((chat) => !chat.isPinned)
 
-  const handleStartChat = (contactId: string) => {
-    onSelectChat(contactId)
+  const handleStartChat = async (contactId: string) => {
+    // Start a new conversation when initiating chat from Contacts
+    try {
+      const conv = await createConversation("New Chat")
+      onSelectChat(conv.id)
+      if (isSmallOverlay) onSetPanelState("collapsed")
+    } catch (e) {
+      console.error("Failed to start chat:", e)
+    }
+  }
+
+  const handleNewChat = async () => {
+    try {
+      const conv = await createConversation("New Chat")
+      onSelectChat(conv.id)
+      if (isSmallOverlay) onSetPanelState("collapsed")
+    } catch (e) {
+      console.error("Failed to create conversation:", e)
+    }
   }
 
   if (panelState === "collapsed") return null
@@ -48,7 +73,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   if (panelState === "minimized") {
     // Compact rail with an expand button and a couple of quick actions
     return (
-      <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-3 w-14">
+      <div className="h-full bg-white dark:bg-gray-800 border-r border-transparent flex flex-col items-center py-3 w-full">
         <Button
           variant="ghost"
           size="sm"
@@ -58,7 +83,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
         >
           <Menu className="h-4 w-4" />
         </Button>
-        <div className="flex-1 overflow-y-auto w-full px-2">
+        <div className="flex-1 overflow-y-auto hide-scrollbar w-full px-2">
           {/* Minimal list of recent conversations: just avatars */}
           <div className="flex flex-col items-center gap-2">
             {chats.slice(0, 12).map((chat) => (
@@ -78,8 +103,8 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
             ))}
           </div>
         </div>
-        <div className="w-full px-2 pt-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-center">
-          <Button variant="ghost" size="sm" aria-label="New chat" className="w-10 h-10 p-0">
+        <div className="w-full px-2 pt-2 border-t border-transparent flex items-center justify-center">
+          <Button variant="ghost" size="sm" aria-label="New chat" className="w-10 h-10 p-0" onClick={handleNewChat}>
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -88,19 +113,10 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   }
 
   return (
-    <div className="h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+    <div className="h-full bg-white dark:bg-gray-800 border-r border-transparent flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <div />
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onSetPanelState("minimized")}
-              aria-label="Minimize conversations sidebar">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
+      <div className="p-4 border-b border-transparent">
+        
         {/* Profile + actions (moved from footer) */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="min-w-0 flex-1">
@@ -108,9 +124,19 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <ContactsManager onStartChat={handleStartChat} />
-            <Button variant="ghost" size="sm" aria-label="New chat">
+            <Button variant="ghost" size="sm" aria-label="New chat" onClick={handleNewChat}>
               <Plus className="h-4 w-4" />
             </Button>
+            {isSmallOverlay && (
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Close conversations sidebar"
+                onClick={() => onSetPanelState("collapsed")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
 
@@ -125,40 +151,76 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
           />
         </div>
 
+        {/* Archived toggle */}
+        <div className="mt-3 flex items-center justify-between">
+          <span className="text-xs text-gray-500 dark:text-gray-400">Show archived</span>
+          <Switch checked={showArchived} onCheckedChange={(v) => setShowArchived(!!v)} aria-label="Show archived conversations" />
+        </div>
+
         {/* Quick Actions removed; moved into UserProfile popout */}
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Pinned Chats */}
-        {pinnedChats.length > 0 && (
-          <div className="p-2">
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">PINNED</div>
-            {pinnedChats.map((chat) => (
-              <ChatItem
-                key={chat.id}
-                chat={chat}
-                isSelected={selectedChatId === chat.id}
-                onSelect={() => onSelectChat(chat.id)}
-              />
+      <div className="flex-1 overflow-y-auto hide-scrollbar">
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="p-2 space-y-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 p-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
         )}
 
-        {/* Regular Chats */}
-        <div className="p-2">
-          {regularChats.length > 0 && pinnedChats.length > 0 && (
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">ALL MESSAGES</div>
-          )}
-          {regularChats.map((chat) => (
-            <ChatItem
-              key={chat.id}
-              chat={chat}
-              isSelected={selectedChatId === chat.id}
-              onSelect={() => onSelectChat(chat.id)}
-            />
-          ))}
-        </div>
+        {/* Empty state */}
+        {!loading && filteredChats.length === 0 && (
+          <div className="p-6 text-center text-sm text-gray-600 dark:text-gray-300">
+            <p>No conversations yet.</p>
+            <Button onClick={handleNewChat} size="sm" className="mt-3" aria-label="Start new chat">
+              <Plus className="h-4 w-4 mr-1" /> New chat
+            </Button>
+          </div>
+        )}
+
+        {/* Data present */}
+        {!loading && filteredChats.length > 0 && (
+          <>
+            {/* Pinned Chats */}
+            {pinnedChats.length > 0 && (
+              <div className="p-2">
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">PINNED</div>
+                {pinnedChats.map((chat) => (
+                  <ChatItem
+                    key={chat.id}
+                    chat={chat}
+                    isSelected={selectedChatId === chat.id}
+                    onSelect={() => onSelectChat(chat.id)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Regular Chats */}
+            <div className="p-2">
+              {regularChats.length > 0 && pinnedChats.length > 0 && (
+                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">ALL MESSAGES</div>
+              )}
+              {regularChats.map((chat) => (
+                <ChatItem
+                  key={chat.id}
+                  chat={chat}
+                  isSelected={selectedChatId === chat.id}
+                  onSelect={() => onSelectChat(chat.id)}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Footer removed: profile and actions moved to header */}
@@ -174,7 +236,7 @@ function ChatItem({ chat, isSelected, onSelect }: { chat: any; isSelected: boole
         flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors
         ${
           isSelected
-            ? "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
+            ? "bg-blue-50 dark:bg-blue-900/20 border border-transparent"
             : "hover:bg-gray-50 dark:hover:bg-gray-700"
         }
       `}

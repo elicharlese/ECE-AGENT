@@ -13,6 +13,8 @@ export function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps) {
     { keys: ["?"], desc: "Show keyboard shortcuts" },
     { keys: ["g", "m"], desc: "Go to Messages" },
     { keys: ["g", "h"], desc: "Go to Home" },
+    { keys: ["⌘N", "Ctrl+N"], desc: "Quick invite: New chat" },
+    { keys: ["g", "n"], desc: "Quick invite: New chat" },
   ]
 
   return (
@@ -40,4 +42,5 @@ export function ShortcutsHelp({ open, onOpenChange }: ShortcutsHelpProps) {
         </div>
       </DialogContent>
     </Dialog>
-  )}
+  )
+}

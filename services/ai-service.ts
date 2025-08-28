@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase/client'
+import { CREDITS_ENABLED, CREDITS_PER_AI_REQUEST } from '@/lib/pricing'
+import { consumeCredits } from '@/services/credit-service'
 import { sendMessage as sendDbMessage, DBMessage } from './message-service'
 
 // AI Service Configuration
@@ -165,6 +167,22 @@ class AIService {
     userMessage: string,
     overrides?: Partial<AIConfig>
   ): Promise<DBMessage> {
+    // If credits system is enabled, attempt to consume credits before calling AI
+    if (CREDITS_ENABLED) {
+      try {
+        await consumeCredits(CREDITS_PER_AI_REQUEST, {
+          reason: 'ai_request',
+          conversationId,
+        })
+      } catch (e: any) {
+        const msg = e?.message || ''
+        if (msg.includes('INSUFFICIENT_CREDITS')) {
+          throw new Error('INSUFFICIENT_CREDITS')
+        }
+        // Re-throw other errors
+        throw e
+      }
+    }
     // Get conversation history
     const { data: messages } = await supabase
       .from('messages')

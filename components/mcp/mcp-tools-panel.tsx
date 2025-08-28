@@ -12,7 +12,7 @@ interface MCPToolsPanelProps {
 export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
   const [expandedCategory, setExpandedCategory] = useState<string | null>('database')
   const [executingTool, setExecutingTool] = useState<string | null>(null)
-  const [results, setResults] = useState<Record<string, any>>({})
+  const [results, setResults] = useState<Record<string, unknown>>({})
   const [tools, setTools] = useState(mcpService.getTools())
   const [gateways, setGateways] = useState(mcpService.getGateways())
   const [githubToken, setGithubToken] = useState('')
@@ -34,17 +34,17 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
     // Refresh tools and gateways
     setTools(mcpService.getTools())
     setGateways(mcpService.getGateways())
-    setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+    setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
 
     // Subscribe to MCP streaming events
     const handler = (evt: string) => {
       setMcpEvents(prev => [...prev, evt].slice(-200))
       // Update status with last event time
-      setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+      setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
     }
     mcpService.onMcpEvent(handler)
     const interval = setInterval(() => {
-      setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+      setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
     }, 5000)
     return () => {
       mcpService.offMcpEvent(handler)
@@ -93,18 +93,18 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
       }
 
       const result = await mcpService.executeTool(toolId, params)
-      setResults({
-        ...results,
+      setResults(prev => ({
+        ...prev,
         [toolId]: result,
-      })
+      }))
     } catch (error) {
-      setResults({
-        ...results,
+      setResults(prev => ({
+        ...prev,
         [toolId]: {
           success: false,
           error: error instanceof Error ? error.message : 'Execution failed',
         },
-      })
+      }))
     } finally {
       setExecutingTool(null)
     }
@@ -230,7 +230,7 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
                   mcpService.disconnectGitHub()
                   setGateways(mcpService.getGateways())
                   setTools(mcpService.getTools())
-                  setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+                  setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
                 }}
                 className="text-xs text-red-600 hover:underline"
               >
@@ -259,7 +259,7 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
                   try {
                     await mcpService.startMcpStreaming?.()
                   } finally {
-                    setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+                    setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
                   }
                 }}
                 disabled={!!mcpStatus.streaming}
@@ -271,7 +271,7 @@ export function MCPToolsPanel({ chatId }: MCPToolsPanelProps) {
               <button
                 onClick={() => {
                   mcpService.stopMcpStreaming?.()
-                  setMcpStatus(mcpService.getMcpStatus?.() ?? mcpStatus)
+                  setMcpStatus(prev => mcpService.getMcpStatus?.() ?? prev)
                 }}
                 disabled={!mcpStatus.streaming}
                 className="px-2 py-1 text-xs rounded bg-gray-200 text-gray-800 disabled:bg-gray-100 flex items-center gap-1"

@@ -81,6 +81,47 @@ export function useConversations() {
     }
   }
 
+  // New actions
+  const pinConversation = async (conversationId: string, pinned: boolean) => {
+    try {
+      await conversationService.pinConversation(conversationId, pinned)
+      await fetchConversations()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to pin conversation')
+      throw err
+    }
+  }
+
+  const archiveConversation = async (conversationId: string, archived: boolean) => {
+    try {
+      await conversationService.archiveConversation(conversationId, archived)
+      await fetchConversations()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to archive conversation')
+      throw err
+    }
+  }
+
+  const leaveConversation = async (conversationId: string) => {
+    try {
+      await conversationService.leaveConversation(conversationId)
+      setConversations(prev => prev.filter(c => c.id !== conversationId))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to leave conversation')
+      throw err
+    }
+  }
+
+  const inviteParticipants = async (conversationId: string, userIds: string[]) => {
+    try {
+      await conversationService.inviteParticipants(conversationId, userIds)
+      // No change to list needed; server will emit participant events
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to invite participants')
+      throw err
+    }
+  }
+
   useEffect(() => {
     fetchConversations()
     // Subscribe to conversation updates so sidebar stays fresh
@@ -93,6 +134,10 @@ export function useConversations() {
         fetchConversations()
       })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'conversations' }, () => {
+        fetchConversations()
+      })
+      // Listen for membership flag changes and joins/leaves
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_participants' }, () => {
         fetchConversations()
       })
       .subscribe()
@@ -110,6 +155,10 @@ export function useConversations() {
     createConversation,
     createConversationWithParticipants,
     updateConversation,
-    deleteConversation
+    deleteConversation,
+    pinConversation,
+    archiveConversation,
+    leaveConversation,
+    inviteParticipants,
   }
 }

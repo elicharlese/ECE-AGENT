@@ -31,15 +31,21 @@ class PerformanceMonitor {
         const lcpObserver = new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries()
           const lastEntry = entries[entries.length - 1]
-          this.metrics.LCP = lastEntry.startTime
+          if (lastEntry) {
+            this.metrics.LCP = lastEntry.startTime
+          }
         })
         lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true })
 
         // Observe FID
+        interface FirstInputTimingLike extends PerformanceEntry {
+          processingStart: number
+          startTime: number
+        }
         const fidObserver = new PerformanceObserver((entryList) => {
           const entries = entryList.getEntries()
-          if (entries.length > 0) {
-            const firstInput = entries[0] as any
+          const firstInput = entries[0] as FirstInputTimingLike | undefined
+          if (firstInput) {
             this.metrics.FID = firstInput.processingStart - firstInput.startTime
           }
         })
@@ -47,12 +53,17 @@ class PerformanceMonitor {
 
         // Observe CLS
         let clsValue = 0
-        const clsEntries: any[] = []
+        interface LayoutShiftLike extends PerformanceEntry {
+          value: number
+          hadRecentInput: boolean
+        }
+        const clsEntries: LayoutShiftLike[] = []
         const clsObserver = new PerformanceObserver((entryList) => {
           for (const entry of entryList.getEntries()) {
-            if (!(entry as any).hadRecentInput) {
-              clsEntries.push(entry)
-              clsValue += (entry as any).value
+            const ls = entry as LayoutShiftLike
+            if (!ls.hadRecentInput) {
+              clsEntries.push(ls)
+              clsValue += ls.value
             }
           }
           this.metrics.CLS = clsValue
@@ -72,7 +83,11 @@ class PerformanceMonitor {
         fcpObserver.observe({ type: 'paint', buffered: true })
 
         // TTFB
-        const navigationEntry = performance.getEntriesByType('navigation')[0] as any
+        interface NavigationTimingLike extends PerformanceEntry {
+          responseStart: number
+          requestStart: number
+        }
+        const navigationEntry = performance.getEntriesByType('navigation')[0] as NavigationTimingLike | undefined
         if (navigationEntry) {
           this.metrics.TTFB = navigationEntry.responseStart - navigationEntry.requestStart
         }
@@ -147,7 +162,16 @@ export function trackApiCall(endpoint: string) {
   return performanceMonitor.measureTime(`API: ${endpoint}`)
 }
 
-export function reportWebVitals(metric: any) {
+export type WebVitalMetricName = 'FCP' | 'LCP' | 'CLS' | 'FID' | 'INP' | 'TTFB'
+export interface WebVitalMetric {
+  id: string
+  name: WebVitalMetricName
+  startTime: number
+  value: number
+  label?: 'web-vital' | 'custom'
+}
+
+export function reportWebVitals(metric: WebVitalMetric) {
   const { name, value } = metric
   
   // Log to console in development

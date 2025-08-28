@@ -11,6 +11,10 @@ export interface Profile {
   updated_at: string
 }
 
+function hasCode(e: unknown): e is { code: string } {
+  return typeof (e as { code?: unknown })?.code === 'string'
+}
+
 const sanitizeUsername = (raw: string) =>
   raw
     .trim()
@@ -26,7 +30,7 @@ export async function getProfileByUserId(userId: string): Promise<Profile | null
     .single()
 
   if (error) {
-    if ((error as any).code === 'PGRST116') return null
+    if (hasCode(error) && error.code === 'PGRST116') return null
     console.error('getProfileByUserId error', error)
     throw new Error(error.message)
   }
@@ -43,7 +47,7 @@ export async function getProfileByUsername(username: string): Promise<Profile | 
     .single()
 
   if (error) {
-    if ((error as any).code === 'PGRST116') return null
+    if (hasCode(error) && error.code === 'PGRST116') return null
     console.error('getProfileByUsername error', error)
     throw new Error(error.message)
   }
@@ -153,7 +157,7 @@ export async function updateProfile(patch: Partial<Pick<Profile, 'username' | 'f
   const { data: auth } = await supabase.auth.getUser()
   if (!auth?.user) throw new Error('Not authenticated')
 
-  const updates: any = { ...patch }
+  const updates: Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'cover_url' | 'solana_address'>> = { ...patch }
   if (patch.username) updates.username = sanitizeUsername(patch.username)
 
   const { data, error } = await supabase
@@ -176,17 +180,17 @@ export const profileService = {
   async getProfile(userId: string) {
     return getProfileByUserId(userId)
   },
-  async updateProfile(id: string, patch: Record<string, unknown>) {
+  async updateProfile(
+    id: string,
+    patch: Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'cover_url' | 'solana_address'>>
+  ) {
     const { data: auth } = await supabase.auth.getUser()
     if (!auth?.user) throw new Error('Not authenticated')
     if (id && id !== auth.user.id) {
       throw new Error('Cannot update another user\'s profile')
     }
-    const allowed: Array<keyof Profile> = ['username', 'full_name', 'avatar_url', 'cover_url', 'solana_address']
-    const filtered = Object.fromEntries(
-      Object.entries(patch).filter(([k]) => (allowed as string[]).includes(k))
-    ) as Partial<Pick<Profile, 'username' | 'full_name' | 'avatar_url' | 'cover_url' | 'solana_address'>>
-    return updateProfile(filtered)
+    // Directly pass the typed patch; updateProfile handles username normalization
+    return updateProfile(patch)
   },
   getProfileByUserId,
   getProfileByUsername,

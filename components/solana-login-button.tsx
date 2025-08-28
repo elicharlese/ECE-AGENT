@@ -9,6 +9,13 @@ import { Loader2, Wallet, Shield, CheckCircle } from 'lucide-react';
 
 type Props = { className?: string; onLinked?: () => void }
 
+type WalletAuthResponse = { linked?: boolean }
+function isWalletAuthResponse(x: unknown): x is WalletAuthResponse {
+  if (typeof x !== 'object' || x === null) return false
+  const rec = x as Record<string, unknown>
+  return rec.linked === undefined || typeof rec.linked === 'boolean'
+}
+
 // A minimal, UI-matching wallet connect button that only opens the wallet modal.
 // Styled to match the "Continue with Google" outline button on the /auth page.
 export function ConnectWalletButton({ className }: Props) {
@@ -91,8 +98,8 @@ export function SolanaLoginButton({ className, onLinked }: Props) {
         throw new Error(t || 'Authentication failed');
       }
 
-      const json = await response.json();
-      if ((json as any)?.linked) {
+      const jsonUnknown: unknown = await response.json();
+      if (isWalletAuthResponse(jsonUnknown) && jsonUnknown.linked) {
         // Wallet linked to current Supabase user account
         console.log('Solana wallet linked to account');
         setError('');
@@ -107,10 +114,10 @@ export function SolanaLoginButton({ className, onLinked }: Props) {
       
     } catch (err) {
       console.error('Solana login error:', err);
-      const error = err as Error;
-      if (error.message === 'User rejected the request.') {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message === 'User rejected the request.') {
         setError('Wallet signature was cancelled');
-      } else if (error.message.includes('Authentication failed')) {
+      } else if (message.includes('Authentication failed')) {
         setError('Authentication failed. Please try again.');
       } else {
         setError('Failed to authenticate with Solana wallet');

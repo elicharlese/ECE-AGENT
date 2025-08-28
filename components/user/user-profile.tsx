@@ -5,16 +5,26 @@ import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Camera } from 'luc
 import { profileService } from '@/services/profile-service'
 import { supabase } from '@/lib/supabase/client'
 import { WalletLinker } from '@/components/user/WalletLinker'
+import type { Profile } from '@/services/profile-service'
 
 interface UserProfileProps {
   userId?: string
   isEditable?: boolean
 }
 
+type UIProfile = Profile & {
+  id?: string
+  email?: string | null
+  phone?: string | null
+  location?: string | null
+  website?: string | null
+  bio?: string | null
+}
+
 export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<UIProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editedProfile, setEditedProfile] = useState<any>(null)
+  const [editedProfile, setEditedProfile] = useState<UIProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -39,8 +49,8 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
       }
 
       const userProfile = await profileService.getProfile(targetUserId)
-      setProfile(userProfile)
-      setEditedProfile(userProfile)
+      setProfile(userProfile as UIProfile | null)
+      setEditedProfile(userProfile as UIProfile | null)
     } catch (error) {
       console.error('Failed to load profile:', error)
     } finally {
@@ -53,16 +63,13 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
     
     setSaving(true)
     try {
-      const updated = await profileService.updateProfile(editedProfile.id, {
+      const updated = await profileService.updateProfile(editedProfile.user_id, {
         username: editedProfile.username,
         full_name: editedProfile.full_name,
-        bio: editedProfile.bio,
-        location: editedProfile.location,
-        website: editedProfile.website,
-        phone: editedProfile.phone,
+        // The service only accepts a subset; other UI-only fields are ignored
       })
       
-      setProfile(updated)
+      setProfile(updated as UIProfile)
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to save profile:', error)
@@ -156,15 +163,19 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
                 <div className="space-y-2">
                   <input
                     type="text"
-                    value={editedProfile.full_name || ''}
-                    onChange={(e) => setEditedProfile({ ...editedProfile, full_name: e.target.value })}
+                    value={editedProfile?.full_name ?? ''}
+                    onChange={(e) =>
+                      setEditedProfile((prev) => (prev ? { ...prev, full_name: e.target.value } : prev))
+                    }
                     placeholder="Full Name"
                     className="text-2xl font-bold w-full px-3 py-2 border rounded-lg"
                   />
                   <input
                     type="text"
-                    value={editedProfile.username || ''}
-                    onChange={(e) => setEditedProfile({ ...editedProfile, username: e.target.value })}
+                    value={editedProfile?.username ?? ''}
+                    onChange={(e) =>
+                      setEditedProfile((prev) => (prev ? { ...prev, username: e.target.value } : prev))
+                    }
                     placeholder="Username"
                     className="text-gray-600 w-full px-3 py-2 border rounded-lg"
                   />
@@ -181,8 +192,10 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
             <div>
               {isEditing ? (
                 <textarea
-                  value={editedProfile.bio || ''}
-                  onChange={(e) => setEditedProfile({ ...editedProfile, bio: e.target.value })}
+                  value={editedProfile?.bio ?? ''}
+                  onChange={(e) =>
+                    setEditedProfile((prev) => (prev ? { ...prev, bio: e.target.value } : prev))
+                  }
                   placeholder="Bio"
                   rows={3}
                   className="w-full px-3 py-2 border rounded-lg resize-none"
@@ -207,8 +220,10 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
                   {isEditing ? (
                     <input
                       type="tel"
-                      value={editedProfile.phone || ''}
-                      onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
+                      value={editedProfile?.phone ?? ''}
+                      onChange={(e) =>
+                        setEditedProfile((prev) => (prev ? { ...prev, phone: e.target.value } : prev))
+                      }
                       placeholder="Phone Number"
                       className="flex-1 px-2 py-1 border rounded"
                     />
@@ -225,8 +240,10 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
                   {isEditing ? (
                     <input
                       type="text"
-                      value={editedProfile.location || ''}
-                      onChange={(e) => setEditedProfile({ ...editedProfile, location: e.target.value })}
+                      value={editedProfile?.location ?? ''}
+                      onChange={(e) =>
+                        setEditedProfile((prev) => (prev ? { ...prev, location: e.target.value } : prev))
+                      }
                       placeholder="Location"
                       className="flex-1 px-2 py-1 border rounded"
                     />
@@ -262,7 +279,9 @@ export function UserProfile({ userId, isEditable = false }: UserProfileProps) {
             {/* Wallet Linking */}
             <WalletLinker
               currentAddress={profile.solana_address || null}
-              onChange={(addr) => setProfile((p: any) => ({ ...p, solana_address: addr }))}
+              onChange={(addr) =>
+                setProfile((p) => (p ? { ...p, solana_address: addr } : p))
+              }
             />
           </div>
         </div>

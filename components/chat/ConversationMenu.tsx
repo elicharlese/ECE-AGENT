@@ -1,12 +1,25 @@
 'use client'
 
 import * as React from 'react'
-import { MoreVertical } from 'lucide-react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
 import { toast } from '@/components/ui/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { conversationService } from '@/services/conversation-service'
 import { useRouter } from 'next/navigation'
+import { Icon } from '@/components/icons/Icon'
+import { useConversations } from '@/hooks/use-conversations'
+import { 
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog'
+import { UserSelectorDialog } from '@/components/chat/UserSelectorDialog'
 
 export interface ConversationMenuProps {
   chatId: string
@@ -20,6 +33,31 @@ export interface ConversationMenuProps {
 export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenMCPSettings, onEnded, className }: ConversationMenuProps) {
   const [muted, setMuted] = React.useState(false)
   const router = useRouter()
+  const { pinConversation, archiveConversation, leaveConversation, inviteParticipants } = useConversations()
+  const [isPinned, setIsPinned] = React.useState<boolean>(false)
+  const [isArchived, setIsArchived] = React.useState<boolean>(false)
+  const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
+
+  // Load per-user flags for this conversation
+  React.useEffect(() => {
+    let active = true
+    const loadFlags = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('conversation_participants')
+          .select('is_pinned, is_archived')
+          .eq('conversation_id', chatId)
+          .eq('user_id', currentUserId)
+          .maybeSingle()
+        if (!active) return
+        if (error) return
+        setIsPinned(!!data?.is_pinned)
+        setIsArchived(!!data?.is_archived)
+      } catch {}
+    }
+    if (chatId && currentUserId) loadFlags()
+    return () => { active = false }
+  }, [chatId, currentUserId])
 
   const handleMarkAllAsRead = async () => {
     try {
@@ -61,19 +99,7 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
 
     // Otherwise, attempt to leave by removing membership row
     try {
-      const { error } = await supabase
-        .from('conversation_participants')
-        .delete()
-        .eq('conversation_id', chatId)
-        .eq('user_id', currentUserId)
-
-      if (error) {
-        // Likely blocked by RLS (only creator can delete membership per current policy)
-        toast({ title: 'Unable to leave conversation', description: 'Only the conversation owner can delete it. We can add "leave" support with a small DB change.', variant: 'destructive' })
-        onEnded?.('failed')
-        return
-      }
-
+      await leaveConversation(chatId)
       toast({ title: 'Left conversation' })
       onEnded?.('left')
       try { router.push('/messages') } catch {}
@@ -83,7 +109,47 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
     }
   }
 
+  const handleTogglePin = async (next: boolean) => {
+    try {
+      await pinConversation(chatId, next)
+      setIsPinned(next)
+      toast({ title: next ? 'Conversation pinned' : 'Conversation unpinned' })
+    } catch (e) {
+      toast({ title: 'Failed to toggle pin', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
+    }
+  }
+
+  const handleToggleArchive = async (next: boolean) => {
+    try {
+      await archiveConversation(chatId, next)
+      setIsArchived(next)
+      toast({ title: next ? 'Conversation archived' : 'Conversation unarchived' })
+      if (next) {
+        // If archiving, navigate away
+        try { router.push('/messages') } catch {}
+        onEnded?.('archived')
+      }
+    } catch (e) {
+      toast({ title: 'Failed to toggle archive', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
+    }
+  }
+
+  const handleInvite = () => {
+    setInviteOpen(true)
+  }
+
+  const handleConfirmInvite = async (ids: string[]) => {
+    if (!ids || ids.length === 0) return
+    try {
+      await inviteParticipants(chatId, ids)
+      toast({ title: 'Participants invited' })
+    } catch (e) {
+      toast({ title: 'Failed to invite', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
+    }
+  }
+
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
@@ -91,7 +157,7 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
           aria-label="Conversation options"
           title="Conversation options"
         >
-          <MoreVertical className="w-5 h-5 text-gray-600" />
+          <Icon name="more-vertical" className="w-5 h-5 text-gray-600" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
@@ -108,6 +174,8 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleInvite}>Invite participants…</DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuCheckboxItem
           checked={muted}
           onCheckedChange={(v) => {
@@ -117,13 +185,44 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
         >
           Mute notifications
         </DropdownMenuCheckboxItem>
-        <DropdownMenuItem
-          onClick={handleEndChat}
-          variant="destructive"
-        >
-          End chat
-        </DropdownMenuItem>
+        <DropdownMenuCheckboxItem checked={isPinned} onCheckedChange={(v) => handleTogglePin(!!v)}>
+          {isPinned ? 'Unpin conversation' : 'Pin conversation'}
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem checked={isArchived} onCheckedChange={(v) => handleToggleArchive(!!v)}>
+          {isArchived ? 'Unarchive conversation' : 'Archive conversation'}
+        </DropdownMenuCheckboxItem>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <DropdownMenuItem variant="destructive">End chat</DropdownMenuItem>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {creatorUserId && creatorUserId === currentUserId ? 'Delete conversation?' : 'Leave conversation?'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {creatorUserId && creatorUserId === currentUserId
+                  ? 'This action cannot be undone. This will permanently delete the conversation and its messages for everyone.'
+                  : 'You will leave this conversation. You can be invited back later.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleEndChat}>
+                {creatorUserId && creatorUserId === currentUserId ? 'Delete' : 'Leave'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DropdownMenuContent>
     </DropdownMenu>
+    <UserSelectorDialog
+      open={inviteOpen}
+      onOpenChange={setInviteOpen}
+      onConfirm={handleConfirmInvite}
+      chatId={chatId}
+      currentUserId={currentUserId}
+    />
+    </>
   )
 }

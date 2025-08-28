@@ -1,5 +1,4 @@
 // Polyfills that must load before any test framework or modules
-import 'whatwg-fetch'
 
 // TextEncoder/TextDecoder for libraries (e.g., MSW interceptors) that expect them in Node/JSDOM
 // @ts-ignore
@@ -15,6 +14,14 @@ if (typeof (global as any).TextDecoder === 'undefined') {
   const { TextDecoder } = require('util')
   // @ts-ignore
   ;(global as any).TextDecoder = TextDecoder
+}
+
+// Ensure Supabase env vars exist for tests before any modules import the client
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
 }
 
 // Provide Web Streams polyfills used by MSW in Node/JSDOM

@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useUser } from "@/contexts/user-context"
 import { LoginForm } from "@/components/login-form"
 import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
 const ChatSidebar = dynamic(() => import("@/components/chat/chat-sidebar").then(m => m.ChatSidebar), {
   ssr: false,
   loading: () => <div className="p-4 text-sm text-gray-500">Loading sidebar…</div>,
@@ -16,10 +17,18 @@ const AgentSidebar = dynamic(() => import("@/components/chat/agent-sidebar").the
   ssr: false,
   loading: () => <div className="p-4 text-sm text-gray-500">Loading agents…</div>,
 })
-import { MiniChatWidget } from "@/components/chat/MiniChatWidget"
+import { QuickChatDrawer } from "@/components/chat/QuickChatDrawer"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
+import { Menu } from "lucide-react"
+import type { ImperativePanelHandle } from "react-resizable-panels"
+import { EmptyChatState } from "@/components/chat/EmptyChatState"
+import { useConversations } from "@/hooks/use-conversations"
+import { useHotkeys } from "@/hooks/use-hotkeys"
+import { ChatTabsBar } from "@/components/chat/ChatTabsBar"
+import { ErrorBoundary, ChatErrorBoundary } from "@/components/ErrorBoundary"
+import { AuthLoadingState } from "@/components/LoadingStates"
 
 export function ChatApp() {
   const { user, isLoading } = useUser()
@@ -30,11 +39,10 @@ export function ChatApp() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-full items-center justify-center">
-        <div className="text-lg">Loading...</div>
-        {/* Portaled Quick Chat available globally */}
-        <MiniChatWidget title="Quick Chat" initialMinimized={true} />
-      </div>
+      <ErrorBoundary>
+        <AuthLoadingState />
+        <QuickChatDrawer title="Quick Chat" />
+      </ErrorBoundary>
     )
   }
 
@@ -42,13 +50,18 @@ export function ChatApp() {
 }
 
 function AuthenticatedChatApp() {
-  const [selectedChatId, setSelectedChatId] = useState<string>("1")
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [selectedAgentId, setSelectedAgentId] = useState<string>()
   const [leftPanelState, setLeftPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
   const [rightPanelState, setRightPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
-  const [showAgentSidebar, setShowAgentSidebar] = useState(true)
+  const [showAgentSidebar] = useState(true)
+  const leftPanelRef = useRef<ImperativePanelHandle | null>(null)
+  const rightPanelRef = useRef<ImperativePanelHandle | null>(null)
   const isMobile = useIsMobile()
   const { screenSize, orientation, canShowDualSidebars, shouldCollapseSidebars } = useResponsiveLayout()
+  const searchParams = useSearchParams()
+  const isPopout = (searchParams.get("popout") || "") === "1"
+  const { conversations, createConversation } = useConversations()
 
   useEffect(() => {
     if (shouldCollapseSidebars) {
@@ -74,6 +87,77 @@ function AuthenticatedChatApp() {
     }
   }
 
+  // Keyboard shortcuts to switch chats: Alt+ArrowLeft / Alt+ArrowRight
+  const selectRelativeChat = (delta: -1 | 1) => {
+    if (!conversations || conversations.length === 0) return
+    const idx = Math.max(0, conversations.findIndex((c) => c.id === selectedChatId))
+    const nextIdx = (idx + delta + conversations.length) % conversations.length
+    setSelectedChatId(conversations[nextIdx].id)
+  }
+
+  useHotkeys([
+    { combo: "alt+arrowleft", onTrigger: () => selectRelativeChat(-1), preventDefault: true },
+    { combo: "alt+arrowright", onTrigger: () => selectRelativeChat(1), preventDefault: true },
+  ])
+
+  // Sync selected chat with `?c=` query param (e.g., after Quick Invite creates a chat)
+  useEffect(() => {
+    const c = searchParams.get("c")
+    if (c && c !== selectedChatId) {
+      setSelectedChatId(c)
+      if (isMobile) {
+        setLeftPanelState("collapsed")
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  // Enforce sizes for desktop ResizablePanels to match panelState
+  useEffect(() => {
+    const ref = leftPanelRef.current
+    if (!ref) return
+    if (leftPanelState === "collapsed") {
+      ref.collapse()
+    } else if (leftPanelState === "minimized") {
+      ref.resize(5)
+    } else {
+      // expanded
+      ref.resize(25)
+    }
+  }, [leftPanelState])
+
+  useEffect(() => {
+    const ref = rightPanelRef.current
+    if (!ref) return
+    if (rightPanelState === "collapsed") {
+      ref.collapse()
+    } else if (rightPanelState === "minimized") {
+      ref.resize(5)
+    } else {
+      // expanded
+      ref.resize(25)
+    }
+  }, [rightPanelState])
+
+  // Popout mode: render only ChatWindow for a clean standalone view
+  if (isPopout) {
+    return (
+      <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+        {selectedChatId ? (
+          <ChatWindow
+            chatId={selectedChatId}
+            onToggleSidebar={() => { /* no-op in popout */ }}
+            sidebarCollapsed={true}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+            Open a conversation to use popout
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const getLeftSidebarWidth = () => {
     if (leftPanelState === "collapsed") return "w-0"
     if (leftPanelState === "minimized") return "w-14"
@@ -82,45 +166,50 @@ function AuthenticatedChatApp() {
     return "w-80"
   }
 
-  const getRightSidebarWidth = () => {
-    if (rightPanelState === "collapsed") return "w-0"
-    if (rightPanelState === "minimized") return "w-14"
-    if (screenSize === "tablet") return "w-72"
-    return "w-80"
-  }
+  // removed unused getRightSidebarWidth
 
   const cycleLeft = () => {
-    setLeftPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "minimized"))
+    // Mobile & tablet-portrait: open full width directly (skip minimized)
+    if (isMobile || (screenSize === "tablet" && orientation === "portrait")) {
+      setLeftPanelState((prev) => (prev === "collapsed" ? "expanded" : "collapsed"))
+      return
+    }
+    // Desktop/tablet-landscape: tri-state
+    setLeftPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "collapsed"))
   }
 
   const cycleRight = () => {
-    setRightPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "minimized"))
+    // Mobile & tablet-portrait: open full width directly (skip minimized)
+    if (isMobile || (screenSize === "tablet" && orientation === "portrait")) {
+      setRightPanelState((prev) => (prev === "collapsed" ? "expanded" : "collapsed"))
+      return
+    }
+    // Desktop/tablet-landscape: tri-state
+    setRightPanelState((prev) => (prev === "collapsed" ? "minimized" : prev === "minimized" ? "expanded" : "collapsed"))
   }
 
   return (
     <div className="h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden relative">
-      {/* Top-border hamburger pill controls */}
-      <div className="pointer-events-none absolute top-2 left-2 z-50 flex gap-2">
+      {/* Edge toggles when sidebars are collapsed */}
+      {leftPanelState === "collapsed" && (
         <button
+          type="button"
           onClick={cycleLeft}
-          className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur px-3 py-1 text-xs text-gray-700 dark:text-gray-200 shadow-sm hover:bg-white dark:hover:bg-gray-800"
-          aria-label="Toggle left sidebar"
+          aria-label="Open left sidebar"
+          className="absolute left-1 top-1/2 -translate-y-1/2 z-50 rounded-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
         >
-          <span className="inline-block h-3 w-3 rounded-[999px] bg-gray-500" />
-          <span className="capitalize">{leftPanelState}</span>
+          <Menu className="h-4 w-4" />
         </button>
-      </div>
-      {showAgentSidebar && (
-        <div className="pointer-events-none absolute top-2 right-2 z-50 flex gap-2">
-          <button
-            onClick={cycleRight}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur px-3 py-1 text-xs text-gray-700 dark:text-gray-200 shadow-sm hover:bg-white dark:hover:bg-gray-800"
-            aria-label="Toggle right sidebar"
-          >
-            <span className="inline-block h-3 w-3 rounded-[999px] bg-gray-500" />
-            <span className="capitalize">{rightPanelState}</span>
-          </button>
-        </div>
+      )}
+      {showAgentSidebar && rightPanelState === "collapsed" && (
+        <button
+          type="button"
+          onClick={cycleRight}
+          aria-label="Open right sidebar"
+          className="absolute right-1 top-1/2 -translate-y-1/2 z-50 rounded-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
       )}
       {isMobile || (screenSize === "tablet" && orientation === "portrait") ? (
         <div className="flex h-full">
@@ -133,63 +222,150 @@ function AuthenticatedChatApp() {
             ${screenSize === "tablet" && orientation === "portrait" ? "safe-area-inset-left" : ""}
           `}
           >
-            <ChatSidebar
-              selectedChatId={selectedChatId}
-              onSelectChat={handleSelectChat}
-              panelState={leftPanelState}
-              onSetPanelState={setLeftPanelState}
-            />
+            <div className="relative h-full">
+              <ChatSidebar
+                selectedChatId={selectedChatId || ""}
+                onSelectChat={handleSelectChat}
+                panelState={leftPanelState}
+                onSetPanelState={setLeftPanelState}
+              />
+              {leftPanelState !== "collapsed" && (
+                <button
+                  type="button"
+                  onClick={cycleLeft}
+                  aria-label={`Toggle left sidebar (${leftPanelState})`}
+                  className="absolute -right-2 top-1/2 -translate-y-1/2 z-40 rounded-r-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 flex flex-col min-w-0">
-            <ChatWindow
-              chatId={selectedChatId}
-              onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
-              sidebarCollapsed={leftPanelState !== "expanded"}
-            />
+            {/* Chat tabs bar at the top of chat area (mobile/tablet portrait) */}
+            <div className="border-b border-transparent bg-gray-50 dark:bg-gray-900">
+              <ChatTabsBar
+                conversations={conversations}
+                value={selectedChatId}
+                onValueChange={(id) => handleSelectChat(id)}
+                className="px-2 py-1"
+              />
+            </div>
+            {selectedChatId ? (
+              <ChatErrorBoundary>
+                <ChatWindow
+                  chatId={selectedChatId}
+                  onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
+                  sidebarCollapsed={leftPanelState !== "expanded"}
+                />
+              </ChatErrorBoundary>
+            ) : (
+              <EmptyChatState
+                onStartNewChat={async () => {
+                  try {
+                    const conv = await createConversation("New Chat")
+                    setSelectedChatId(conv.id)
+                    if (isMobile) setLeftPanelState("collapsed")
+                  } catch { /* no-op */ }
+                }}
+              />
+            )}
           </div>
         </div>
       ) : (
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel
-            defaultSize={20}
+            ref={leftPanelRef}
+            defaultSize={25}
             minSize={leftPanelState === "minimized" ? 5 : 15}
             maxSize={35}
-            className={leftPanelState === "collapsed" ? "min-w-0 basis-0" : leftPanelState === "minimized" ? "basis-[5%]" : ""}
+            className="min-w-0"
+            collapsible
+            collapsedSize={0}
           >
-            <ChatSidebar
-              selectedChatId={selectedChatId}
-              onSelectChat={handleSelectChat}
-              panelState={leftPanelState}
-              onSetPanelState={setLeftPanelState}
-            />
+            <div className="relative h-full">
+              <ChatSidebar
+                selectedChatId={selectedChatId || ""}
+                onSelectChat={handleSelectChat}
+                panelState={leftPanelState}
+                onSetPanelState={setLeftPanelState}
+              />
+              {leftPanelState !== "collapsed" && (
+                <button
+                  type="button"
+                  onClick={cycleLeft}
+                  aria-label={`Toggle left sidebar (${leftPanelState})`}
+                  className="absolute -right-2 top-1/2 -translate-y-1/2 z-40 rounded-r-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
+                >
+                  <Menu className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </ResizablePanel>
 
           <ResizableHandle />
 
           <ResizablePanel defaultSize={50} minSize={30} className="min-w-0 overflow-hidden">
-            <ChatWindow
-              chatId={selectedChatId}
-              onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
-              sidebarCollapsed={leftPanelState !== "expanded"}
-            />
+            {/* Chat tabs bar at the top of chat area (desktop/tablet landscape) */}
+            <div className="border-b border-transparent bg-gray-50 dark:bg-gray-900">
+              <ChatTabsBar
+                conversations={conversations}
+                value={selectedChatId}
+                onValueChange={(id) => handleSelectChat(id)}
+                className="px-2 py-1"
+              />
+            </div>
+            {selectedChatId ? (
+              <ChatErrorBoundary>
+                <ChatWindow
+                  chatId={selectedChatId}
+                  onToggleSidebar={() => setLeftPanelState(leftPanelState === "expanded" ? "collapsed" : "expanded")}
+                  sidebarCollapsed={leftPanelState !== "expanded"}
+                />
+              </ChatErrorBoundary>
+            ) : (
+              <EmptyChatState
+                onStartNewChat={async () => {
+                  try {
+                    const conv = await createConversation("New Chat")
+                    setSelectedChatId(conv.id)
+                  } catch { /* no-op */ }
+                }}
+              />
+            )}
           </ResizablePanel>
 
           {showAgentSidebar && (
             <>
               <ResizableHandle />
               <ResizablePanel
-                defaultSize={30}
-                minSize={rightPanelState === "minimized" ? 5 : 20}
-                maxSize={45}
-                className={rightPanelState === "collapsed" ? "min-w-0 basis-0" : rightPanelState === "minimized" ? "basis-[5%]" : ""}
+                ref={rightPanelRef}
+                defaultSize={25}
+                minSize={rightPanelState === "minimized" ? 5 : 15}
+                maxSize={35}
+                className="min-w-0"
+                collapsible
+                collapsedSize={0}
               >
-                <AgentSidebar
-                  selectedAgentId={selectedAgentId}
-                  onSelectAgent={handleSelectAgent}
-                  panelState={rightPanelState}
-                  onSetPanelState={setRightPanelState}
-                />
+                <div className="relative h-full">
+                  {rightPanelState !== "collapsed" && (
+                    <button
+                      type="button"
+                      onClick={cycleRight}
+                      aria-label={`Toggle right sidebar (${rightPanelState})`}
+                      className="absolute -left-2 top-1/2 -translate-y-1/2 z-40 rounded-l-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
+                    >
+                      <Menu className="h-4 w-4" />
+                    </button>
+                  )}
+                  <AgentSidebar
+                    selectedAgentId={selectedAgentId}
+                    onSelectAgent={handleSelectAgent}
+                    panelState={rightPanelState}
+                    onSetPanelState={setRightPanelState}
+                  />
+                </div>
               </ResizablePanel>
             </>
           )}
@@ -197,7 +373,7 @@ function AuthenticatedChatApp() {
       )}
 
       {showAgentSidebar && isMobile && rightPanelState === "expanded" && (
-        <div className="fixed inset-y-0 right-0 z-50 w-80 safe-area-inset-right">
+        <div className="fixed inset-y-0 right-0 z-50 w-full safe-area-inset-right">
           <AgentSidebar
             selectedAgentId={selectedAgentId}
             onSelectAgent={handleSelectAgent}
@@ -250,7 +426,7 @@ function AuthenticatedChatApp() {
         />
       )}
 
-      <MiniChatWidget title="Quick Chat" initialMinimized={true} />
+      <QuickChatDrawer title="Quick Chat" />
     </div>
   )
 }

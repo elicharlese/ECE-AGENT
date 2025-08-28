@@ -93,7 +93,11 @@ export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
 
   type ObjectSections = 'notifications' | 'privacy' | 'chat'
-  const updateSettings = (section: ObjectSections, key: string, value: any) => {
+  const updateSettings = <S extends ObjectSections, K extends keyof SettingsState[S]>(
+    section: S,
+    key: K,
+    value: SettingsState[S][K]
+  ) => {
     setSettings((prev) => ({
       ...prev,
       [section]: {
@@ -103,7 +107,7 @@ export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
     }))
   }
 
-  const updateRootSetting = (key: keyof SettingsState, value: any) => {
+  const updateRootSetting = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings((prev) => ({
       ...prev,
       [key]: value,
@@ -179,7 +183,7 @@ export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
                 <div className="space-y-4 pl-7">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="theme">Theme</Label>
-                    <Select value={settings.theme} onValueChange={(value) => updateRootSetting("theme", value)}>
+                    <Select value={settings.theme} onValueChange={(value) => updateRootSetting("theme", value as SettingsState["theme"])}>
                       <SelectTrigger className="w-40">
                         <SelectValue />
                       </SelectTrigger>
@@ -316,7 +320,13 @@ export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
                   <Label htmlFor="profile-photo">Who can see my profile photo</Label>
                   <Select
                     value={settings.privacy.profilePhoto}
-                    onValueChange={(value) => updateSettings("privacy", "profilePhoto", value)}
+                    onValueChange={(value) =>
+                      updateSettings(
+                        "privacy",
+                        "profilePhoto",
+                        value as SettingsState["privacy"]["profilePhoto"]
+                      )
+                    }
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -333,7 +343,9 @@ export function SettingsPanel({ trigger }: { trigger?: ReactNode }) {
                   <Label htmlFor="status">Who can see my status</Label>
                   <Select
                     value={settings.privacy.status}
-                    onValueChange={(value) => updateSettings("privacy", "status", value)}
+                    onValueChange={(value) =>
+                      updateSettings("privacy", "status", value as SettingsState["privacy"]["status"])
+                    }
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />

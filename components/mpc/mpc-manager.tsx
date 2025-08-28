@@ -35,12 +35,12 @@ export interface MPCSession {
   privacy: "semi-honest" | "malicious" | "covert"
   threshold: number
   progress: number
-  result?: any
+  result?: unknown
   error?: string
   createdAt: Date
   startedAt?: Date
   completedAt?: Date
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 export interface MPCParticipant {
@@ -49,7 +49,7 @@ export interface MPCParticipant {
   status: "invited" | "joined" | "ready" | "computing" | "completed" | "failed"
   publicKey?: string
   shares?: string[]
-  contribution?: any
+  contribution?: unknown
   joinedAt?: Date
 }
 
@@ -609,7 +609,7 @@ function MPCSessionCard({
           </div>
         )}
 
-        {session.result && (
+        {session.result !== undefined && session.result !== null && (
           <div className="text-xs bg-green-50 dark:bg-green-900/20 p-2 rounded border">
             <strong>Result:</strong> {JSON.stringify(session.result, null, 2)}
           </div>
@@ -680,7 +680,7 @@ function MPCSessionDetailModal({ session, onClose }: { session: MPCSession; onCl
                   <Badge variant="outline">{session.privacy}</Badge>
                 </div>
               </div>
-              {session.result && (
+              {session.result !== undefined && session.result !== null && (
                 <div>
                   <label className="text-sm font-medium">Computation Result</label>
                   <div className="text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-md mt-1">

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, forwardRef } from "react"
 import { RefreshCw } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
 
@@ -10,9 +10,13 @@ interface PullToRefreshProps {
   children: React.ReactNode
   onRefresh: () => Promise<void>
   threshold?: number
+  onScroll?: (e: React.UIEvent<HTMLDivElement>) => void
 }
 
-export function PullToRefresh({ children, onRefresh, threshold = 80 }: PullToRefreshProps) {
+export const PullToRefresh = forwardRef<HTMLDivElement, PullToRefreshProps>(function PullToRefresh(
+  { children, onRefresh, threshold = 80, onScroll }: PullToRefreshProps,
+  contentRef,
+) {
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [canRefresh, setCanRefresh] = useState(false)
@@ -86,6 +90,8 @@ export function PullToRefresh({ children, onRefresh, threshold = 80 }: PullToRef
 
       {/* Content */}
       <div
+        ref={contentRef}
+        onScroll={onScroll}
         className="flex-1 overflow-y-auto hide-scrollbar pr-4 -mr-4 transition-transform duration-200 ease-out"
         style={{ transform: `translateY(${pullDistance}px)` }}
       >
@@ -93,4 +99,5 @@ export function PullToRefresh({ children, onRefresh, threshold = 80 }: PullToRef
       </div>
     </div>
   )
-}
+})
+

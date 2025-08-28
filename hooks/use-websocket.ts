@@ -185,6 +185,23 @@ export function useWebSocket() {
     // In a real implementation, this would emit to the WebSocket server
   }, [])
 
+  const sendEditMessage = useCallback((id: string, text: string, conversationId: string) => {
+    // Try to send an edit event to the server if WS is live
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        const payload: WebSocketMessage = { type: 'edit_message', id, text, conversationId }
+        wsRef.current.send(JSON.stringify(payload))
+      }
+    } catch (e) {
+      console.warn('sendEditMessage WS send failed', e)
+    }
+    // Always simulate a local event so other UI parts can react in mock mode
+    setMessages(prev => [
+      ...prev,
+      { type: 'message_edited', id, text, conversationId, timestamp: new Date(), sender: 'user' } as any,
+    ])
+  }, [])
+
   const joinConversation = useCallback((conversationId: string) => {
     console.log(`Joining conversation: ${conversationId}`)
     setCurrentConversationId(conversationId)
@@ -308,6 +325,7 @@ export function useWebSocket() {
     leaveConversation,
     sendMessage,
     sendChatMessage: sendMessage, // Alias for compatibility
+    sendEditMessage,
     sendTyping,
     typingUsers
   };

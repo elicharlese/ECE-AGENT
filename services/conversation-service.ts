@@ -9,6 +9,9 @@ export interface Conversation {
   agent_id?: string
   last_message?: string
   unread_count?: number
+  // Per-user flags (merged from membership for current user)
+  is_pinned?: boolean | null
+  is_archived?: boolean | null
 }
 
 export interface Message {
@@ -50,14 +53,14 @@ export async function getConversations(): Promise<Conversation[]> {
   }
   if (!auth?.user) return []
 
-  // First fetch conversation ids where the user is a participant
-  let memberRows: { conversation_id: string }[] | null = null
+  // Fetch conversation ids where the user is a participant
+  let memberRows: { conversation_id: string; is_pinned?: boolean | null; is_archived?: boolean | null }[] | null = null
   let memberErr: any = null
   try {
     const res = await withTimeout<any>(
       supabase
         .from('conversation_participants')
-        .select('conversation_id')
+        .select('conversation_id, is_pinned, is_archived')
         .eq('user_id', auth.user.id) as unknown as PromiseLike<any>,
       4000
     )
@@ -69,10 +72,33 @@ export async function getConversations(): Promise<Conversation[]> {
 
   if (memberErr) {
     console.warn('getConversations membership error', memberErr)
-    return []
   }
 
-  const ids = (memberRows || []).map(r => r.conversation_id)
+  // Also include conversations created by the user (policy allows select by creator)
+  let ownRows: { id: string }[] | null = null
+  let ownErr: any = null
+  try {
+    const res = await withTimeout<any>(
+      supabase
+        .from('conversations')
+        .select('id')
+        .eq('user_id', auth.user.id) as unknown as PromiseLike<any>,
+      4000
+    )
+    ownRows = (res?.data ?? null) as any
+    ownErr = (res as any)?.error ?? null
+  } catch (e) {
+    ownErr = e
+  }
+  if (ownErr) {
+    console.warn('getConversations own-rows error', ownErr)
+  }
+
+  // Build unique set of conversation IDs from both sources
+  const idsSet = new Set<string>()
+  for (const r of memberRows || []) idsSet.add(r.conversation_id)
+  for (const r of ownRows || []) idsSet.add(r.id)
+  const ids = Array.from(idsSet)
   if (!ids.length) return []
 
   // Fetch only necessary columns and cap results for faster initial render
@@ -105,7 +131,18 @@ export async function getConversations(): Promise<Conversation[]> {
     return []
   }
 
-  return data || []
+  // Merge per-user membership flags into conversation objects
+  const flagsByConv = new Map<string, { is_pinned?: boolean | null; is_archived?: boolean | null }>()
+  for (const r of memberRows || []) {
+    flagsByConv.set(r.conversation_id, { is_pinned: r.is_pinned ?? null, is_archived: r.is_archived ?? null })
+  }
+
+  const merged: Conversation[] = (data || []).map((c) => ({
+    ...c,
+    ...(flagsByConv.get(c.id) || {}),
+  }))
+
+  return merged
 }
 
 export async function getConversationById(id: string): Promise<Conversation | null> {
@@ -202,6 +239,65 @@ export async function deleteConversation(id: string): Promise<void> {
   }
 }
 
+// Membership helpers
+export async function pinConversation(conversationId: string, pinned: boolean): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) throw new Error('Not authenticated')
+  const { error } = await supabase
+    .from('conversation_participants')
+    .update({ is_pinned: pinned })
+    .eq('conversation_id', conversationId)
+    .eq('user_id', auth.user.id)
+  if (error) {
+    console.error('Error pinning conversation:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function archiveConversation(conversationId: string, archived: boolean): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) throw new Error('Not authenticated')
+  const { error } = await supabase
+    .from('conversation_participants')
+    .update({ is_archived: archived })
+    .eq('conversation_id', conversationId)
+    .eq('user_id', auth.user.id)
+  if (error) {
+    console.error('Error archiving conversation:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function leaveConversation(conversationId: string): Promise<void> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) throw new Error('Not authenticated')
+  const { error } = await supabase
+    .from('conversation_participants')
+    .delete()
+    .eq('conversation_id', conversationId)
+    .eq('user_id', auth.user.id)
+  if (error) {
+    console.error('Error leaving conversation:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function inviteParticipants(conversationId: string, userIds: string[]): Promise<void> {
+  if (!userIds || userIds.length === 0) return
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) throw new Error('Not authenticated')
+  const rows = userIds
+    .filter((u) => !!u && u !== auth.user!.id)
+    .map((u) => ({ conversation_id: conversationId, user_id: u, role: 'member' as const }))
+  if (rows.length === 0) return
+  const { error } = await supabase.from('conversation_participants').insert(rows)
+  if (error && (error as any)?.code !== '23505') {
+    // 23505 unique_violation -> already a member; ignore silently
+    console.error('Error inviting participants:', error)
+    throw new Error((error as any).message || 'Failed to invite participants')
+  }
+}
+
 // Aggregate service for compatibility with components importing `{ conversationService }`
 export const conversationService = {
   getConversations,
@@ -210,4 +306,8 @@ export const conversationService = {
   createConversationWithParticipants,
   updateConversation,
   deleteConversation,
+  pinConversation,
+  archiveConversation,
+  leaveConversation,
+  inviteParticipants,
 }

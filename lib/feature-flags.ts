@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
 
 export const FEATURES = {
   VIRTUAL_SCROLLING: 'virtual_scrolling',
@@ -19,7 +18,7 @@ interface FeatureFlagConfig {
   enabled: boolean
   rolloutPercentage?: number
   userGroups?: string[]
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 class FeatureFlagsManager {
@@ -38,7 +37,7 @@ class FeatureFlagsManager {
     return FeatureFlagsManager.instance
   }
 
-  private async loadFlags() {
+  private loadFlags() {
     // Load from environment variables for now
     // In production, this would fetch from a feature flag service
     const defaultFlags: Record<string, FeatureFlagConfig> = {

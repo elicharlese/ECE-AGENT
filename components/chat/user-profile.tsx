@@ -10,9 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Camera, Edit, Save, X, LogOut, Archive, Settings } from "lucide-react"
+import { Camera, Edit, Save, X, LogOut, Archive, Settings, LayoutDashboard } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { SettingsPanel } from "./settings-panel"
+import Link from "next/link"
 
 interface UserProfile {
   id: string
@@ -133,6 +134,11 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
                     </Button>
                   }
                 />
+                <Button asChild size="sm" variant="outline" title="Dashboard" aria-label="Dashboard">
+                  <Link href="/profile">
+                    <LayoutDashboard className="h-4 w-4" />
+                  </Link>
+                </Button>
                 <Button size="sm" variant="outline" title="Archived" aria-label="Archived">
                   <Archive className="h-4 w-4" />
                 </Button>

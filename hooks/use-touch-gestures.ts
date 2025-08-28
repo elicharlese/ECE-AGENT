@@ -24,7 +24,7 @@ export function useTouchGestures({
   longPressDelay = 500,
 }: TouchGestureOptions) {
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null)
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [isLongPressing, setIsLongPressing] = useState(false)
 
   const handleTouchStart = useCallback(

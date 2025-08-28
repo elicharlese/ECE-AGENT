@@ -18,13 +18,20 @@ const extensions = [
   '.json',
 ];
 
-const rollupPlugin = (matchers: RegExp[]) => ({
+type MinimalRollupPlugin = {
+  name: string;
+  load?: (id: string) => string | undefined;
+};
+
+const rollupPlugin = (matchers: RegExp[]): MinimalRollupPlugin => ({
   name: 'js-in-jsx',
-  load(id: string) {
+  load(id: string): string | undefined {
     if (matchers.some((matcher) => matcher.test(id)) && id.endsWith('.js')) {
       const file = readFileSync(id, { encoding: 'utf-8' });
-      return esbuild.transformSync(file, { loader: 'jsx', jsx: 'automatic' });
+      const { code } = esbuild.transformSync(file, { loader: 'jsx', jsx: 'automatic' }) as { code: string };
+      return code;
     }
+    return undefined;
   },
 });
 

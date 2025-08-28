@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Pin, PinOff, Copy, Reply, Forward, Trash2, MoreHorizontal, Heart, HeartOff } from "lucide-react"
+import { Pin, PinOff, Copy, Reply, Forward, Trash2, MoreHorizontal, Heart, HeartOff, Pencil } from "lucide-react"
 
 interface MessageActionsProps {
   messageId: string
@@ -17,6 +17,7 @@ interface MessageActionsProps {
   onForward?: (messageId: string) => void
   onCopy?: (messageId: string) => void
   onDelete?: (messageId: string) => void
+  onEdit?: (messageId: string) => void
 }
 
 export function MessageActions({
@@ -31,6 +32,7 @@ export function MessageActions({
   onForward,
   onCopy,
   onDelete,
+  onEdit,
 }: MessageActionsProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -74,6 +76,11 @@ export function MessageActions({
     setIsOpen(false)
   }
 
+  const handleEdit = () => {
+    onEdit?.(messageId)
+    setIsOpen(false)
+  }
+
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
@@ -108,6 +115,12 @@ export function MessageActions({
             </>
           )}
         </DropdownMenuItem>
+        {onEdit && (
+          <DropdownMenuItem onClick={handleEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={handleReply}>
           <Reply className="h-4 w-4 mr-2" />
           Reply

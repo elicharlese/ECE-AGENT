@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useHotkeys } from "@/hooks/use-hotkeys"
 import { CommandPalette } from "./CommandPalette"
 import { ShortcutsHelp } from "./ShortcutsHelp"
+import { QuickInvite } from "./QuickInvite"
 
 function isEditableTarget(target: EventTarget | null) {
   const el = target as HTMLElement | null
@@ -24,6 +25,7 @@ export function HotkeysProvider({ children }: HotkeysProviderProps) {
   const router = useRouter()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   // Simple combos (Cmd/Ctrl+K, Shift+?)
   useHotkeys([
@@ -43,6 +45,18 @@ export function HotkeysProvider({ children }: HotkeysProviderProps) {
       combo: "shift+?",
       preventDefault: true,
       onTrigger: () => setHelpOpen((v) => !v),
+      enableInInputs: false,
+    },
+    {
+      combo: "meta+n",
+      preventDefault: true,
+      onTrigger: () => setInviteOpen(true),
+      enableInInputs: false,
+    },
+    {
+      combo: "ctrl+n",
+      preventDefault: true,
+      onTrigger: () => setInviteOpen(true),
       enableInInputs: false,
     },
   ])
@@ -92,6 +106,12 @@ export function HotkeysProvider({ children }: HotkeysProviderProps) {
           router.push("/")
           return
         }
+        if (key === "n") {
+          ev.preventDefault()
+          reset()
+          setInviteOpen(true)
+          return
+        }
         // anything else cancels
         reset()
       }
@@ -109,6 +129,7 @@ export function HotkeysProvider({ children }: HotkeysProviderProps) {
       {children}
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <ShortcutsHelp open={helpOpen} onOpenChange={setHelpOpen} />
+      <QuickInvite open={inviteOpen} onOpenChange={setInviteOpen} />
     </>
   )
 }

@@ -12,6 +12,9 @@ import { VideoCallUI } from '@/components/calls/video-call-ui'
 import { ConversationMenu } from '@/components/chat/ConversationMenu'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { CREDITS_ENABLED } from '@/lib/pricing'
+import { CreditBadge } from '@/components/credits/CreditBadge'
+import { BuyCreditsButton } from '@/components/credits/BuyCreditsButton'
 
 // Simple ReadReceipt component since it was removed
 function ReadReceipt({ status }: { status?: 'sent' | 'delivered' | 'read' }) {
@@ -210,6 +213,12 @@ export function ChatWindow({ chatId, onToggleAgent, onToggleMCP, onToggleContact
         </div>
 
         <div className="flex items-center gap-2">
+          {CREDITS_ENABLED && (
+            <div className="flex items-center gap-2 mr-2">
+              <CreditBadge />
+              <BuyCreditsButton />
+            </div>
+          )}
           <button 
             className="p-2 rounded-md hover:bg-gray-100"
             title="Voice Call"

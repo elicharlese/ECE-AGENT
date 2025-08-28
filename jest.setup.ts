@@ -62,7 +62,40 @@ if (typeof (global as any).ResizeObserver === 'undefined') {
   ;(global as any).ResizeObserver = MockResizeObserver
 }
 
+// Polyfill scrollIntoView for JSDOM elements used in tests
+// @ts-ignore
+if (typeof window !== 'undefined') {
+  const proto = (window.HTMLElement && window.HTMLElement.prototype) || undefined
+  // @ts-ignore
+  if (proto && typeof proto.scrollIntoView !== 'function') {
+    // @ts-ignore
+    proto.scrollIntoView = function (_options?: ScrollIntoViewOptions) { /* no-op for tests */ }
+  }
+}
+
 // Start MSW before all tests, reset after each, and close after all
 beforeAll(() => server.listen())
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
+
+// Mock 'vaul' drawer primitives used by components/ui/drawer.tsx so tests
+// don't require the real dependency or DOM behaviors.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+jest.mock('vaul', () => {
+  // Use require to avoid ESM interop issues in Jest
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const React = require('react') as typeof import('react')
+  const passthrough = (tag: any) => (props: any) => React.createElement(tag || 'div', props)
+  return {
+    Drawer: {
+      Root: passthrough('div'),
+      Trigger: passthrough('button'),
+      Portal: passthrough('div'),
+      Close: passthrough('button'),
+      Overlay: passthrough('div'),
+      Content: passthrough('div'),
+      Title: passthrough('div'),
+      Description: passthrough('div'),
+    },
+  }
+}, { virtual: true })

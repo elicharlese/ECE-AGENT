@@ -1,0 +1,65 @@
+077afa5e89c9273b85dde4608874751f
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "TypingIndicator", {
+    enumerable: true,
+    get: function() {
+        return TypingIndicator;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = require("react");
+const _framermotion = require("framer-motion");
+function TypingIndicator({ userId, userName }) {
+    const [dots, setDots] = (0, _react.useState)(0);
+    (0, _react.useEffect)(()=>{
+        const interval = setInterval(()=>{
+            setDots((prev)=>(prev + 1) % 4);
+        }, 500);
+        return ()=>clearInterval(interval);
+    }, []);
+    return /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+        className: "flex items-center p-3 bg-gray-100 dark:bg-gray-800 rounded-lg max-w-xs mb-2",
+        children: [
+            /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                className: "flex-shrink-0 mr-3",
+                children: /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold",
+                    children: userName.charAt(0).toUpperCase()
+                })
+            }),
+            /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+                className: "flex items-center",
+                children: [
+                    /*#__PURE__*/ (0, _jsxruntime.jsxs)("span", {
+                        className: "text-sm text-gray-600 dark:text-gray-300 mr-2",
+                        children: [
+                            userName,
+                            " is typing"
+                        ]
+                    }),
+                    /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                        className: "flex space-x-1",
+                        children: [
+                            ...Array(3)
+                        ].map((_, i)=>/*#__PURE__*/ (0, _jsxruntime.jsx)(_framermotion.motion.div, {
+                                className: "w-2 h-2 rounded-full bg-gray-400",
+                                animate: {
+                                    opacity: dots === i ? 1 : 0.3,
+                                    scale: dots === i ? 1 : 0.8
+                                },
+                                transition: {
+                                    duration: 0.3
+                                }
+                            }, i))
+                    })
+                ]
+            })
+        ]
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvRUNFLUFHRU5UL2NvbXBvbmVudHMvY2hhdC90eXBpbmctaW5kaWNhdG9yLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJcInVzZSBjbGllbnRcIlxuXG5pbXBvcnQgeyB1c2VTdGF0ZSwgdXNlRWZmZWN0IH0gZnJvbSBcInJlYWN0XCJcbmltcG9ydCB7IG1vdGlvbiB9IGZyb20gXCJmcmFtZXItbW90aW9uXCJcblxuaW50ZXJmYWNlIFR5cGluZ0luZGljYXRvclByb3BzIHtcbiAgdXNlcklkOiBzdHJpbmdcbiAgdXNlck5hbWU6IHN0cmluZ1xufVxuXG5leHBvcnQgZnVuY3Rpb24gVHlwaW5nSW5kaWNhdG9yKHsgdXNlcklkLCB1c2VyTmFtZSB9OiBUeXBpbmdJbmRpY2F0b3JQcm9wcykge1xuICBjb25zdCBbZG90cywgc2V0RG90c10gPSB1c2VTdGF0ZSgwKVxuXG4gIHVzZUVmZmVjdCgoKSA9PiB7XG4gICAgY29uc3QgaW50ZXJ2YWwgPSBzZXRJbnRlcnZhbCgoKSA9PiB7XG4gICAgICBzZXREb3RzKHByZXYgPT4gKHByZXYgKyAxKSAlIDQpXG4gICAgfSwgNTAwKVxuICAgIFxuICAgIHJldHVybiAoKSA9PiBjbGVhckludGVydmFsKGludGVydmFsKVxuICB9LCBbXSlcblxuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgcC0zIGJnLWdyYXktMTAwIGRhcms6YmctZ3JheS04MDAgcm91bmRlZC1sZyBtYXgtdy14cyBtYi0yXCI+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXgtc2hyaW5rLTAgbXItM1wiPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInctOCBoLTggcm91bmRlZC1mdWxsIGJnLWJsdWUtNTAwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHRleHQtd2hpdGUgdGV4dC14cyBmb250LWJvbGRcIj5cbiAgICAgICAgICB7dXNlck5hbWUuY2hhckF0KDApLnRvVXBwZXJDYXNlKCl9XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyXCI+XG4gICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1ncmF5LTYwMCBkYXJrOnRleHQtZ3JheS0zMDAgbXItMlwiPnt1c2VyTmFtZX0gaXMgdHlwaW5nPC9zcGFuPlxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggc3BhY2UteC0xXCI+XG4gICAgICAgICAge1suLi5BcnJheSgzKV0ubWFwKChfLCBpKSA9PiAoXG4gICAgICAgICAgICA8bW90aW9uLmRpdlxuICAgICAgICAgICAgICBrZXk9e2l9XG4gICAgICAgICAgICAgIGNsYXNzTmFtZT1cInctMiBoLTIgcm91bmRlZC1mdWxsIGJnLWdyYXktNDAwXCJcbiAgICAgICAgICAgICAgYW5pbWF0ZT17e1xuICAgICAgICAgICAgICAgIG9wYWNpdHk6IGRvdHMgPT09IGkgPyAxIDogMC4zLFxuICAgICAgICAgICAgICAgIHNjYWxlOiBkb3RzID09PSBpID8gMSA6IDAuOFxuICAgICAgICAgICAgICB9fVxuICAgICAgICAgICAgICB0cmFuc2l0aW9uPXt7IGR1cmF0aW9uOiAwLjMgfX1cbiAgICAgICAgICAgIC8+XG4gICAgICAgICAgKSl9XG4gICAgICAgIDwvZGl2PlxuICAgICAgPC9kaXY+XG4gICAgPC9kaXY+XG4gIClcbn1cbiJdLCJuYW1lcyI6WyJUeXBpbmdJbmRpY2F0b3IiLCJ1c2VySWQiLCJ1c2VyTmFtZSIsImRvdHMiLCJzZXREb3RzIiwidXNlU3RhdGUiLCJ1c2VFZmZlY3QiLCJpbnRlcnZhbCIsInNldEludGVydmFsIiwicHJldiIsImNsZWFySW50ZXJ2YWwiLCJkaXYiLCJjbGFzc05hbWUiLCJjaGFyQXQiLCJ0b1VwcGVyQ2FzZSIsInNwYW4iLCJBcnJheSIsIm1hcCIsIl8iLCJpIiwibW90aW9uIiwiYW5pbWF0ZSIsIm9wYWNpdHkiLCJzY2FsZSIsInRyYW5zaXRpb24iLCJkdXJhdGlvbiJdLCJtYXBwaW5ncyI6IkFBQUE7Ozs7OytCQVVnQkE7OztlQUFBQTs7Ozt1QkFSb0I7OEJBQ2I7QUFPaEIsU0FBU0EsZ0JBQWdCLEVBQUVDLE1BQU0sRUFBRUMsUUFBUSxFQUF3QjtJQUN4RSxNQUFNLENBQUNDLE1BQU1DLFFBQVEsR0FBR0MsSUFBQUEsZUFBUSxFQUFDO0lBRWpDQyxJQUFBQSxnQkFBUyxFQUFDO1FBQ1IsTUFBTUMsV0FBV0MsWUFBWTtZQUMzQkosUUFBUUssQ0FBQUEsT0FBUSxBQUFDQSxDQUFBQSxPQUFPLENBQUEsSUFBSztRQUMvQixHQUFHO1FBRUgsT0FBTyxJQUFNQyxjQUFjSDtJQUM3QixHQUFHLEVBQUU7SUFFTCxxQkFDRSxzQkFBQ0k7UUFBSUMsV0FBVTs7MEJBQ2IscUJBQUNEO2dCQUFJQyxXQUFVOzBCQUNiLGNBQUEscUJBQUNEO29CQUFJQyxXQUFVOzhCQUNaVixTQUFTVyxNQUFNLENBQUMsR0FBR0MsV0FBVzs7OzBCQUduQyxzQkFBQ0g7Z0JBQUlDLFdBQVU7O2tDQUNiLHNCQUFDRzt3QkFBS0gsV0FBVTs7NEJBQWlEVjs0QkFBUzs7O2tDQUMxRSxxQkFBQ1M7d0JBQUlDLFdBQVU7a0NBQ1o7K0JBQUlJLE1BQU07eUJBQUcsQ0FBQ0MsR0FBRyxDQUFDLENBQUNDLEdBQUdDLGtCQUNyQixxQkFBQ0Msb0JBQU0sQ0FBQ1QsR0FBRztnQ0FFVEMsV0FBVTtnQ0FDVlMsU0FBUztvQ0FDUEMsU0FBU25CLFNBQVNnQixJQUFJLElBQUk7b0NBQzFCSSxPQUFPcEIsU0FBU2dCLElBQUksSUFBSTtnQ0FDMUI7Z0NBQ0FLLFlBQVk7b0NBQUVDLFVBQVU7Z0NBQUk7K0JBTnZCTjs7Ozs7O0FBYW5CIn0=

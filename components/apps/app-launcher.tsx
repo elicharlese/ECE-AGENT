@@ -3,9 +3,9 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Grid3X3, Calculator, Music, MapPin, Gamepad2 } from "lucide-react"
+import { VerticalDraggableTab } from "@/components/ui/VerticalDraggableTab"
 
 interface InstalledApp {
   id: string
@@ -41,23 +41,31 @@ interface AppLauncherProps {
 
 export function AppLauncher({ onLaunchApp }: AppLauncherProps) {
   const [selectedApp, setSelectedApp] = useState<string | null>(null)
+  const [open, setOpen] = useState(false)
 
   const handleLaunchApp = (appId: string, appName: string) => {
     setSelectedApp(appId)
     onLaunchApp(appId, appName)
+    // Close the drawer after launching
+    setOpen(false)
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Grid3X3 className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>AGENT - Apps</DialogTitle>
-        </DialogHeader>
+    <Drawer direction="right" open={open} onOpenChange={setOpen}>
+      {/* Pinned icon-only draggable tab on right edge */}
+      <DrawerTrigger asChild>
+        <VerticalDraggableTab
+          ariaLabel="Open apps drawer"
+          icon={<Grid3X3 className="h-5 w-5" />}
+          storageKey="apps_tab_top_pct"
+          side="right"
+          initialTopPercent={35}
+        />
+      </DrawerTrigger>
+      <DrawerContent className="sm:max-w-md">
+        <DrawerHeader>
+          <DrawerTitle>AGENT - Apps</DrawerTitle>
+        </DrawerHeader>
 
         <div className="grid grid-cols-3 gap-4 p-4">
           {installedApps.map((app) => (
@@ -81,7 +89,7 @@ export function AppLauncher({ onLaunchApp }: AppLauncherProps) {
             <span className="text-xs font-medium text-center text-gray-500">More Apps</span>
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   )
 }

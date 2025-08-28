@@ -117,6 +117,14 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-medium;
   }
+  
+  /* Hide ALL scrollbars globally but keep scrolling (cross-browser) */
+  /* Firefox + IE/Edge legacy */
+  * { scrollbar-width: none; -ms-overflow-style: none; }
+  /* WebKit (Chrome/Safari/Edge Chromium) */
+  *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  *::-webkit-scrollbar-thumb { background: transparent; border: none; }
 }

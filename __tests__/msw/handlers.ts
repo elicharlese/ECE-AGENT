@@ -7,8 +7,8 @@ export const handlers = [
 
   http.post('/api/agents', async ({ request }) => {
     try {
-      const body: any = await request.json()
-      if (!body?.name || typeof body.name !== 'string' || body.name.length < 2) {
+      const body = (await request.json()) as { name?: unknown }
+      if (typeof body?.name !== 'string' || body.name.length < 2) {
         return HttpResponse.json({ error: 'Invalid' }, { status: 400 })
       }
       const id = `agent-${Date.now()}`
@@ -29,5 +29,91 @@ export const handlers = [
     } catch (e) {
       return HttpResponse.json({ error: 'Invalid' }, { status: 400 })
     }
+  }),
+
+  // Profile endpoints used by ProfileSettings
+  http.get('/api/profile', () => {
+    return HttpResponse.json(
+      {
+        data: {
+          username: 'olduser',
+          full_name: 'Old Name',
+          avatar_url: '',
+          cover_url: '',
+          solana_address: '',
+        },
+      },
+      { status: 200 }
+    )
+  }),
+
+  http.put('/api/profile', async ({ request }) => {
+    try {
+      type ProfilePayload = Partial<{
+        username: string
+        full_name: string
+        avatar_url: string
+        cover_url: string
+        solana_address: string
+      }>
+      const body = (await request.json()) as unknown as ProfilePayload
+      // Echo the updated payload back as the new server state
+      return HttpResponse.json(
+        {
+          data: {
+            username: typeof body?.username === 'string' ? body.username : '',
+            full_name: typeof body?.full_name === 'string' ? body.full_name : '',
+            avatar_url: typeof body?.avatar_url === 'string' ? body.avatar_url : '',
+            cover_url: typeof body?.cover_url === 'string' ? body.cover_url : '',
+            solana_address: typeof body?.solana_address === 'string' ? body.solana_address : '',
+          },
+        },
+        { status: 200 }
+      )
+    } catch {
+      return HttpResponse.json({ error: 'Invalid' }, { status: 400 })
+    }
+  }),
+
+  // Supabase HEAD count request for conversation participants used in ChatWindow
+  // Matches any Supabase project URL
+  http.head(/https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\/conversation_participants.*/i, () => {
+    // Simulate a conversation with 3 participants so ChatWindow treats it as a group
+    return HttpResponse.text('', {
+      status: 200,
+      headers: {
+        // Supabase uses this header to derive the exact count when head: true
+        // Format: "start-end/total"; body is empty for HEAD
+        'Content-Range': '0-0/3',
+      },
+    })
+  }),
+
+  // Supabase GET for profiles wallet lookup with solana_address filter (more generic matcher)
+  http.get(/https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\/profiles.*solana_address=/i, ({ request }) => {
+    // For wallet lookups, return a single object for maybeSingle()
+    // Debug: log to verify interception
+    // eslint-disable-next-line no-console
+    console.info('[MSW] wallet profiles lookup:', request.url)
+    // eslint-disable-next-line no-console
+    console.info('[MSW] wallet headers:', Object.fromEntries(request.headers))
+    return HttpResponse.json(
+      [{ user_id: 'user-wallet' }],
+      { status: 200, headers: { 'Content-Range': '0-0/1', 'Content-Type': 'application/json' } }
+    )
+  }),
+
+  // Fallback Supabase GET for profiles (catch-all)
+  http.get(/https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\/profiles.*/i, ({ request }) => {
+    // Always return a single object so supabase .maybeSingle() code paths work
+    // Debug: log fallback interception
+    // eslint-disable-next-line no-console
+    console.info('[MSW] fallback profiles lookup:', request.url)
+    // eslint-disable-next-line no-console
+    console.info('[MSW] fallback headers:', Object.fromEntries(request.headers))
+    return HttpResponse.json(
+      [{ user_id: 'user-wallet' }],
+      { status: 200, headers: { 'Content-Range': '0-0/1', 'Content-Type': 'application/json' } }
+    )
   }),
 ]

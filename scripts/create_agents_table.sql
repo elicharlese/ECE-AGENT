@@ -20,14 +20,18 @@ create table if not exists public.agents (
 alter table public.agents enable row level security;
 
 -- Policies: owner-only access
-create policy if not exists "Agents select own" on public.agents
+drop policy if exists "Agents select own" on public.agents;
+create policy "Agents select own" on public.agents
 for select using (user_id = auth.uid());
 
-create policy if not exists "Agents insert self" on public.agents
+drop policy if exists "Agents insert self" on public.agents;
+create policy "Agents insert self" on public.agents
 for insert with check (user_id = auth.uid());
 
-create policy if not exists "Agents update own" on public.agents
+drop policy if exists "Agents update own" on public.agents;
+create policy "Agents update own" on public.agents
 for update using (user_id = auth.uid()) with check (user_id = auth.uid());
 
-create policy if not exists "Agents delete own" on public.agents
+drop policy if exists "Agents delete own" on public.agents;
+create policy "Agents delete own" on public.agents
 for delete using (user_id = auth.uid());

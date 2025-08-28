@@ -21,7 +21,7 @@ export interface Message {
   read_at?: string | null
   role?: 'user' | 'assistant' | 'system'
   is_ai?: boolean
-  metadata?: Record<string, any> | null
+  metadata?: Record<string, unknown> | null
   type?: string
   user?: MessageUser
   reactions?: MessageReaction[]
@@ -49,7 +49,7 @@ export const messageSchema = z.object({
   read_at: z.string().nullable().optional(),
   role: z.enum(['user', 'assistant', 'system']).optional(),
   is_ai: z.boolean().optional(),
-  metadata: z.record(z.any()).nullable().optional(),
+  metadata: z.record(z.unknown()).nullable().optional(),
   type: z.string().optional(),
   user: messageUserSchema.optional(),
   reactions: z.array(messageReactionSchema).optional(),

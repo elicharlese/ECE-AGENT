@@ -1,10 +1,10 @@
 'use client'
 
 import * as React from 'react'
-import { MoreVertical } from 'lucide-react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
+import { Icon } from '@/components/icons/Icon'
 
 export interface AgentMenuProps {
   agentId: string
@@ -46,7 +46,7 @@ export function AgentMenu({ agentId, showMCPTools, onToggleMCPTools, onEnded, cl
           aria-label="Agent options"
           title="Agent options"
         >
-          <MoreVertical className="w-5 h-5 text-gray-600" />
+          <Icon name="more-vertical" className="w-5 h-5 text-gray-600" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

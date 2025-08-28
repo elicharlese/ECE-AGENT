@@ -6,10 +6,9 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   fullyParallel: true,
   retries: process.env.CI ? 2 : 0,
-  reporter: [
-    ['list'],
-    ...(process.env.CI ? [["junit", { outputFile: 'test-results/junit.xml' }]] : [['html']]),
-  ],
+  reporter: process.env.CI
+    ? [['junit', { outputFile: 'test-results/junit.xml' }], ['list']]
+    : [['html'], ['list']],
   use: {
     baseURL: process.env.E2E_BASE_URL || 'http://localhost:4200',
     trace: 'on-first-retry',

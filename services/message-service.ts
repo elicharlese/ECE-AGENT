@@ -80,6 +80,39 @@ export const messageService = {
       type: data.type,
     }
     return msg
+  },
+
+  async updateMessage(messageId: string, content: string): Promise<Message> {
+    const { data: auth } = await supabase.auth.getUser()
+    if (!auth?.user) throw new Error('Not authenticated')
+
+    const { data, error } = await supabase
+      .from('messages')
+      .update({ content, edited_at: new Date().toISOString() })
+      .eq('id', messageId)
+      .eq('user_id', auth.user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('updateMessage error', error)
+      throw new Error(error.message)
+    }
+
+    const msg: Message = {
+      id: data.id,
+      conversation_id: data.conversation_id,
+      user_id: data.user_id || 'system',
+      content: data.content,
+      created_at: data.timestamp,
+      is_ai: data.role === 'assistant',
+      role: data.role,
+      edited_at: data.edited_at,
+      read_at: null,
+      metadata: data.metadata,
+      type: data.type,
+    }
+    return msg
   }
 }
 
