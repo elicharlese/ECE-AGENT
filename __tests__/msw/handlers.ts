@@ -75,6 +75,24 @@ export const handlers = [
     }
   }),
 
+  // Credits API used by CreditsPopover and credit UI in inputs
+  http.get(/\/api\/credits\/balance.*/i, () => {
+    return HttpResponse.json({ balance: 42 }, { status: 200 })
+  }),
+
+  http.post('/api/credits/checkout', async () => {
+    // Return a dummy checkout URL; tests won't actually navigate
+    return HttpResponse.json({ url: 'https://example.com/checkout' }, { status: 200 })
+  }),
+
+  // Supabase GET for messages list used by messageService.getMessages
+  http.get(/https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\/messages.*/i, () => {
+    return HttpResponse.json([], {
+      status: 200,
+      headers: { 'Content-Range': '0-0/0', 'Content-Type': 'application/json' },
+    })
+  }),
+
   // Supabase HEAD count request for conversation participants used in ChatWindow
   // Matches any Supabase project URL
   http.head(/https:\/\/[a-z0-9-]+\.supabase\.co\/rest\/v1\/conversation_participants.*/i, () => {

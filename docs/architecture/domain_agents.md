@@ -1,43 +1,112 @@
-# Domain Agents Architecture
+# Specialized Agent Modes Architecture
 
 ```mermaid
 graph TD
-    A[EnhancedAgent] -->|Task| B[Domain Agents]
-    B --> B1[Developer]
-    B --> B2[Trader]
-    B --> B3[Lawyer]
-    B --> B4[Researcher]
-    B --> B5[Data Engineer]
-    B --> B6[Spline 3D Dev]
-    B --> B7[ClickUp]
+    A[AGENT Model] -->|Mode Selection| B[Specialized Agents]
+    B --> B1[Smart Assistant]
+    B --> B2[Code Companion]
+    B --> B3[Creative Writer]
+    B --> B4[Legal Assistant]
+    B --> B5[Designer Agent]
+    
+    B1 --> C1[General Tasks]
+    B1 --> C2[Productivity]
+    B1 --> C3[Scheduling]
+    
+    B2 --> D1[Code Generation]
+    B2 --> D2[Debugging]
+    B2 --> D3[Architecture]
+    
+    B3 --> E1[Content Creation]
+    B3 --> E2[Editing]
+    B3 --> E3[Storytelling]
+    
+    B4 --> F1[Legal Research]
+    B4 --> F2[Document Analysis]
+    B4 --> F3[Compliance]
+    
+    B5 --> G1[UI/UX Design]
+    B5 --> G2[Visual Design]
+    B5 --> G3[Design Systems]
 ```
 
-Notes and implementation anchors
+## Implementation Architecture
 
-- Orchestrators:
-  - Core: [agent/core/core.py](agent/core/core.py)
-  - Enhanced: [agent/core/enhanced_agent.py](agent/core/enhanced_agent.py)
-- Implemented Domain Agents:
-  - Developer: [agent/domains/developer.py](agent/domains/developer.py)
-  - Trader: [agent/domains/trader.py](agent/domains/trader.py)
-  - Lawyer: [agent/domains/lawyer.py](agent/domains/lawyer.py)
-  - Researcher: [agent/domains/researcher.py](agent/domains/researcher.py)
-  - Data Engineer: [agent/domains/data_engineer.py](agent/domains/data_engineer.py)
-  - Spline 3D Dev: [agent/domains/spline_3d_developer.py](agent/domains/spline_3d_developer.py)
-  - ClickUp: [agent/domains/clickup.py](agent/domains/clickup.py)
+### Frontend Integration
+- **Agent Selection UI**: Components for switching between specialized modes
+- **Mode-Specific Interfaces**: Tailored UI elements for each agent type
+- **Context Preservation**: Maintain conversation context across mode switches
+- **Visual Indicators**: Clear mode identification and capabilities display
 
-Aliases and security roles
+### Backend Services
+- **Mode Router**: Intelligent routing based on user intent and explicit selection
+- **Context Engine**: Shared context and memory across all agent modes
+- **Specialized Processors**: Mode-specific logic and response generation
+- **Training Pipeline**: Continuous learning for each specialized mode
 
-- The following domain names are currently aliased to the Researcher agent via the domain registry:
-  - security-analyst, network-admin, network-analyst, pentester, incident-response, hacker
-- See mapping in [DOMAIN_AGENTS](agent/domains/__init__.py:11)
+## Specialized Agent Capabilities
 
-Extensibility
+### Smart Assistant
+- **General Knowledge**: Broad information retrieval and synthesis
+- **Task Management**: Planning, scheduling, and productivity assistance
+- **Personal Organization**: Calendar integration, reminders, goal tracking
+- **Information Synthesis**: Research compilation and summarization
 
-- New domain agents can be added by implementing a domain class and registering it in the domain registry at [agent/domains/__init__.py](agent/domains/__init__.py)
+### Code Companion
+- **Code Generation**: Function creation, boilerplate code, algorithm implementation
+- **Debugging Assistance**: Error analysis, solution suggestions, code review
+- **Architecture Guidance**: System design, best practices, pattern recommendations
+- **Documentation**: Code commenting, README generation, API documentation
 
-Roadmap
+### Creative Writer
+- **Content Creation**: Articles, blog posts, marketing copy, creative writing
+- **Editing & Proofreading**: Grammar correction, style improvement, clarity enhancement
+- **Storytelling**: Narrative development, character creation, plot assistance
+- **Format Adaptation**: Converting content between different formats and styles
 
-- Specialized Security Analyst, Pentester, and Incident Response agents with domain specific tooling beyond Researcher
-- Data Scientist and Analyst agents with statistical and visualization capabilities
-- Unified registry metadata with capability descriptors and health checks
+### Legal Assistant
+- **Document Analysis**: Contract review, legal document interpretation
+- **Legal Research**: Case law lookup, statute interpretation, precedent analysis
+- **Compliance Guidance**: Regulatory compliance, policy interpretation
+- **Risk Assessment**: Legal risk identification and mitigation strategies
+
+### Designer Agent
+- **UI/UX Design**: Interface design principles, user experience optimization
+- **Visual Design**: Color theory, typography, layout composition
+- **Design Systems**: Component libraries, style guides, design tokens
+- **Accessibility**: WCAG compliance, inclusive design principles
+
+## Current Implementation Status
+
+### Phase 1: Foundation (Current)
+- ✅ Basic agent selection interface in chat UI
+- ✅ Frontend components for mode switching
+- 🔄 Backend routing infrastructure
+- 🔄 Mode-specific response processing
+
+### Phase 2: Specialized Training (In Progress)
+- 🔄 Custom training datasets for each mode
+- 🔄 Mode-specific fine-tuning processes
+- 🔄 Context preservation across modes
+- ⏳ Advanced capability implementations
+
+### Phase 3: Advanced Features (Planned)
+- ⏳ Cross-mode collaboration workflows
+- ⏳ Personalized mode preferences
+- ⏳ Advanced context understanding
+- ⏳ Multi-modal input support
+
+## Extensibility Framework
+
+### Adding New Agent Modes
+1. **Define Capabilities**: Specify the agent's core competencies and use cases
+2. **Create Training Dataset**: Compile relevant training data for the domain
+3. **Implement Mode Logic**: Develop specialized processing and response generation
+4. **Design UI Components**: Create mode-specific interface elements
+5. **Integration Testing**: Validate mode switching and context preservation
+
+### Mode Customization
+- **User Preferences**: Customizable behavior and response styles per mode
+- **Domain-Specific Tools**: Integration with external APIs and services
+- **Learning Adaptation**: Mode-specific learning from user interactions
+- **Performance Optimization**: Specialized optimization for each mode's use cases

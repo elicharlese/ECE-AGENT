@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getSupabaseServer } from '@/lib/supabase/server'
 import { LoginForm } from '@/components/login-form'
+import type { Metadata } from 'next'
+import { authPageMetadata } from '@/lib/seo-metadata'
 
 export default async function AuthPage({ searchParams }: { searchParams: Promise<{ returnTo?: string }> }) {
   // Prefer an authoritative session check via Supabase server client.

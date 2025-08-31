@@ -1,22 +1,50 @@
-# AGENT System Architecture Docs
+# ECE-AGENT Architecture Documentation
 
-This folder contains current state architecture diagrams and explanations for the AGENT platform. Each page includes a Roadmap section for planned enhancements.
+This folder contains comprehensive architecture diagrams and documentation for the ECE-AGENT platform, featuring a custom LLM with specialized agent modes and self-learning capabilities.
 
-## Contents
+## Core Architecture Documents
 
-- overview.md: High level system architecture with implemented components
-  - [docs/architecture/overview.md](docs/architecture/overview.md)
-- knowledge_base.md: Knowledge Base with SQLite, GraphQL or REST access, and soft backdoors
-  - [docs/architecture/knowledge_base.md](docs/architecture/knowledge_base.md)
-- domain_agents.md: Implemented domain agents and alias mapping
-  - [docs/architecture/domain_agents.md](docs/architecture/domain_agents.md)
-- llm_self_care.md: Current LLM integration paths and self care mechanisms
-  - [docs/architecture/llm_self_care.md](docs/architecture/llm_self_care.md)
-- maintenance_agents.md: Performance monitor centric maintenance with future one shot agents
-  - [docs/architecture/maintenance_agents.md](docs/architecture/maintenance_agents.md)
-- admin_dashboard.md: Admin dashboard plan with current status
-  - [docs/architecture/admin_dashboard.md](docs/architecture/admin_dashboard.md)
-- specialty_mode_layouts.md: Planned specialty UI mode layouts with current status
-  - [docs/architecture/specialty_mode_layouts.md](docs/architecture/specialty_mode_layouts.md)
+### System Overview
+- **overview.md**: Complete system architecture with Next.js frontend, Supabase backend, and custom AGENT model
+- **custom_llm_architecture.md**: Detailed custom LLM architecture with specialized agent modes
+- **self_learning_pipeline.md**: Continuous learning and training pipeline architecture
 
-All diagrams use Mermaid for visualization. Avoid characters that may cause parsing issues in square bracket node labels.
+### Specialized Components
+- **domain_agents.md**: Five specialized agent modes (Smart Assistant, Code Companion, Creative Writer, Legal Assistant, Designer Agent)
+- **knowledge_base.md**: Knowledge management and retrieval systems
+- **llm_self_care.md**: Model monitoring and self-improvement mechanisms
+
+### Implementation Details
+- **admin_dashboard.md**: Administrative interface and monitoring systems
+- **maintenance_agents.md**: System maintenance and performance monitoring
+- **specialty_mode_layouts.md**: UI/UX designs for specialized agent modes
+
+### Legacy Components
+- **components.md**: Component-level architecture diagrams
+- **containers.md**: Container and deployment architecture
+- **context.md**: System context and external integrations
+- **imessage-component-diagram.md**: Messaging interface component structure
+- **imessage-mirror-analysis.md**: Chat interface design analysis
+
+## Architecture Highlights
+
+### Custom AGENT Model
+- **Five Specialized Modes**: Each with domain-specific training and capabilities
+- **Self-Learning Pipeline**: Continuous improvement through user interactions
+- **Context Switching**: Seamless mode transitions while preserving conversation context
+- **Quality Assurance**: Automated testing and validation of model outputs
+
+### Technology Stack
+- **Frontend**: Next.js with TypeScript, React, and Tailwind CSS
+- **Backend**: Supabase (PostgreSQL, Auth, Storage) with Next.js API routes
+- **Real-time**: LiveKit for video/audio communication
+- **Payments**: Stripe integration for credits and subscriptions
+- **Integrations**: MCP (Model Context Protocol) for external tools
+
+### Key Features
+- **Multi-modal Interface**: Chat, voice, and video communication
+- **API Testing**: Comprehensive testing interface at `/test`
+- **Authentication**: Supabase Auth with OAuth providers
+- **Responsive Design**: Mobile-first approach with desktop optimization
+
+All diagrams use Mermaid for visualization and follow consistent formatting standards.

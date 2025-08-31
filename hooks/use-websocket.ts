@@ -39,6 +39,8 @@ export function useWebSocket() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, { name: string; timestamp: number }>>({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const WS_URL = process.env.NEXT_PUBLIC_WEBSOCKET_URL; // Build-time public env
@@ -46,11 +48,19 @@ export function useWebSocket() {
     (process.env.NEXT_PUBLIC_WS_DEFER_UNTIL_INTERACTION || '').toLowerCase() === '1' ||
     (process.env.NEXT_PUBLIC_WS_DEFER_UNTIL_INTERACTION || '').toLowerCase() === 'true'
 
+  // Refs to avoid stale closures inside socket handlers
+  const currentConversationIdRef = useRef<string | null>(null)
+  const myUserIdRef = useRef<string | null>(null)
+  useEffect(() => { currentConversationIdRef.current = currentConversationId }, [currentConversationId])
+  useEffect(() => { myUserIdRef.current = myUserId }, [myUserId])
+
   const connect = async () => {
     console.log('connect function called');
     // Get the current session token from Supabase
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
+    const uid = session?.user?.id || null
+    setMyUserId(uid)
     
     if (!token) {
       console.error('No authentication token available');
@@ -81,26 +91,94 @@ export function useWebSocket() {
     };
     
     wsRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      setMessages(prev => [...prev, message]);
-      
-      // Handle different message types
-      switch (message.type) {
-        case 'new_message':
-          // Add to messages state
-          break;
-        case 'typing':
-          // Handle typing indicator
-          break;
-        case 'read_receipt':
-          // Handle read receipt
-          break;
+      try {
+        const data: WebSocketMessage = JSON.parse(event.data);
+        switch (data.type) {
+          case 'authenticated': {
+            setIsAuthenticated(true)
+            // auto-join if a conversation is already selected
+            const pending = currentConversationIdRef.current
+            if (pending) {
+              try {
+                wsRef.current?.send(JSON.stringify({ type: 'join_conversation', conversationId: pending }))
+              } catch {}
+            }
+            break
+          }
+          case 'conversation_joined': {
+            // no-op; UI already tracks currentConversationId
+            break
+          }
+          case 'conversation_history': {
+            const arr = Array.isArray((data as any).messages) ? (data as any).messages : []
+            if (arr.length) {
+              const mapped: Message[] = arr.map((m: any) => ({
+                id: m.id,
+                text: m.content,
+                sender: m.user_id === myUserIdRef.current ? 'user' : 'other',
+                senderName: m.role === 'assistant' ? 'AI Assistant' : undefined,
+                timestamp: new Date(m.timestamp || m.created_at || Date.now()),
+                conversationId: m.conversation_id,
+                type: (m.type || 'text') as Message['type'],
+                status: 'read',
+              }))
+              setMessages(prev => {
+                const byId = new Set(prev.map(p => p.id))
+                const additions = mapped.filter(m => !byId.has(m.id))
+                return [...prev, ...additions]
+              })
+            }
+            break
+          }
+          case 'message': {
+            const m = (data as any).message
+            if (m) {
+              const mapped: Message = {
+                id: m.id,
+                text: m.content,
+                sender: m.user_id === myUserIdRef.current ? 'user' : 'other',
+                senderName: m.role === 'assistant' ? 'AI Assistant' : undefined,
+                timestamp: new Date(m.timestamp || Date.now()),
+                conversationId: m.conversation_id,
+                type: (m.type || 'text') as Message['type'],
+                status: 'delivered',
+              }
+              setMessages(prev => [...prev, mapped])
+            }
+            break
+          }
+          case 'typing': {
+            const { userId, isTyping } = data as any
+            setTypingUsers(prev => {
+              const next = { ...prev }
+              if (userId === myUserIdRef.current) return next
+              if (isTyping) {
+                next[userId] = { name: 'Someone', timestamp: Date.now() }
+              } else {
+                delete next[userId]
+              }
+              return next
+            })
+            break
+          }
+          case 'error': {
+            console.error('WebSocket server error:', (data as any).message)
+            break
+          }
+          default: {
+            // Unknown/unused event type
+            break
+          }
+        }
+      } catch (e) {
+        console.warn('WebSocket onmessage parse error', e)
       }
     };
     
     wsRef.current.onclose = () => {
       console.log('WebSocket disconnected');
       setIsConnected(false);
+      setIsAuthenticated(false);
     };
     
     wsRef.current.onerror = (error: any) => {
@@ -114,6 +192,7 @@ export function useWebSocket() {
       wsRef.current = null;
     }
     setIsConnected(false);
+    setIsAuthenticated(false);
   };
   
   const sendMessage = useCallback((text: string, conversationId: string) => {
@@ -178,12 +257,32 @@ export function useWebSocket() {
         setMessages(prev => [...prev, aiResponse])
       }, 2000)
     }
+
+    // Send to server if connected & authenticated
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && isAuthenticated) {
+        wsRef.current.send(JSON.stringify({ type: 'send_message', content: text }))
+      }
+    } catch (e) {
+      console.warn('sendMessage WS send failed', e)
+    }
   }, [])
 
+  const typingTimeoutRef = useRef<number | null>(null)
   const sendTyping = useCallback((conversationId: string) => {
     console.log(`Sending typing indicator for: ${conversationId}`)
-    // In a real implementation, this would emit to the WebSocket server
-  }, [])
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && isAuthenticated) {
+        wsRef.current.send(JSON.stringify({ type: 'typing', isTyping: true }))
+        if (typingTimeoutRef.current) window.clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = window.setTimeout(() => {
+          try { wsRef.current?.send(JSON.stringify({ type: 'typing', isTyping: false })) } catch {}
+        }, 1500)
+      }
+    } catch (e) {
+      console.warn('sendTyping WS send failed', e)
+    }
+  }, [isAuthenticated])
 
   const sendEditMessage = useCallback((id: string, text: string, conversationId: string) => {
     // Try to send an edit event to the server if WS is live
@@ -206,7 +305,14 @@ export function useWebSocket() {
     console.log(`Joining conversation: ${conversationId}`)
     setCurrentConversationId(conversationId)
     setMessages([]) // Clear messages when switching conversations
-  }, [])
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && isAuthenticated) {
+        wsRef.current.send(JSON.stringify({ type: 'join_conversation', conversationId }))
+      }
+    } catch (e) {
+      console.warn('joinConversation WS send failed', e)
+    }
+  }, [isAuthenticated])
 
   const leaveConversation = useCallback((conversationId: string) => {
     console.log(`Leaving conversation: ${conversationId}`)
@@ -214,7 +320,14 @@ export function useWebSocket() {
       setCurrentConversationId(null)
       setMessages([])
     }
-  }, [currentConversationId])
+    try {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN && isAuthenticated) {
+        wsRef.current.send(JSON.stringify({ type: 'leave_conversation' }))
+      }
+    } catch (e) {
+      console.warn('leaveConversation WS send failed', e)
+    }
+  }, [currentConversationId, isAuthenticated])
 
   // Mock connection only when no WS URL is configured
   useEffect(() => {

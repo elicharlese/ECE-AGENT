@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { User as SupabaseUser } from '@supabase/supabase-js'
+import { setFeatureFlagUserId } from '@/lib/feature-flags'
 
 interface User {
   id: string
@@ -80,6 +81,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
             email: supabaseUser.email || null,
             created_at: supabaseUser.created_at
           })
+          // Set feature flag user id for rollout gating
+          try { setFeatureFlagUserId(supabaseUser.id) } catch {}
         }
       } catch (e) {
         if (process.env.NODE_ENV !== 'production') {
@@ -100,6 +103,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           email: session.user.email || null,
           created_at: session.user.created_at
         })
+        try { setFeatureFlagUserId(session.user.id) } catch {}
       } else {
         setUser(null)
       }
@@ -161,6 +165,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             email: data.user.email || null,
             created_at: data.user.created_at
           })
+          try { setFeatureFlagUserId(data.user.id) } catch {}
           return true
         }
         return false;
@@ -252,6 +257,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         email: data.user.email || null,
         created_at: data.user.created_at
       })
+      try { setFeatureFlagUserId(data.user.id) } catch {}
       return true
     }
     

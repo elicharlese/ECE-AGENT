@@ -169,7 +169,7 @@ export function EmojiPicker({ onEmojiSelect }: EmojiPickerProps) {
           {searchTerm && getFilteredEmojis().length === 0 && (
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               <Smile className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No emojis found for "{searchTerm}"</p>
+              <p>No emojis found for &quot;{searchTerm}&quot;</p>
             </div>
           )}
         </div>

@@ -33,8 +33,8 @@ import { cn } from "@/lib/utils"
 interface InviteUsersDialogProps {
   isOpen: boolean
   onClose: () => void
-  chatId: string
-  chatName: string
+  chatId?: string
+  chatName?: string
   isGroupChat?: boolean
   onInviteUsers: (users: InviteUser[]) => Promise<void>
 }
@@ -65,9 +65,11 @@ export function InviteUsersDialog({
   const [customMessage, setCustomMessage] = useState("")
   const [isInviting, setIsInviting] = useState(false)
   const [shareLink, setShareLink] = useState("")
+  const displayChatName = chatName || "New chat"
 
   // Generate share link
   const generateShareLink = () => {
+    if (!chatId) return undefined
     const baseUrl = window.location.origin
     const link = `${baseUrl}/join/${chatId}?invite=${Date.now()}`
     setShareLink(link)
@@ -181,6 +183,7 @@ export function InviteUsersDialog({
   // Copy share link
   const copyShareLink = () => {
     const link = shareLink || generateShareLink()
+    if (!link) return
     navigator.clipboard.writeText(link)
     toast({
       title: "Link copied!",
@@ -192,14 +195,14 @@ export function InviteUsersDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Invite to {chatName}</DialogTitle>
+          <DialogTitle>Invite to {displayChatName}</DialogTitle>
           <DialogDescription>
             Invite users via email, username, or wallet address
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${chatId ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="email">
               <Mail className="h-4 w-4 mr-1" />
               Email
@@ -212,10 +215,12 @@ export function InviteUsersDialog({
               <Wallet className="h-4 w-4 mr-1" />
               Wallet
             </TabsTrigger>
-            <TabsTrigger value="link">
-              <Share2 className="h-4 w-4 mr-1" />
-              Link
-            </TabsTrigger>
+            {chatId && (
+              <TabsTrigger value="link">
+                <Share2 className="h-4 w-4 mr-1" />
+                Link
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Email Tab */}
@@ -238,7 +243,7 @@ export function InviteUsersDialog({
                 </Button>
               </div>
               <p className="text-xs text-gray-500">
-                Enter email addresses to invite users. They'll receive an invitation link.
+                Enter email addresses to invite users. They&apos;ll receive an invitation link.
               </p>
             </div>
             
@@ -347,43 +352,45 @@ export function InviteUsersDialog({
           </TabsContent>
 
           {/* Share Link Tab */}
-          <TabsContent value="link" className="space-y-4">
-            <div className="space-y-2">
-              <Label>Share Link</Label>
-              <div className="flex gap-2">
-                <Input
-                  value={shareLink || "Click generate to create invite link"}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button
-                  onClick={generateShareLink}
-                  variant="outline"
-                >
-                  Generate
-                </Button>
-                <Button
-                  onClick={copyShareLink}
-                  disabled={!shareLink}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+          {chatId && (
+            <TabsContent value="link" className="space-y-4">
+              <div className="space-y-2">
+                <Label>Share Link</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={shareLink || "Click generate to create invite link"}
+                    readOnly
+                    className="font-mono text-sm"
+                  />
+                  <Button
+                    onClick={generateShareLink}
+                    variant="outline"
+                  >
+                    Generate
+                  </Button>
+                  <Button
+                    onClick={copyShareLink}
+                    disabled={!shareLink}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Share this link to invite anyone to the {isGroupChat ? 'group' : 'chat'}
+                </p>
               </div>
-              <p className="text-xs text-gray-500">
-                Share this link to invite anyone to the {isGroupChat ? 'group' : 'chat'}
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Custom Message (Optional)</Label>
-              <Textarea
-                placeholder="Add a personal message to your invitation..."
-                value={customMessage}
-                onChange={(e) => setCustomMessage(e.target.value)}
-                rows={3}
-              />
-            </div>
-          </TabsContent>
+              
+              <div className="space-y-2">
+                <Label>Custom Message (Optional)</Label>
+                <Textarea
+                  placeholder="Add a personal message to your invitation..."
+                  value={customMessage}
+                  onChange={(e) => setCustomMessage(e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Search Results */}

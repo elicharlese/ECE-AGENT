@@ -16,7 +16,8 @@ import {
   Shield,
   Bell,
   Archive,
-  Trash2
+  Trash2,
+  Box
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { CreditsPopover } from "@/components/credits/CreditsPopover"
+import { isFeatureEnabled, FEATURES } from '@/lib/feature-flags'
 
 interface EnhancedChatHeaderProps {
   chatInfo: {
@@ -60,6 +62,8 @@ interface EnhancedChatHeaderProps {
   onOpenAppLauncher: () => void
   onInviteUsers?: () => void
   isMobile?: boolean
+  onToggleHeadsetView: () => void
+  isHeadsetView?: boolean
 }
 
 export function EnhancedChatHeader({
@@ -71,7 +75,9 @@ export function EnhancedChatHeader({
   onPopout,
   onOpenAppLauncher,
   onInviteUsers,
-  isMobile = false
+  isMobile = false,
+  onToggleHeadsetView,
+  isHeadsetView = false
 }: EnhancedChatHeaderProps) {
   const [showPinnedBanner, setShowPinnedBanner] = useState(pinnedMessages.length > 0)
   const [expandedPins, setExpandedPins] = useState(false)
@@ -206,6 +212,21 @@ export function EnhancedChatHeader({
           >
             <SquareArrowOutUpRight className="h-4 w-4" />
           </Button>
+
+          {/* 3D Headset Toggle (desktop only, gated by feature flag) */}
+          {!isMobile && isFeatureEnabled(FEATURES.IMMERSIVE_CHAT) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleHeadsetView}
+              title={isHeadsetView ? "Exit 3D Headset view" : "Enter 3D Headset view"}
+              aria-label={isHeadsetView ? "Exit 3D Headset view" : "Enter 3D Headset view"}
+              aria-pressed={isHeadsetView}
+              className={cn(isHeadsetView ? "text-blue-600 dark:text-blue-400" : "")}
+            >
+              <Box className="h-4 w-4" />
+            </Button>
+          )}
 
           <CreditsPopover />
 

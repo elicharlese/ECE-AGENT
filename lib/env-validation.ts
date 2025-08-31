@@ -14,6 +14,9 @@ const envSchema = z.object({
   LIVEKIT_API_SECRET: z.string().min(1, "LiveKit API secret is required"),
   NEXT_PUBLIC_LIVEKIT_WS_URL: z.string().url("Invalid LiveKit WebSocket URL"),
 
+  // WebSocket (Optional - mock fallback used when absent)
+  NEXT_PUBLIC_WEBSOCKET_URL: z.string().url("Invalid WebSocket URL").optional(),
+
   // Stripe (Optional)
   STRIPE_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
@@ -67,6 +70,7 @@ export const clientEnv = {
   SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   LIVEKIT_WS_URL: process.env.NEXT_PUBLIC_LIVEKIT_WS_URL,
+  WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
   STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   CREDITS_ENABLED: process.env.NEXT_PUBLIC_CREDITS_ENABLED,
   CREDITS_PER_AI_REQUEST: process.env.NEXT_PUBLIC_CREDITS_PER_AI_REQUEST,

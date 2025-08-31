@@ -11,6 +11,24 @@ export interface Profile {
   updated_at: string
 }
 
+// Lookup by supported wallet address fields (currently Solana only)
+export async function getProfileByWalletAddress(address: string): Promise<Profile | null> {
+  const wallet = address.trim()
+  if (!wallet) return null
+  // Currently only Solana addresses are stored on profiles as `solana_address`
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('solana_address', wallet)
+    .maybeSingle()
+
+  if (error) {
+    console.error('getProfileByWalletAddress error', error)
+    throw new Error(error.message)
+  }
+  return data ?? null
+}
+
 function hasCode(e: unknown): e is { code: string } {
   return typeof (e as { code?: unknown })?.code === 'string'
 }
@@ -195,6 +213,7 @@ export const profileService = {
   getProfileByUserId,
   getProfileByUsername,
   getProfileByIdentifier,
+  getProfileByWalletAddress,
   listProfiles,
   ensureProfile,
 }

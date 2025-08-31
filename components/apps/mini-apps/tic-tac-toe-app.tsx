@@ -93,7 +93,7 @@ export function TicTacToeApp({ onShare }: TicTacToeAppProps) {
         )}
         {gameOver && !winner && (
           <div className="text-center">
-            <Badge variant="outline">It's a Tie! 🤝</Badge>
+            <Badge variant="outline">It&apos;s a Tie! 🤝</Badge>
           </div>
         )}
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Menu, X } from "lucide-react"
+import { Search, Plus, Menu, X, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -19,12 +19,14 @@ interface ChatSidebarProps {
   onSelectChat: (chatId: string) => void
   panelState: "expanded" | "minimized" | "collapsed"
   onSetPanelState: (state: "expanded" | "minimized" | "collapsed") => void
+  onOpenInviteNewChat: () => void
+  onToggleWorkspace?: () => void
 }
 
-export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPanelState }: ChatSidebarProps) {
+export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPanelState, onOpenInviteNewChat, onToggleWorkspace }: ChatSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("")
   const [showArchived, setShowArchived] = useState(false)
-  const { conversations, loading, error, fetchConversations, createConversation } = useConversations()
+  const { conversations, loading, error, fetchConversations } = useConversations()
   const { isMobile, screenSize, orientation } = useResponsiveLayout()
   const isSmallOverlay = isMobile || (screenSize === "tablet" && orientation === "portrait")
 
@@ -48,24 +50,14 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   const regularChats = filteredChats.filter((chat) => !chat.isPinned)
 
   const handleStartChat = async (contactId: string) => {
-    // Start a new conversation when initiating chat from Contacts
-    try {
-      const conv = await createConversation("New Chat")
-      onSelectChat(conv.id)
-      if (isSmallOverlay) onSetPanelState("collapsed")
-    } catch (e) {
-      console.error("Failed to start chat:", e)
-    }
+    // Open invite dialog instead of creating placeholder conversation
+    onOpenInviteNewChat()
+    if (isSmallOverlay) onSetPanelState("collapsed")
   }
 
   const handleNewChat = async () => {
-    try {
-      const conv = await createConversation("New Chat")
-      onSelectChat(conv.id)
-      if (isSmallOverlay) onSetPanelState("collapsed")
-    } catch (e) {
-      console.error("Failed to create conversation:", e)
-    }
+    onOpenInviteNewChat()
+    if (isSmallOverlay) onSetPanelState("collapsed")
   }
 
   if (panelState === "collapsed") return null
@@ -123,6 +115,11 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
             <UserProfile />
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {onToggleWorkspace && (
+              <Button variant="ghost" size="sm" aria-label="Toggle workspace" onClick={onToggleWorkspace}>
+                <Zap className="h-4 w-4" />
+              </Button>
+            )}
             <ContactsManager onStartChat={handleStartChat} />
             <Button variant="ghost" size="sm" aria-label="New chat" onClick={handleNewChat}>
               <Plus className="h-4 w-4" />

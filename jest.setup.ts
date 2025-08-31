@@ -99,3 +99,14 @@ jest.mock('vaul', () => {
     },
   }
 }, { virtual: true })
+
+// Mock CreditsPopover to avoid act() warnings from fetch calls
+jest.mock('@/components/credits/CreditsPopover', () => {
+  const React = require('react') as typeof import('react')
+  return {
+    CreditsPopover: () => React.createElement('div', { 
+      'data-testid': 'credits-popover-mock',
+      'aria-label': 'Credits'
+    }, React.createElement('span', null, '42'))
+  }
+})

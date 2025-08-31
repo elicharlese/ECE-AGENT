@@ -1,18 +1,21 @@
 # Information Architecture
 
-This document captures the current top-level IA and intended navigation scheme. It will evolve as research and validation continue.
+This document captures the current top-level IA and navigation scheme for the ECE-AGENT messaging application.
 
 ## Top-level Sections (Primary Nav)
-1. Dashboard
-2. Customers
-3. Billing
-4. Settings
+1. Home (Landing)
+2. Messages (Chat Interface)
+3. Profile (User Settings)
+4. Test (API Validation)
+5. Auth (Authentication)
 
-These sections map to application routes (React Router v6):
-- `/dashboard`
-- `/customers` (to be implemented)
-- `/billing` (to be implemented)
-- `/settings`
+These sections map to Next.js app routes:
+- `/` - Landing page with authentication redirect
+- `/messages` - Main chat interface with agents and tools
+- `/profile` - User profile and settings
+- `/test` - API connection testing interface
+- `/auth` - Authentication flow with Supabase
+- `/auth/callback` - OAuth callback handling
 
 ## Section Goals and Content Model
 

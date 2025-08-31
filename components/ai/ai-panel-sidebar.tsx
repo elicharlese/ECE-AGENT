@@ -369,7 +369,7 @@ export function AIPanelSidebar({ chatId, isCollapsed, onToggle }: AIPanelSidebar
               <div className="space-y-2">
                 <div className="text-sm p-2 bg-gray-50 dark:bg-gray-700 rounded">
                   <p className="font-medium text-xs mb-1">Sarah Wilson</p>
-                  <p className="text-xs">Don't forget about the team meeting at 2 PM!</p>
+                  <p className="text-xs">Don&apos;t forget about the team meeting at 2 PM!</p>
                 </div>
                 <div className="text-sm p-2 bg-gray-50 dark:bg-gray-700 rounded">
                   <p className="font-medium text-xs mb-1">You</p>

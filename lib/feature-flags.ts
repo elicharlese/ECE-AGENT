@@ -10,6 +10,7 @@ export const FEATURES = {
   VOICE_MESSAGES: 'voice_messages',
   FILE_SHARING: 'file_sharing',
   MESSAGE_REACTIONS: 'message_reactions',
+  IMMERSIVE_CHAT: 'immersive_chat',
 } as const
 
 type FeatureFlag = keyof typeof FEATURES
@@ -80,6 +81,10 @@ class FeatureFlagsManager {
       [FEATURES.MESSAGE_REACTIONS]: { 
         enabled: true,
         rolloutPercentage: 100 
+      },
+      [FEATURES.IMMERSIVE_CHAT]: {
+        enabled: process.env.NEXT_PUBLIC_FF_IMMERSIVE_CHAT_ENABLED === 'true',
+        rolloutPercentage: 100,
       },
     }
 

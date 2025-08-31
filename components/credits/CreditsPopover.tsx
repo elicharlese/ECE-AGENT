@@ -82,8 +82,9 @@ export function CreditsPopover() {
       } else {
         throw new Error("Checkout URL missing")
       }
-    } catch (e: any) {
-      toast({ title: "Checkout failed", description: e?.message || "Please try again later." })
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : (typeof e === 'string' ? e : 'Please try again later.')
+      toast({ title: "Checkout failed", description: message })
     } finally {
       setCheckingOut(null)
     }

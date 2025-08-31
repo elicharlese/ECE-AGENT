@@ -2,66 +2,101 @@
 
 ```mermaid
 graph TD
-    A[User or API Client] -->|HTTP| B[Knowledge Server]
-    B -->|Requests| C[EnhancedAgent]
-    C -->|Domain Task| D[Domain Agents]
-    D --> D1[Developer]
-    D --> D2[Trader]
-    D --> D3[Lawyer]
-    D --> D4[Researcher]
-    D --> D5[Data Engineer]
-    D --> D6[Spline 3D Dev]
-    D --> D7[ClickUp]
-    C -->|Knowledge Ops| E[KnowledgeBase]
-    B -->|GraphQL or REST| E
-    C -->|Performance| F[PerformanceMonitor]
-    C -->|Rust Integration| G[Rust Core]
-    C -->|Security| H[SecurityTools]
-    C -->|Container| I[ContainerOrchestrator]
-    C -->|Web Scraping| J[WebScraper]
-    C -->|Training| K[Trainer]
+    A[User Interface] -->|Next.js App| B[ECE-AGENT Frontend]
+    B -->|API Calls| C[Backend Services]
+    C -->|Training Data| D[Custom AGENT Model]
+    D -->|Mode Selection| E[Specialized Agent Modes]
+    E --> E1[Smart Assistant]
+    E --> E2[Code Companion]
+    E --> E3[Creative Writer]
+    E --> E4[Legal Assistant]
+    E --> E5[Designer Agent]
+    
+    D -->|Self-Learning| F[Training Pipeline]
+    F -->|Data Collection| G[Knowledge Base]
+    F -->|Model Updates| H[Continuous Learning]
+    
+    C -->|Authentication| I[Supabase Auth]
+    C -->|Database| J[Supabase DB]
+    C -->|Real-time| K[LiveKit Integration]
+    C -->|Payments| L[Stripe Integration]
+    C -->|MCP Tools| M[External Integrations]
+    
+    G -->|Vector Storage| N[Embeddings DB]
+    G -->|Structured Data| O[PostgreSQL]
+    G -->|File Storage| P[Supabase Storage]
 ```
 
 ---
 
-Notes and implementation anchors
+## Implementation Architecture
 
-- Web Server: FastAPI service at [agent/knowledge_server.py](agent/knowledge_server.py)
-- Orchestrators:
-  - Core: [agent/core/core.py](agent/core/core.py)
-  - Enhanced: [agent/core/enhanced_agent.py](agent/core/enhanced_agent.py)
-- Domain Agents:
-  - [agent/domains/developer.py](agent/domains/developer.py)
-  - [agent/domains/trader.py](agent/domains/trader.py)
-  - [agent/domains/lawyer.py](agent/domains/lawyer.py)
-  - [agent/domains/researcher.py](agent/domains/researcher.py)
-  - [agent/domains/data_engineer.py](agent/domains/data_engineer.py)
-  - [agent/domains/spline_3d_developer.py](agent/domains/spline_3d_developer.py)
-  - [agent/domains/clickup.py](agent/domains/clickup.py)
-  - Aliases for security roles are mapped to Researcher in [agent/domains/__init__.py](agent/domains/__init__.py)
-- Knowledge Base:
-  - Engine: [agent/core/knowledge_base_v2.py](agent/core/knowledge_base_v2.py)
-  - Endpoints: GraphQL and REST in [agent/knowledge_server.py](agent/knowledge_server.py)
-- Performance Monitor: [agent/integrations/performance_monitor.py](agent/integrations/performance_monitor.py)
-- Rust Integration:
-  - LLM Core: [rust/src/llm_core.rs](rust/src/llm_core.rs)
-- Security Tools: [agent/security_tools.py](agent/security_tools.py)
-- Container Orchestrator: [agent/container_orchestrator.py](agent/container_orchestrator.py)
-- Web Scraper: [agent/web_scraper.py](agent/web_scraper.py)
-- Trainer: [agent/trainer.py](agent/trainer.py)
+### Frontend Layer
+- **Next.js Application**: React-based UI with TypeScript and Tailwind CSS
+- **Authentication**: Supabase Auth with OAuth providers (Google, Solana wallet)
+- **Real-time Communication**: LiveKit for video/audio calls
+- **State Management**: React hooks and context providers
+- **API Testing**: Comprehensive testing interface at `/test`
 
-Implemented components summary
+### Backend Services
+- **API Routes**: Next.js API routes for backend functionality
+- **Database**: Supabase PostgreSQL with Row Level Security
+- **File Storage**: Supabase Storage for media and documents
+- **Payments**: Stripe integration for credits and subscriptions
+- **MCP Integration**: GitHub and other external tool integrations
 
-- Knowledge Server exposes GraphQL or REST endpoints for the KnowledgeBase.
-- EnhancedAgent wraps AGENTCore and provides planning, memory, and multi model routing integration.
-- Domain agents implemented include Developer, Trader, Lawyer, Researcher, Data Engineer, Spline 3D Dev, and ClickUp.
-- KnowledgeBase uses SQLite with SQL LIKE search and a simple relevance score.
-- Performance monitoring is provided by PerformanceMonitor.
-- Rust core exists for high performance operations and integrations.
-- Supporting modules include SecurityTools, ContainerOrchestrator, WebScraper, and Trainer.
+### Custom AGENT Model Architecture
+- **Base Model**: Custom-trained foundation model
+- **Specialized Modes**: Five distinct agent personalities with specialized training
+- **Context Switching**: Dynamic mode selection based on user intent
+- **Memory System**: Persistent conversation context and user preferences
 
-Roadmap
+### Self-Learning Pipeline
+- **Data Collection**: Conversation logs, user feedback, performance metrics
+- **Training Updates**: Continuous fine-tuning with relevant domain data
+- **Model Versioning**: Staged rollouts of improved model versions
+- **Quality Assurance**: Automated testing and human review of model outputs
 
-- Dedicated ScriptGenerator, AlertAgent, CleanupAgent, MonitorAgent as one shot maintenance utilities connected to orchestration signals.
-- Vector or full text indexing for KnowledgeBase in addition to SQL LIKE search.
-- Consolidate knowledge and orchestration endpoints behind a unified application gateway when appropriate.
+## Specialized Agent Modes
+
+### 1. Smart Assistant
+- **Purpose**: General AI helper for everyday tasks
+- **Capabilities**: Scheduling, reminders, general knowledge, task management
+- **Training Data**: Broad general knowledge, productivity workflows
+
+### 2. Code Companion  
+- **Purpose**: Programming and development assistance
+- **Capabilities**: Code generation, debugging, architecture advice, code review
+- **Training Data**: GitHub repositories, documentation, coding best practices
+
+### 3. Creative Writer
+- **Purpose**: Content creation and writing assistance
+- **Capabilities**: Articles, stories, marketing copy, editing, style guidance
+- **Training Data**: Literature, journalism, marketing materials, writing guides
+
+### 4. Legal Assistant
+- **Purpose**: Legal research and document analysis
+- **Capabilities**: Contract review, legal research, compliance guidance
+- **Training Data**: Legal documents, case law, regulations, legal precedents
+
+### 5. Designer Agent
+- **Purpose**: Design consultation and creative direction
+- **Capabilities**: UI/UX advice, design systems, visual hierarchy, accessibility
+- **Training Data**: Design patterns, style guides, accessibility standards
+
+## Current Implementation Status
+
+- ✅ Frontend architecture with Next.js and Supabase
+- ✅ Authentication and user management
+- ✅ Basic chat interface with agent selection
+- ✅ API testing infrastructure
+- 🔄 Custom model training pipeline (in development)
+- 🔄 Specialized mode implementations (in development)
+- 🔄 Self-learning mechanisms (planned)
+
+## Roadmap
+
+- **Phase 1**: Complete specialized agent mode implementations
+- **Phase 2**: Deploy custom AGENT model with initial training
+- **Phase 3**: Implement self-learning pipeline with continuous updates
+- **Phase 4**: Advanced features like multi-modal inputs and collaborative agents

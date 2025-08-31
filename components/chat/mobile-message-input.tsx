@@ -256,7 +256,13 @@ export function MobileMessageInput({
       {/* Input row with enhanced controls */}
       <div className="flex items-end gap-3 px-4 py-3">
         {!showActions && (
-          <Button variant="ghost" size="sm" onClick={toggleActions} className="mb-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleActions}
+            className="mb-1"
+            aria-label="Open actions"
+          >
             <Plus className="h-4 w-4" />
           </Button>
         )}

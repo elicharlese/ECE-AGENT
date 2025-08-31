@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useUser } from "@/contexts/user-context"
 import { LoginForm } from "@/components/login-form"
 import dynamic from "next/dynamic"
@@ -13,9 +13,9 @@ const ChatWindow = dynamic(() => import("@/components/chat/chat-window").then(m 
   ssr: false,
   loading: () => <div className="p-4 text-sm text-gray-500">Loading chat…</div>,
 })
-const AgentSidebar = dynamic(() => import("@/components/chat/agent-sidebar").then(m => m.AgentSidebar), {
+const WorkspaceSidebar = dynamic(() => import("@/components/workspace/workspace-sidebar").then(m => m.WorkspaceSidebar), {
   ssr: false,
-  loading: () => <div className="p-4 text-sm text-gray-500">Loading agents…</div>,
+  loading: () => <div className="p-4 text-sm text-gray-500">Loading workspace…</div>,
 })
 import { QuickChatDrawer } from "@/components/chat/QuickChatDrawer"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -26,9 +26,11 @@ import type { ImperativePanelHandle } from "react-resizable-panels"
 import { EmptyChatState } from "@/components/chat/EmptyChatState"
 import { useConversations } from "@/hooks/use-conversations"
 import { useHotkeys } from "@/hooks/use-hotkeys"
-import { ChatTabsBar } from "@/components/chat/ChatTabsBar"
 import { ErrorBoundary, ChatErrorBoundary } from "@/components/ErrorBoundary"
 import { AuthLoadingState } from "@/components/LoadingStates"
+import { InviteUsersDialog } from "@/components/chat/invite-users-dialog"
+import { profileService } from "@/services/profile-service"
+import { supabase } from "@/lib/supabase/client"
 
 export function ChatApp() {
   const { user, isLoading } = useUser()
@@ -54,14 +56,15 @@ function AuthenticatedChatApp() {
   const [selectedAgentId, setSelectedAgentId] = useState<string>()
   const [leftPanelState, setLeftPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
   const [rightPanelState, setRightPanelState] = useState<"expanded" | "minimized" | "collapsed">("expanded")
-  const [showAgentSidebar] = useState(true)
+  const [showWorkspaceSidebar, setShowWorkspaceSidebar] = useState(true)
   const leftPanelRef = useRef<ImperativePanelHandle | null>(null)
   const rightPanelRef = useRef<ImperativePanelHandle | null>(null)
   const isMobile = useIsMobile()
   const { screenSize, orientation, canShowDualSidebars, shouldCollapseSidebars } = useResponsiveLayout()
   const searchParams = useSearchParams()
   const isPopout = (searchParams.get("popout") || "") === "1"
-  const { conversations, createConversation } = useConversations()
+  const { conversations, createConversationWithParticipants } = useConversations()
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
 
   useEffect(() => {
     if (shouldCollapseSidebars) {
@@ -73,19 +76,26 @@ function AuthenticatedChatApp() {
     }
   }, [shouldCollapseSidebars, canShowDualSidebars])
 
-  const handleSelectAgent = (agentId: string) => {
+  const handleSelectAgent = useCallback((agentId: string) => {
     setSelectedAgentId(agentId)
     if (isMobile || screenSize === "tablet") {
-        setRightPanelState("collapsed")
+      setRightPanelState("collapsed")
     }
-  }
+  }, [])
 
-  const handleSelectChat = (chatId: string) => {
+  const handleToggleWorkspace = useCallback(() => {
+    setShowWorkspaceSidebar(prev => !prev)
+    if (!showWorkspaceSidebar && rightPanelState === "collapsed") {
+      setRightPanelState("expanded")
+    }
+  }, [showWorkspaceSidebar, rightPanelState])
+
+  const handleSelectChat = useCallback((chatId: string) => {
     setSelectedChatId(chatId)
     if (isMobile) {
       setLeftPanelState("collapsed")
     }
-  }
+  }, [isMobile])
 
   // Keyboard shortcuts to switch chats: Alt+ArrowLeft / Alt+ArrowRight
   const selectRelativeChat = (delta: -1 | 1) => {
@@ -201,7 +211,7 @@ function AuthenticatedChatApp() {
           <Menu className="h-4 w-4" />
         </button>
       )}
-      {showAgentSidebar && rightPanelState === "collapsed" && (
+      {showWorkspaceSidebar && rightPanelState === "collapsed" && (
         <button
           type="button"
           onClick={cycleRight}
@@ -228,6 +238,8 @@ function AuthenticatedChatApp() {
                 onSelectChat={handleSelectChat}
                 panelState={leftPanelState}
                 onSetPanelState={setLeftPanelState}
+                onOpenInviteNewChat={() => setIsInviteOpen(true)}
+                onToggleWorkspace={handleToggleWorkspace}
               />
               {leftPanelState !== "collapsed" && (
                 <button
@@ -243,15 +255,6 @@ function AuthenticatedChatApp() {
           </div>
 
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Chat tabs bar at the top of chat area (mobile/tablet portrait) */}
-            <div className="border-b border-transparent bg-gray-50 dark:bg-gray-900">
-              <ChatTabsBar
-                conversations={conversations}
-                value={selectedChatId}
-                onValueChange={(id) => handleSelectChat(id)}
-                className="px-2 py-1"
-              />
-            </div>
             {selectedChatId ? (
               <ChatErrorBoundary>
                 <ChatWindow
@@ -262,16 +265,45 @@ function AuthenticatedChatApp() {
               </ChatErrorBoundary>
             ) : (
               <EmptyChatState
-                onStartNewChat={async () => {
-                  try {
-                    const conv = await createConversation("New Chat")
-                    setSelectedChatId(conv.id)
-                    if (isMobile) setLeftPanelState("collapsed")
-                  } catch { /* no-op */ }
+                onStartNewChat={() => {
+                  setIsInviteOpen(true)
                 }}
               />
             )}
           </div>
+
+          {showWorkspaceSidebar && (
+            <div
+              className={`
+              ${getRightSidebarWidth()}
+              fixed inset-y-0 right-0 z-40
+              transition-all duration-300 ease-in-out
+              ${isMobile ? "safe-area-inset-right" : ""}
+              ${screenSize === "tablet" && orientation === "portrait" ? "safe-area-inset-right" : ""}
+            `}
+            >
+              <div className="relative h-full">
+                <WorkspaceSidebar
+                  selectedAgentId={selectedAgentId}
+                  onSelectAgent={handleSelectAgent}
+                  panelState={rightPanelState}
+                  onSetPanelState={setRightPanelState}
+                  activeParticipants={1}
+                  isConnected={true}
+                />
+                {rightPanelState !== "collapsed" && (
+                  <button
+                    type="button"
+                    onClick={cycleRight}
+                    aria-label={`Toggle workspace sidebar (${rightPanelState})`}
+                    className="absolute -left-2 top-1/2 -translate-y-1/2 z-40 rounded-l-md border border-transparent bg-white/90 dark:bg-gray-800/90 p-2 shadow hover:bg-white dark:hover:bg-gray-800"
+                  >
+                    <Menu className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <ResizablePanelGroup direction="horizontal" className="h-full">
@@ -290,6 +322,8 @@ function AuthenticatedChatApp() {
                 onSelectChat={handleSelectChat}
                 panelState={leftPanelState}
                 onSetPanelState={setLeftPanelState}
+                onOpenInviteNewChat={() => setIsInviteOpen(true)}
+                onToggleWorkspace={handleToggleWorkspace}
               />
               {leftPanelState !== "collapsed" && (
                 <button
@@ -307,15 +341,6 @@ function AuthenticatedChatApp() {
           <ResizableHandle />
 
           <ResizablePanel defaultSize={50} minSize={30} className="min-w-0 overflow-hidden">
-            {/* Chat tabs bar at the top of chat area (desktop/tablet landscape) */}
-            <div className="border-b border-transparent bg-gray-50 dark:bg-gray-900">
-              <ChatTabsBar
-                conversations={conversations}
-                value={selectedChatId}
-                onValueChange={(id) => handleSelectChat(id)}
-                className="px-2 py-1"
-              />
-            </div>
             {selectedChatId ? (
               <ChatErrorBoundary>
                 <ChatWindow
@@ -326,17 +351,14 @@ function AuthenticatedChatApp() {
               </ChatErrorBoundary>
             ) : (
               <EmptyChatState
-                onStartNewChat={async () => {
-                  try {
-                    const conv = await createConversation("New Chat")
-                    setSelectedChatId(conv.id)
-                  } catch { /* no-op */ }
+                onStartNewChat={() => {
+                  setIsInviteOpen(true)
                 }}
               />
             )}
           </ResizablePanel>
 
-          {showAgentSidebar && (
+          {showWorkspaceSidebar && (
             <>
               <ResizableHandle />
               <ResizablePanel
@@ -359,11 +381,13 @@ function AuthenticatedChatApp() {
                       <Menu className="h-4 w-4" />
                     </button>
                   )}
-                  <AgentSidebar
+                  <WorkspaceSidebar
                     selectedAgentId={selectedAgentId}
                     onSelectAgent={handleSelectAgent}
                     panelState={rightPanelState}
                     onSetPanelState={setRightPanelState}
+                    activeParticipants={1}
+                    isConnected={true}
                   />
                 </div>
               </ResizablePanel>
@@ -427,6 +451,43 @@ function AuthenticatedChatApp() {
       )}
 
       <QuickChatDrawer title="Quick Chat" />
+
+      {/* Invite dialog for creating a new conversation */}
+      <InviteUsersDialog
+        isOpen={isInviteOpen}
+        onClose={() => setIsInviteOpen(false)}
+        // No chatId: this is for creating a brand new chat
+        onInviteUsers={async (users) => {
+          // Resolve identifiers to user IDs
+          const resolvedIds: string[] = []
+          for (const u of users as Array<{ identifier: string; type: "email" | "username" | "wallet" }>) {
+            try {
+              if (u.type === "wallet") {
+                const prof = await profileService.getProfileByWalletAddress(u.identifier)
+                if (prof?.user_id) resolvedIds.push(prof.user_id)
+              } else {
+                const prof = await profileService.getProfileByIdentifier(u.identifier)
+                if (prof?.user_id) resolvedIds.push(prof.user_id)
+              }
+            } catch {/* ignore individual resolution failures */}
+          }
+          // Deduplicate and exclude self
+          const { data: auth } = await supabase.auth.getUser()
+          const selfId = auth?.user?.id
+          const participantIds = Array.from(new Set(resolvedIds)).filter((id) => !!id && id !== selfId)
+          if (participantIds.length === 0) {
+            throw new Error("No valid users to invite")
+          }
+          const conv = await createConversationWithParticipants(
+            "New Chat",
+            participantIds,
+            selectedAgentId
+          )
+          setSelectedChatId(conv.id)
+          if (isMobile) setLeftPanelState("collapsed")
+          setIsInviteOpen(false)
+        }}
+      />
     </div>
   )
 }

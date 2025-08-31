@@ -2,13 +2,16 @@
 
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
-import { Bot, Plus, Send, X } from "lucide-react"
+import { Bot, Plus, Send, X, Calculator, Calendar, GamepadIcon, Sparkles, Zap, Brain } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { CreditBadge } from "@/components/credits/CreditBadge"
 import { BuyCreditsButton } from "@/components/credits/BuyCreditsButton"
 import { CREDITS_ENABLED, CREDITS_PER_AI_REQUEST } from "@/lib/pricing"
+import { EmojiPicker } from "./emoji-picker"
+import { FileUpload } from "./file-upload"
+import { GifPicker } from "./gif-picker"
 
 export interface DesktopMessageInputProps {
   value: string
@@ -44,6 +47,42 @@ export function DesktopMessageInput({
   const [isExpanded, setIsExpanded] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const [activeTab, setActiveTab] = useState<"media" | "apps" | "agents">("media")
+
+  const quickApps = [
+    { id: "calculator", name: "Calculator", icon: Calculator, color: "bg-blue-500" },
+    { id: "tic-tac-toe", name: "Tic Tac Toe", icon: GamepadIcon, color: "bg-green-500" },
+    { id: "event-planner", name: "Event Planner", icon: Calendar, color: "bg-purple-500" },
+  ]
+
+  const aiAgents = [
+    {
+      id: "smart-assistant",
+      name: "Smart Assistant",
+      icon: Brain,
+      color: "bg-indigo-500",
+      description: "General AI helper",
+    },
+    {
+      id: "code-companion",
+      name: "Code Companion",
+      icon: Zap,
+      color: "bg-orange-500",
+      description: "Programming assistant",
+    },
+    {
+      id: "creative-writer",
+      name: "Creative Writer",
+      icon: Sparkles,
+      color: "bg-pink-500",
+      description: "Writing & content",
+    },
+  ]
+
+  const handleAppLaunch = (appId: string, appName: string) => {
+    onLaunchApp?.(appId, appName)
+    setShowActions(false)
+  }
 
   // Auto-resize textarea for desktop too
   useEffect(() => {
@@ -96,13 +135,105 @@ export function DesktopMessageInput({
         </div>
       )}
 
-      {/* Optional quick actions header (collapsed by default) */}
+      {/* Action panel (collapsed by default) */}
       {showActions && (
-        <div className="border-b border-gray-200 dark:border-gray-700 px-3 py-2 flex items-center justify-between">
-          <div className="text-xs text-gray-500">Quick actions</div>
-          <Button variant="ghost" size="sm" onClick={toggleActions}>
-            <X className="h-4 w-4" />
-          </Button>
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          {/* Tabs header */}
+          <div className="flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700">
+            <div className="flex items-center gap-1">
+              <Button
+                variant={activeTab === "media" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("media")}
+                className="text-xs"
+              >
+                Media
+              </Button>
+              <Button
+                variant={activeTab === "apps" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("apps")}
+                className="text-xs"
+              >
+                Apps
+              </Button>
+              <Button
+                variant={activeTab === "agents" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setActiveTab("agents")}
+                className="text-xs"
+              >
+                Agents
+              </Button>
+            </div>
+            <Button variant="ghost" size="sm" onClick={toggleActions}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Tab content */}
+          <div className="p-3">
+            {activeTab === "media" && (
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Media & Content</div>
+                <div className="flex items-center gap-2">
+                  {onFileSelect && <FileUpload onFileSelect={onFileSelect} />}
+                  {onEmojiSelect && <EmojiPicker onEmojiSelect={onEmojiSelect} />}
+                  {onGifSelect && <GifPicker onGifSelect={onGifSelect} />}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "apps" && (
+              <div className="space-y-3">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">Quick Apps</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {quickApps.map((app) => (
+                    <Button
+                      key={app.id}
+                      variant="outline"
+                      className="flex flex-col items-center gap-2 h-auto py-3 bg-transparent"
+                      onClick={() => handleAppLaunch(app.id, app.name)}
+                    >
+                      <div className={`p-2 rounded-full ${app.color} text-white`}>
+                        <app.icon className="h-4 w-4" />
+                      </div>
+                      <span className="text-xs">{app.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "agents" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Agents</div>
+                  <Badge variant={agentMode ? "default" : "secondary"} className="text-xs">
+                    {agentMode ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+                <div className="space-y-2">
+                  {aiAgents.map((agent) => (
+                    <Button
+                      key={agent.id}
+                      variant="outline"
+                      className="flex items-center gap-3 w-full justify-start h-auto py-3 bg-transparent"
+                      onClick={() => handleAppLaunch(agent.id, agent.name)}
+                    >
+                      <div className={`p-2 rounded-full ${agent.color} text-white`}>
+                        <agent.icon className="h-4 w-4" />
+                      </div>
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium">{agent.name}</span>
+                        <span className="text-xs text-gray-500">{agent.description}</span>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

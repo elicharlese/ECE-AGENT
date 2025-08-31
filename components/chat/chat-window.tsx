@@ -46,6 +46,12 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { messageService } from "@/services/message-service"
 import { toast } from "@/components/ui/use-toast"
 import { DesktopMessageInput } from "./DesktopMessageInput"
+import { Headset3DView } from "./Headset3DView"
+import { isFeatureEnabled, FEATURES } from '@/lib/feature-flags'
+import { trackEvent } from '@/lib/analytics'
+import { WorkspaceMode } from '../workspace/workspace-mode'
+import { WorkspaceToolbar } from '../workspace/workspace-toolbar'
+import { useWorkspace } from '@/hooks/use-workspace'
 
 interface Message {
   id: string
@@ -61,6 +67,14 @@ interface Message {
   isPinned?: boolean
   isLiked?: boolean
   likeCount?: number
+  gifData?: {
+    id: string
+    title: string
+    url: string
+    preview_url: string
+    width: number
+    height: number
+  }
   appData?: {
     appId: string
     appName: string
@@ -148,10 +162,43 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
   const [showJump, setShowJump] = useState(false)
   const [lastReadAt, setLastReadAt] = useState<Date | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [isHeadsetView, setIsHeadsetView] = useState<boolean>(false)
+  const [workspaceMode, setWorkspaceMode] = useState<'chat' | 'workspace'>('chat')
   const isMobile = useIsMobile()
   const { triggerHaptic } = useHaptics()
   const { isConnected, messages: wsMessages, joinConversation, sendChatMessage, sendTyping, sendEditMessage, typingUsers: wsTypingUsers } = useWebSocket()
   const { conversations, inviteParticipants } = useConversations()
+  const [workspaceState, workspaceActions] = useWorkspace(chatId)
+
+  // Restore headset view per chat from localStorage (desktop-only, feature gated)
+  useEffect(() => {
+    const enabled = isFeatureEnabled(FEATURES.IMMERSIVE_CHAT)
+    if (!enabled || isMobile) {
+      setIsHeadsetView(false)
+      return
+    }
+    try {
+      const raw = localStorage.getItem(`chat_immersive_3d_${chatId}`)
+      setIsHeadsetView(raw === '1')
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatId, isMobile])
+
+  const handleToggleHeadsetView = useCallback(() => {
+    const enabled = isFeatureEnabled(FEATURES.IMMERSIVE_CHAT)
+    if (!enabled || isMobile) return
+    setIsHeadsetView((prev: boolean) => {
+      const next = !prev
+      try { localStorage.setItem(`chat_immersive_3d_${chatId}`, next ? '1' : '0') } catch {}
+      trackEvent({ name: 'immersive_chat_toggle', properties: { chatId, enabled: next } })
+      return next
+    })
+  }, [chatId, isMobile])
+
+  const shouldShowHeadset3D = useMemo(
+    () => isHeadsetView && !isMobile && isFeatureEnabled(FEATURES.IMMERSIVE_CHAT),
+    [isHeadsetView, isMobile]
+  )
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -320,6 +367,35 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
       fileSize: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
     }
 
+    setMessages((prev) => [...prev, message])
+  }
+
+  const handleGifSelect = (gif: {
+    id: string
+    title: string
+    url: string
+    preview_url: string
+    width: number
+    height: number
+  }) => {
+    const message: Message = {
+      id: Date.now().toString(),
+      content: gif.title,
+      timestamp: new Date(),
+      senderId: "1",
+      senderName: "You",
+      type: "gif",
+      isOwn: true,
+      mediaUrl: gif.url,
+      gifData: {
+        id: gif.id,
+        title: gif.title,
+        url: gif.url,
+        preview_url: gif.preview_url,
+        width: gif.width,
+        height: gif.height,
+      },
+    }
     setMessages((prev) => [...prev, message])
   }
 
@@ -568,123 +644,178 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
     .filter((m) => m.isPinned)
     .map((m) => ({ id: m.id, content: m.content, sender: m.senderName, timestamp: m.timestamp }))
 
+  const headsetItems = useMemo(() => (
+    messages.map((m) => ({ id: m.id, content: m.content, timestamp: m.timestamp, isOwn: m.isOwn }))
+  ), [messages])
+
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <EnhancedChatHeader
-        chatInfo={chatInfo as any}
-        pinnedMessages={pinnedForHeader}
-        onPhoneCall={handlePhoneCall}
-        onVideoCall={handleVideoCall}
-        onOpenAgentSettings={() => setShowAgentIntegration(true)}
-        onPopout={handlePopout}
-        onOpenAppLauncher={openAppLauncherDrawer}
-        onInviteUsers={isGroup ? () => setShowInviteDialog(true) : undefined}
-        isMobile={isMobile}
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+      {/* Workspace Toolbar */}
+      <WorkspaceToolbar
+        mode={workspaceMode}
+        layout={workspaceState.layout}
+        activeTab={workspaceState.activeTab}
+        activeParticipants={participantsCount}
+        isConnected={isConnected}
+        onModeChange={(mode) => {
+          setWorkspaceMode(mode)
+          workspaceActions.setMode(mode)
+        }}
+        onLayoutChange={workspaceActions.setLayout}
+        onTabChange={workspaceActions.setActiveTab}
+        onStartVideoCall={() => {
+          setShowVideoCall(true)
+          workspaceActions.startVideoCall()
+        }}
+        onStartPhoneCall={() => {
+          setShowPhoneCall(true)
+          workspaceActions.startPhoneCall()
+        }}
+        onExecuteTool={(toolType) => workspaceActions.executeToolAction(toolType, {})}
+        onGenerateMedia={(type) => workspaceActions.generateMedia(type, `Generate ${type}`)}
       />
-      {/* Global App Launcher Drawer and draggable tab */}
-      <AppLauncher onLaunchApp={handleLaunchApp} />
 
-      {/* Messages with Pull to Refresh */}
-      <div className="flex-1 min-h-0 overflow-hidden relative">
-        <PullToRefresh onRefresh={handleRefresh} ref={contentRef} onScroll={handleScroll}>
-          <div className={`h-full ${isMobile ? "px-3 py-2" : "p-4"}`}>
-            <div className="space-y-4">
-              {/* Loading skeletons gated by a real loading flag */}
-              {isLoading && (
-                <div className="space-y-4 p-2">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex gap-2">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-2/3" />
-                        <Skeleton className="h-4 w-1/3" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* Empty state when not loading */}
-              {!isLoading && messages.length === 0 && (
-                <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">No messages yet. Say hello!</div>
-              )}
+      {/* Workspace Mode or Traditional Chat */}
+      {workspaceMode === 'workspace' ? (
+        <WorkspaceMode
+          chatId={chatId}
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onEditMessage={handleUpdateMessage}
+          typingUsers={wsTypingUsers}
+          isConnected={isConnected}
+        />
+      ) : (
+        <>
+          {/* Traditional Chat Header */}
+          <EnhancedChatHeader
+            chatInfo={chatInfo as any}
+            pinnedMessages={pinnedForHeader}
+            onPhoneCall={handlePhoneCall}
+            onVideoCall={handleVideoCall}
+            onOpenAgentSettings={() => setShowAgentIntegration(true)}
+            onPopout={handlePopout}
+            onOpenAppLauncher={openAppLauncherDrawer}
+            onInviteUsers={isGroup ? () => setShowInviteDialog(true) : undefined}
+            isMobile={isMobile}
+            onToggleHeadsetView={handleToggleHeadsetView}
+            isHeadsetView={isHeadsetView}
+          />
 
-              {messages.map((message, idx) => {
-                const prev = messages[idx - 1]
-                const showDay = !prev || prev.timestamp.toDateString() !== message.timestamp.toDateString()
-                const showUnread = firstUnreadIndex === idx
-                return (
-                  <div key={message.id}>
-                    {showDay && <DateDivider label={dayLabel(message.timestamp)} />}
-                    {showUnread && <UnreadDivider />}
-                    {message.type === "app" ? (
-                      <div className={`flex ${message.isOwn ? "justify-end" : "justify-start"}`}>
-                        <AppMessage
-                          message={{
-                            appId: message.appData?.appId || "",
-                            appName: message.appData?.appName || "",
-                            content: message.content,
-                            timestamp: message.timestamp,
-                          }}
-                          onOpenApp={handleOpenApp}
-                        />
-                      </div>
-                    ) : (
-                      <MessageBubble message={message} onUpdateMessage={handleUpdateMessage} />
-                    )}
-                  </div>
-                )
-              })}
-              {/* Typing Indicators */}
-              {Object.entries(wsTypingUsers).map(([userId, userInfo]) => (
-                <TypingIndicator 
-                  key={userId} 
-                  userId={userId} 
-                  userName={userInfo.name} 
-                />
-              ))}
-              <div ref={messagesEndRef} />
+          {/* Global App Launcher Drawer and draggable tab */}
+          <AppLauncher onLaunchApp={handleLaunchApp} />
+
+          {/* Messages or Headset 3D View */}
+          {shouldShowHeadset3D ? (
+            <div className="flex-1 min-h-0 overflow-hidden relative">
+              <Headset3DView items={headsetItems} />
             </div>
-          </div>
-        </PullToRefresh>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-hidden relative">
+              <PullToRefresh onRefresh={handleRefresh} ref={contentRef} onScroll={handleScroll}>
+                <div className={`h-full ${isMobile ? "px-3 py-2" : "p-3 md:p-4 lg:p-6"}`}>
+                  <div className="space-y-4">
+                    {/* Loading skeletons gated by a real loading flag */}
+                    {isLoading ? (
+                      <div className="space-y-4 p-2">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="flex gap-2">
+                            <Skeleton className="h-8 w-8 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                              <Skeleton className="h-4 w-2/3" />
+                              <Skeleton className="h-4 w-1/3" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                {/* Empty state when not loading */}
+                {!isLoading && messages.length === 0 && (
+                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">No messages yet. Say hello!</div>
+                )}
 
-        {/* Jump to Latest */}
-        {showJump && (
-          <button
-            onClick={scrollToBottom}
-            className="absolute bottom-24 right-4 z-30 bg-blue-600 text-white shadow-lg rounded-full px-3 py-2 flex items-center gap-2 hover:bg-blue-700 focus:outline-none"
-            aria-label="Jump to latest"
-          >
-            <ChevronDown className="h-4 w-4" />
-            <span className="text-xs font-medium">Jump to latest</span>
-          </button>
-        )}
-      </div>
+                {messages.map((message, idx) => {
+                  const prev = messages[idx - 1]
+                  const showDay = !prev || prev.timestamp.toDateString() !== message.timestamp.toDateString()
+                  const showUnread = firstUnreadIndex === idx
+                  return (
+                    <div key={message.id}>
+                      {showDay && <DateDivider label={dayLabel(message.timestamp)} />}
+                      {showUnread && <UnreadDivider />}
+                      {message.type === "app" ? (
+                        <div className={`flex ${message.isOwn ? "justify-end" : "justify-start"}`}>
+                          <AppMessage
+                            message={{
+                              appId: message.appData?.appId || "",
+                              appName: message.appData?.appName || "",
+                              content: message.content,
+                              timestamp: message.timestamp,
+                            }}
+                            onOpenApp={handleOpenApp}
+                          />
+                        </div>
+                      ) : (
+                        <MessageBubble message={message} onUpdateMessage={handleUpdateMessage} />
+                      )}
+                    </div>
+                  )
+                })}
+                {/* Typing Indicators */}
+                {Object.entries(wsTypingUsers).map(([userId, userInfo]) => (
+                  <TypingIndicator 
+                    key={userId} 
+                    userId={userId} 
+                    userName={userInfo.name} 
+                  />
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </div>
+          </PullToRefresh>
+          {/* Jump to Latest */}
+          {showJump && (
+            <button
+              onClick={scrollToBottom}
+              className="absolute bottom-24 right-4 z-30 bg-blue-600 text-white shadow-lg rounded-full px-3 py-2 flex items-center gap-2 hover:bg-blue-700 focus:outline-none"
+              aria-label="Jump to latest"
+            >
+              <ChevronDown className="h-4 w-4" />
+              <span className="text-xs font-medium">Jump to latest</span>
+            </button>
+          )}
+        </div>
+      )}
+        </>
+      )}
 
-      {/* Message Input */}
-      <div className="flex-shrink-0">
-        {isMobile ? (
-          <MobileMessageInput
-            value={newMessage}
-            onChange={setNewMessage}
-            onSend={handleSendMessage}
-            onEmojiSelect={handleEmojiSelect}
-            onFileSelect={handleFileSelect}
-            onLaunchApp={handleLaunchApp}
-            onAgentToggle={() => { /* reserved for parity; no-op */ }}
-          />
-        ) : (
-          <DesktopMessageInput
-            value={newMessage}
-            onChange={setNewMessage}
-            onSend={handleSendMessage}
-            onEmojiSelect={handleEmojiSelect}
-            onFileSelect={handleFileSelect}
-            onLaunchApp={handleLaunchApp}
-            onAgentToggle={() => { /* reserved for parity; no-op */ }}
-          />
-        )}
-      </div>
+      {/* Message Input (hidden in Headset view) */}
+      {!shouldShowHeadset3D && (
+        <div className="flex-shrink-0">
+          {isMobile ? (
+            <MobileMessageInput
+              value={newMessage}
+              onChange={setNewMessage}
+              onSend={handleSendMessage}
+              onEmojiSelect={handleEmojiSelect}
+              onFileSelect={handleFileSelect}
+              onGifSelect={handleGifSelect}
+              onLaunchApp={handleLaunchApp}
+              onAgentToggle={() => { /* reserved for parity; no-op */ }}
+            />
+          ) : (
+            <DesktopMessageInput
+              value={newMessage}
+              onChange={setNewMessage}
+              onSend={handleSendMessage}
+              onEmojiSelect={handleEmojiSelect}
+              onFileSelect={handleFileSelect}
+              onGifSelect={handleGifSelect}
+              onLaunchApp={handleLaunchApp}
+              onAgentToggle={() => { /* reserved for parity; no-op */ }}
+            />
+          )}
+        </div>
+      )}
 
       {/* App Modal */}
       <Dialog open={!!activeApp} onOpenChange={() => setActiveApp(null)}>

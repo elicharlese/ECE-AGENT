@@ -148,7 +148,12 @@ export function GifPicker({ onGifSelect }: GifPickerProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="sm" className="hover:bg-purple-50 dark:hover:bg-purple-900/20">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="hover:bg-purple-50 dark:hover:bg-purple-900/20"
+          aria-label="Open GIF picker"
+        >
           <ImageIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
         </Button>
       </PopoverTrigger>
