@@ -30,6 +30,7 @@ import {
   ChevronDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/ui/ThemeToggle"
 
 interface WorkspaceToolbarProps {
   mode: 'chat' | 'workspace'
@@ -237,6 +238,8 @@ export function WorkspaceToolbar({
             </Button>
           </>
         )}
+
+        <ThemeToggle />
 
         <Button variant="ghost" size="sm">
           <Settings className="h-4 w-4" />

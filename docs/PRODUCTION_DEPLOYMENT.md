@@ -45,10 +45,6 @@ pnpm update
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push to main
 
-### Netlify
-1. Build command: `pnpm run build`
-2. Publish directory: `.next`
-3. Set environment variables in Netlify dashboard
 
 ### Docker Deployment
 ```dockerfile

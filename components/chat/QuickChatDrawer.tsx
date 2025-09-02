@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -20,6 +20,7 @@ export function QuickChatDrawer({ title = "Quick Chat" }: QuickChatDrawerProps) 
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
   const { sendChatMessage, joinConversation } = useWebSocket()
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
   // Stable mini-chat conversation id shared with MiniChatWidget for continuity
   const miniChatConversationId = useMemo(() => {
@@ -36,14 +37,26 @@ export function QuickChatDrawer({ title = "Quick Chat" }: QuickChatDrawerProps) 
   useEffect(() => {
     if (open) {
       try { joinConversation(miniChatConversationId) } catch {}
+      // Focus textarea after drawer opens and layout stabilizes
+      const id = requestAnimationFrame(() => textareaRef.current?.focus())
+      return () => cancelAnimationFrame(id)
     }
   }, [open, joinConversation, miniChatConversationId])
 
-  const onSend = () => {
+  const onSend = useCallback(() => {
     const text = message.trim()
     if (!text) return
     try { sendChatMessage(text, miniChatConversationId) } catch {}
     setMessage("")
+  }, [message, miniChatConversationId, sendChatMessage])
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const isComposing = (e.nativeEvent as any)?.isComposing
+    if (isComposing) return
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      onSend()
+    }
   }
 
   return (
@@ -77,12 +90,14 @@ export function QuickChatDrawer({ title = "Quick Chat" }: QuickChatDrawerProps) 
           </div>
           <div className="flex items-end gap-2">
             <Textarea
+              ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onKeyDown={onKeyDown}
               rows={3}
               placeholder="Type a quick message..."
               className="resize-none bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 min-h-[60px] focus:ring-2 focus:ring-indigo-500"
-            />
+              />
             <Button disabled={!message.trim()} onClick={onSend} className="bg-indigo-600 hover:bg-indigo-700 text-white">
               Send
             </Button>

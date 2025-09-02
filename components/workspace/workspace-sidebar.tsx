@@ -67,7 +67,7 @@ export function WorkspaceSidebar({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
   const handleItemAction = useCallback((action: string, itemId?: string) => {
-    trackEvent('workspace_item_action', { action, itemId })
+    trackEvent({ name: 'workspace_item_action', properties: { action, itemId } })
     
     switch (action) {
       case 'run':
@@ -93,12 +93,12 @@ export function WorkspaceSidebar({
 
   const handleToolExecution = useCallback((toolType: string) => {
     onExecuteTool?.(toolType)
-    trackEvent('workspace_tool_execute', { toolType })
+    trackEvent({ name: 'workspace_tool_execute', properties: { toolType } })
   }, [onExecuteTool])
 
   const handleMediaGeneration = useCallback((type: string) => {
     onGenerateMedia?.(type)
-    trackEvent('workspace_media_generate', { type })
+    trackEvent({ name: 'workspace_media_generate', properties: { type } })
   }, [onGenerateMedia])
 
   if (panelState === "collapsed") {

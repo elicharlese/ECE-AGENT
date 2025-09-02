@@ -19,6 +19,12 @@ import {
   AlertCircle,
   Code,
   Calculator,
+  Brain,
+  Star,
+  ThumbsUp,
+  ThumbsDown,
+  Eye,
+  EyeOff
 } from "lucide-react"
 
 export interface AgentIntegration {
@@ -91,11 +97,35 @@ export interface AgentSettings {
   maxActionsPerHour: number
 }
 
+// AGENT LLM Integration
+interface AgentResponse {
+  content: string
+  agentMode: string
+  confidence: number
+  reasoningTrace: Array<{
+    step: number
+    reasoning: string
+    action?: string
+    result?: any
+    timestamp: string
+  }>
+  examplesRetrieved: number
+  toolsUsed: string[]
+  suggestions: string[]
+  interactionId: string
+  metadata: {
+    processingTime: number
+    timestamp: string
+    agentVersion: string
+    modelUsed: string
+  }
+}
+
 const mockIntegrations: AgentIntegration[] = [
   {
     id: "integration-1",
-    agentId: "assistant-1",
-    agentName: "Alex Assistant",
+    agentId: "smart_assistant",
+    agentName: "Smart Assistant",
     chatId: "chat-1",
     status: "active",
     capabilities: [
@@ -140,7 +170,7 @@ const mockIntegrations: AgentIntegration[] = [
         id: "trigger-3",
         name: "Agent Mention",
         type: "mention",
-        condition: "@alex",
+        condition: "@assistant",
         action: "respond-directly",
         enabled: true,
       },
@@ -200,8 +230,8 @@ const mockIntegrations: AgentIntegration[] = [
   },
   {
     id: "integration-2",
-    agentId: "code-1",
-    agentName: "CodeMaster",
+    agentId: "code_companion",
+    agentName: "Code Companion",
     chatId: "chat-1",
     status: "inactive",
     capabilities: [
@@ -248,188 +278,49 @@ const mockIntegrations: AgentIntegration[] = [
   },
   {
     id: "integration-3",
-    agentId: "legal-1",
-    agentName: "LegalAdvisor",
+    agentId: "creative_writer",
+    agentName: "Creative Writer",
     chatId: "chat-1",
     status: "inactive",
     capabilities: [
       {
         id: "cap-6",
-        name: "Legal Document Analysis",
-        description: "Analyze legal documents and contracts for key terms and risks",
-        type: "message-analysis",
-      },
-      {
-        id: "cap-7",
-        name: "Legal Research",
-        description: "Perform comprehensive legal research and case law analysis",
+        name: "Creative Writing",
+        description: "Generate creative content and writing assistance",
         type: "content-generation",
       },
       {
-        id: "cap-8",
-        name: "Compliance Check",
-        description: "Check documents and processes for regulatory compliance",
-        type: "automation",
+        id: "cap-7",
+        name: "Style Analysis",
+        description: "Analyze writing style and provide feedback",
+        type: "message-analysis",
       },
     ],
     triggers: [
       {
         id: "trigger-5",
-        name: "Legal Keywords",
+        name: "Writing Keywords",
         type: "keyword",
-        condition: "contract|legal|law|compliance|regulation|clause",
-        action: "analyze-legal-content",
-        enabled: true,
-      },
-      {
-        id: "trigger-6",
-        name: "Document Upload",
-        type: "user-action",
-        condition: "document-upload",
-        action: "review-legal-document",
+        condition: "write|story|creative|content",
+        action: "provide-writing-assistance",
         enabled: true,
       },
     ],
-    workflows: [
-      {
-        id: "workflow-2",
-        name: "Contract Review Process",
-        description: "Automated contract analysis and risk assessment",
-        steps: [
-          {
-            id: "step-1",
-            type: "message",
-            action: "extract-contract-terms",
-            status: "pending",
-          },
-          {
-            id: "step-2",
-            type: "computation",
-            action: "analyze-legal-risks",
-            status: "pending",
-          },
-          {
-            id: "step-3",
-            type: "message",
-            action: "generate-review-summary",
-            status: "pending",
-          },
-        ],
-        status: "idle",
-      },
-    ],
+    workflows: [],
     context: {
       currentChat: "chat-1",
       recentMessages: [],
       activeApps: [],
-      userPreferences: { jurisdiction: "US Federal", practiceArea: "Corporate" },
+      userPreferences: { writingStyle: "professional" },
       sessionData: {},
     },
     settings: {
       autoRespond: true,
       proactiveMode: false,
       learningEnabled: true,
-      privacyMode: "full",
-      responseDelay: 3000,
-      maxActionsPerHour: 15,
-    },
-  },
-  {
-    id: "integration-4",
-    agentId: "creator-1",
-    agentName: "CreativeStudio",
-    chatId: "chat-1",
-    status: "active",
-    capabilities: [
-      {
-        id: "cap-9",
-        name: "Design Generation",
-        description: "Generate creative designs and visual concepts",
-        type: "content-generation",
-      },
-      {
-        id: "cap-10",
-        name: "Brand Analysis",
-        description: "Analyze brand elements and provide design recommendations",
-        type: "message-analysis",
-      },
-      {
-        id: "cap-11",
-        name: "Creative Tools",
-        description: "Launch design and creative applications",
-        type: "app-launch",
-        appIds: ["image-editor", "color-picker", "font-selector"],
-      },
-    ],
-    triggers: [
-      {
-        id: "trigger-7",
-        name: "Design Keywords",
-        type: "keyword",
-        condition: "design|create|brand|logo|color|layout|visual",
-        action: "provide-creative-assistance",
-        enabled: true,
-      },
-      {
-        id: "trigger-8",
-        name: "Image Upload",
-        type: "user-action",
-        condition: "image-upload",
-        action: "analyze-design-elements",
-        enabled: true,
-      },
-    ],
-    workflows: [
-      {
-        id: "workflow-3",
-        name: "Brand Identity Creation",
-        description: "Complete brand identity development process",
-        steps: [
-          {
-            id: "step-1",
-            type: "message",
-            action: "gather-brand-requirements",
-            status: "completed",
-          },
-          {
-            id: "step-2",
-            type: "app-launch",
-            action: "open-design-tools",
-            parameters: { template: "brand-kit" },
-            status: "running",
-          },
-          {
-            id: "step-3",
-            type: "message",
-            action: "present-design-concepts",
-            status: "pending",
-          },
-        ],
-        status: "running",
-        lastRun: new Date(Date.now() - 10 * 60 * 1000),
-      },
-    ],
-    context: {
-      currentChat: "chat-1",
-      recentMessages: [
-        {
-          id: "msg-2",
-          content: "I need help creating a modern logo for my tech startup",
-          sender: "user-1",
-          timestamp: new Date(),
-        },
-      ],
-      activeApps: ["design-studio"],
-      userPreferences: { designStyle: "modern", industry: "technology" },
-      sessionData: { projectType: "logo-design", brandPersonality: "innovative" },
-    },
-    settings: {
-      autoRespond: true,
-      proactiveMode: true,
-      learningEnabled: true,
       privacyMode: "limited",
       responseDelay: 1500,
-      maxActionsPerHour: 40,
+      maxActionsPerHour: 30,
     },
   },
 ]
@@ -447,6 +338,69 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
   )
   const [selectedIntegration, setSelectedIntegration] = useState<AgentIntegration | null>(null)
   const [isConfiguring, setIsConfiguring] = useState(false)
+  const [agentResponses, setAgentResponses] = useState<Record<string, AgentResponse>>({})
+  const [showReasoning, setShowReasoning] = useState<Record<string, boolean>>({})
+  const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({})
+
+  // Test AGENT API connection
+  const testAgentAPI = useCallback(async (agentMode: string) => {
+    try {
+      const response = await fetch('/api/agents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Hello, I'm testing the ${agentMode} agent mode.`,
+          conversationId: chatId,
+          agentMode: agentMode,
+          enableReasoning: true,
+          collectFeedback: true
+        }),
+      })
+
+      if (response.ok) {
+        const data: AgentResponse = await response.json()
+        setAgentResponses(prev => ({ ...prev, [agentMode]: data }))
+        
+        // Show reasoning trace by default for new responses
+        setShowReasoning(prev => ({ ...prev, [agentMode]: true }))
+        
+        console.log('AGENT API Response:', data)
+        return data
+      } else {
+        console.error('AGENT API Error:', response.status, response.statusText)
+        return null
+      }
+    } catch (error) {
+      console.error('AGENT API Connection Error:', error)
+      return null
+    }
+  }, [])
+
+  // Submit feedback for agent response
+  const submitFeedback = useCallback(async (interactionId: string, score: number) => {
+    try {
+      const response = await fetch('/api/agents/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          interactionId,
+          userFeedbackScore: score,
+          responseQualityScore: score >= 4 ? 4.5 : 3.0
+        }),
+      })
+
+      if (response.ok) {
+        setFeedbackGiven(prev => ({ ...prev, [interactionId]: true }))
+        console.log('Feedback submitted successfully')
+      }
+    } catch (error) {
+      console.error('Feedback submission error:', error)
+    }
+  }, [])
 
   const handleToggleAgent = useCallback((integrationId: string) => {
     setIntegrations((prev) =>
@@ -555,8 +509,8 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Link className="h-5 w-5" />
-            AGENT - Agent Integration
+            <Brain className="h-5 w-5 text-blue-500" />
+            AGENT - AI Assistant
           </h3>
           <div className="flex gap-2">
             <Badge variant="outline">{activeAgents} Active</Badge>
@@ -577,7 +531,12 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
             integration={integration}
             onToggle={() => handleToggleAgent(integration.id)}
             onSelect={() => setSelectedIntegration(integration)}
-            onTriggerWorkflow={(workflowId) => handleTriggerWorkflow(workflowId, integration.agentId)}
+            onTestAgent={() => testAgentAPI(integration.agentId)}
+            agentResponse={agentResponses[integration.agentId]}
+            showReasoning={showReasoning[integration.agentId] || false}
+            onToggleReasoning={() => setShowReasoning(prev => ({ ...prev, [integration.agentId]: !prev[integration.agentId] }))}
+            onSubmitFeedback={submitFeedback}
+            feedbackGiven={feedbackGiven}
           />
         ))}
       </div>
@@ -586,7 +545,7 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
       <Dialog open={isConfiguring} onOpenChange={setIsConfiguring}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Agent Integration Configuration</DialogTitle>
+            <DialogTitle>AGENT AI Configuration</DialogTitle>
           </DialogHeader>
           <AgentConfigurationPanel
             integrations={integrations}
@@ -616,12 +575,22 @@ function AgentIntegrationCard({
   integration,
   onToggle,
   onSelect,
-  onTriggerWorkflow,
+  onTestAgent,
+  agentResponse,
+  showReasoning,
+  onToggleReasoning,
+  onSubmitFeedback,
+  feedbackGiven
 }: {
   integration: AgentIntegration
   onToggle: () => void
   onSelect: () => void
-  onTriggerWorkflow: (workflowId: string) => void
+  onTestAgent: () => void
+  agentResponse?: AgentResponse
+  showReasoning: boolean
+  onToggleReasoning: () => void
+  onSubmitFeedback: (interactionId: string, score: number) => void
+  feedbackGiven: Record<string, boolean>
 }) {
   const getStatusIcon = (status: AgentIntegration["status"]) => {
     switch (status) {
@@ -646,7 +615,7 @@ function AgentIntegrationCard({
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
+            <Brain className="h-5 w-5 text-blue-500" />
             <div>
               <CardTitle className="text-sm">{integration.agentName}</CardTitle>
               <div className="flex items-center gap-2 mt-1">
@@ -687,6 +656,75 @@ function AgentIntegrationCard({
           </div>
         )}
 
+        {/* AGENT Response Display */}
+        {agentResponse && (
+          <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Latest Response</span>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {Math.round(agentResponse.confidence * 100)}% confidence
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => { e.stopPropagation(); onToggleReasoning(); }}
+                  className="h-6 px-2"
+                >
+                  {showReasoning ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                </Button>
+              </div>
+            </div>
+            
+            <p className="text-sm mb-2">{agentResponse.content}</p>
+            
+            {showReasoning && agentResponse.reasoningTrace && (
+              <div className="space-y-1 mb-2">
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-300">Reasoning Trace:</div>
+                {agentResponse.reasoningTrace.map((step, idx) => (
+                  <div key={idx} className="text-xs bg-white dark:bg-gray-700 p-2 rounded border-l-2 border-blue-500">
+                    <div className="font-medium">Step {step.step}:</div>
+                    <div>{step.reasoning}</div>
+                    {step.action && <div className="text-blue-600 dark:text-blue-400">Action: {step.action}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{agentResponse.examplesRetrieved} examples used</span>
+              <span>{agentResponse.metadata.processingTime}ms</span>
+            </div>
+            
+            {/* Feedback Buttons */}
+            {!feedbackGiven[agentResponse.interactionId] && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-600 dark:text-gray-300">Rate this response:</span>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <Button
+                    key={score}
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      onSubmitFeedback(agentResponse.interactionId, score); 
+                    }}
+                    className="h-6 w-6 p-0"
+                  >
+                    {score <= 3 ? <ThumbsDown className="h-3 w-3" /> : <ThumbsUp className="h-3 w-3" />}
+                  </Button>
+                ))}
+              </div>
+            )}
+            
+            {feedbackGiven[agentResponse.interactionId] && (
+              <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                ✓ Feedback submitted
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between text-xs text-gray-500">
           <span>Auto-respond: {integration.settings.autoRespond ? "On" : "Off"}</span>
           <span>Privacy: {integration.settings.privacyMode}</span>
@@ -695,6 +733,9 @@ function AgentIntegrationCard({
         <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
           <Button size="sm" variant="outline" onClick={onToggle} className="flex-1 bg-transparent">
             {integration.status === "active" ? "Deactivate" : "Activate"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={onTestAgent}>
+            Test Agent
           </Button>
           <Button size="sm" variant="outline" onClick={onSelect}>
             Configure
@@ -834,7 +875,7 @@ function AgentIntegrationDetailModal({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Bot className="h-5 w-5" />
+            <Brain className="h-5 w-5 text-blue-500" />
             {integration.agentName} Integration
           </DialogTitle>
         </DialogHeader>

@@ -1,92 +1,51 @@
-name: "Kilo CI/CD Pipeline"
+name: Kilo CI/CD Pipeline
 
 on:
+  push:
+    branches: [main, develop]
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  pull-requests: write
-  id-token: write
 
 env:
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
-  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
 
 jobs:
-  commit-lint:
+  main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - run: npm ci --silent
-      - uses: wagoid/commitlint-github-action@v9
 
-  build-and-test:
-    needs: commit-lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: npm ci --silent
-      - run: npm run lint
-      - run: npm run typecheck || echo "TypeScript check skipped"
-      - run: npm run test -- --coverage || echo "Tests skipped"
-      - run: npm run build
-      - uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage/
-        if: always()
+          cache: 'npm'
 
-  release:
-    needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - run: npm ci --silent
-      - name: Semantic Release
-        uses: cycjimmy/semantic-release-action@v5
-        with:
-          extra_plugins: |
-            @semantic-release/changelog@7
-            @semantic-release/git
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ env.NPM_TOKEN }}
+      - run: npm ci
+
+      - uses: nrwl/nx-set-shas@v4
+
+      - run: npx nx format:check
+      - run: npx nx affected -t lint --parallel=3
+      - run: npx nx affected -t test --parallel=3 --configuration=ci
+      - run: npx nx affected -t build --parallel=3
 
   deploy:
-    needs: release
-    if: success()
+    needs: main
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: npm ci --silent
-      - run: npm run build
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v28
+          cache: 'npm'
+      - run: npm ci
+      - run: npx nx build web --prod
+      - uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ vars.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID }}
-          vercel-args: "--prod --force"
-          github-comment: true
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          working-directory: ./dist/apps/web

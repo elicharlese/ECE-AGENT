@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-09-01T04:56:33.253905",
+  "components": {
+    "dir_training_data_collection": {
+      "status": "healthy",
+      "exists": true
+    },
+    "dir_training_model_versions": {
+      "status": "healthy",
+      "exists": true
+    },
+    "dir_training_monitoring": {
+      "status": "healthy",
+      "exists": true
+    },
+    "dir_training_scripts": {
+      "status": "healthy",
+      "exists": true
+    },
+    "dir_.github_workflows": {
+      "status": "healthy",
+      "exists": true
+    },
+    "file_model_manager.py": {
+      "status": "healthy",
+      "exists": true
+    },
+    "file_continuous_learning.py": {
+      "status": "healthy",
+      "exists": true
+    },
+    "file_collect_interactions.py": {
+      "status": "healthy",
+      "exists": true
+    },
+    "file_trigger_github_workflow.py": {
+      "status": "healthy",
+      "exists": true
+    },
+    "config_config.json": {
+      "status": "healthy",
+      "exists": true
+    },
+    "config_.env.training": {
+      "status": "healthy",
+      "exists": true
+    },
+    "github_token": {
+      "status": "healthy",
+      "configured": true
+    }
+  },
+  "overall_status": "healthy"
+}

@@ -12,7 +12,7 @@ export function useMessages({ conversationId, pageSize = 50 }: UseMessagesOption
   return useInfiniteQuery<Message[], Error, Message[], [string, string], number>({
     queryKey: ['messages', conversationId],
     initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
+    queryFn: async ({ pageParam }: { pageParam: number }) => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -40,7 +40,7 @@ export function useMessages({ conversationId, pageSize = 50 }: UseMessagesOption
       }))
       return mapped
     },
-    getNextPageParam: (lastPage, pages) => {
+    getNextPageParam: (lastPage: Message[], pages: Message[][]) => {
       if (lastPage.length < pageSize) return undefined
       return pages.length * pageSize
     },
@@ -92,7 +92,10 @@ export function useSendMessage() {
       }
       return normalized
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (
+      data: Message,
+      variables: { conversationId: string; content: string; type?: string }
+    ) => {
       // Optimistically update the cache
       queryClient.setQueryData(
         ['messages', variables.conversationId],
@@ -120,7 +123,7 @@ export function useDeleteMessage() {
 
       if (error) throw error
     },
-    onSuccess: (_, messageId) => {
+    onSuccess: (_: void, messageId: string) => {
       // Invalidate all message queries
       queryClient.invalidateQueries({ queryKey: ['messages'] })
     },

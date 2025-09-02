@@ -51,9 +51,9 @@ interface WorkspaceItem {
 interface WorkspaceModeProps {
   chatId: string
   messages: any[]
-  onSendMessage: (content: string) => void
+  onSendMessage: () => void
   onEditMessage: (id: string, content: string) => void
-  typingUsers: Record<string, boolean>
+  typingUsers: Record<string, { name: string; timestamp: number }>
   isConnected: boolean
 }
 
@@ -81,8 +81,20 @@ export function WorkspaceMode({
       type: 'message',
       content: msg.content,
       timestamp: new Date(msg.timestamp),
-      author: msg.sender || 'user',
-      metadata: { isOwn: msg.isOwn }
+      author: msg.senderName || (msg.isOwn ? 'You' : 'Other'),
+      metadata: {
+        isOwn: !!msg.isOwn,
+        senderId: msg.senderId,
+        senderName: msg.senderName,
+        type: msg.type,
+        mediaUrl: msg.mediaUrl,
+        fileName: msg.fileName,
+        fileSize: msg.fileSize,
+        isPinned: msg.isPinned,
+        isLiked: msg.isLiked,
+        likeCount: msg.likeCount,
+        gifData: msg.gifData,
+      }
     }))
 
     // Add media generations and tool executions
@@ -171,12 +183,20 @@ export function WorkspaceMode({
             message={{
               id: item.id,
               content: item.content,
-              timestamp: item.timestamp.toISOString(),
-              sender: item.author,
-              isOwn: item.metadata?.isOwn || false
+              timestamp: item.timestamp,
+              senderId: (item.metadata as any)?.senderId ?? 'unknown',
+              senderName: (item.metadata as any)?.senderName ?? item.author ?? 'User',
+              type: (item.metadata as any)?.type ?? 'text',
+              isOwn: !!(item.metadata as any)?.isOwn,
+              mediaUrl: (item.metadata as any)?.mediaUrl,
+              fileName: (item.metadata as any)?.fileName,
+              fileSize: (item.metadata as any)?.fileSize,
+              isPinned: (item.metadata as any)?.isPinned,
+              isLiked: (item.metadata as any)?.isLiked,
+              likeCount: (item.metadata as any)?.likeCount,
+              gifData: (item.metadata as any)?.gifData,
             }}
-            onEdit={onEditMessage}
-            showActions={true}
+            onUpdateMessage={onEditMessage}
           />
         )
 
@@ -232,7 +252,7 @@ export function WorkspaceMode({
             ) : (
               <img 
                 src={item.content.url} 
-                alt={item.content.prompt}
+                alt={item.content?.prompt || 'Generated image'}
                 className="w-full h-48 object-cover rounded"
               />
             )}
@@ -368,20 +388,28 @@ export function WorkspaceMode({
             <TabsContent value="chat" className="flex-1 flex flex-col">
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 {workspaceData.map(renderWorkspaceItem)}
-                <TypingIndicator typingUsers={typingUsers} />
+                {Object.entries(typingUsers).map(([userId, info]) => (
+                  <TypingIndicator
+                    key={userId}
+                    userId={userId}
+                    userName={info.name}
+                  />
+                ))}
               </div>
               
               {isMobile ? (
                 <MobileMessageInput
                   value=""
-                  onChange={() => {}}
+                  onChange={(_v) => {}}
                   onSend={onSendMessage}
+                  onEmojiSelect={(_emoji) => {}}
+                  onFileSelect={(_file, _type) => {}}
                   placeholder="Type a message or describe what you want to create..."
                 />
               ) : (
                 <DesktopMessageInput
                   value=""
-                  onChange={() => {}}
+                  onChange={(_v) => {}}
                   onSend={onSendMessage}
                   placeholder="Type a message or describe what you want to create..."
                 />
@@ -471,19 +499,27 @@ export function WorkspaceMode({
                 {workspaceData
                   .filter(item => item.type === 'message')
                   .map(renderWorkspaceItem)}
-                <TypingIndicator typingUsers={typingUsers} />
+                {Object.entries(typingUsers).map(([userId, info]) => (
+                  <TypingIndicator
+                    key={userId}
+                    userId={userId}
+                    userName={info.name}
+                  />
+                ))}
               </div>
               {isMobile ? (
                 <MobileMessageInput
                   value=""
-                  onChange={() => {}}
+                  onChange={(_v) => {}}
                   onSend={onSendMessage}
+                  onEmojiSelect={(_emoji) => {}}
+                  onFileSelect={(_file, _type) => {}}
                   placeholder="Type a message..."
                 />
               ) : (
                 <DesktopMessageInput
                   value=""
-                  onChange={() => {}}
+                  onChange={(_v) => {}}
                   onSend={onSendMessage}
                   placeholder="Type a message..."
                 />

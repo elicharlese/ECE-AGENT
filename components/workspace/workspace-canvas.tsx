@@ -163,7 +163,7 @@ export function WorkspaceCanvas({
               ) : (
                 <img 
                   src={item.content.url} 
-                  alt={item.content.prompt}
+                  alt={item.content?.prompt || item.title || 'Workspace image'}
                   className="w-full h-32 object-cover rounded"
                 />
               )}

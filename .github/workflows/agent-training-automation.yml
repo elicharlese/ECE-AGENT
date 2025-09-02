@@ -1,0 +1,207 @@
+name: 🤖 AGENT Training Automation
+
+on:
+  # Scheduled runs (weekly)
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for training'
+        required: false
+        default: 'manual_trigger'
+      force_train:
+        description: 'Force training even if not needed'
+        type: boolean
+        default: false
+  
+  # Can be triggered by repository dispatch from monitoring
+  repository_dispatch:
+    types: [agent_retraining_triggered]
+
+jobs:
+  collect-data:
+    name: 📥 Collect Training Data
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests pandas
+        
+    - name: Collect training data
+      run: |
+        cd training/data_collection
+        python collect_interactions.py
+        
+    - name: Upload training data
+      uses: actions/upload-artifact@v3
+      with:
+        name: training-data
+        path: training/data_collection/
+        retention-days: 7
+
+  check-retraining-needed:
+    name: 🔍 Check if Retraining Needed
+    runs-on: ubuntu-latest
+    needs: collect-data
+    
+    outputs:
+      should_train: ${{ steps.check.outputs.should_train }}
+      reason: ${{ steps.check.outputs.reason }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests
+        
+    - name: Download training data
+      uses: actions/download-artifact@v3
+      with:
+        name: training-data
+        path: training/data_collection/
+        
+    - name: Check retraining conditions
+      id: check
+      run: |
+        cd training/monitoring
+        
+        # Run continuous learning check
+        python -c "
+        from continuous_learning import ContinuousLearningSystem
+        import json
+        
+        system = ContinuousLearningSystem()
+        should_retrain, reason = system.retraining_trigger.should_retrain()
+        
+        # Check if manual force training
+        force_train = '${{ github.event.inputs.force_train }}' == 'true'
+        
+        if force_train or should_retrain:
+            print(f'::set-output name=should_train::true')
+            print(f'::set-output name=reason::{reason}')
+            print(f'Training needed: {reason}')
+        else:
+            print(f'::set-output name=should_train::false')
+            print(f'::set-output name=reason::{reason}')
+            print(f'No training needed: {reason}')
+        "
+
+  trigger-colab-training:
+    name: 🚀 Trigger Colab Training
+    runs-on: ubuntu-latest
+    needs: [collect-data, check-retraining-needed]
+    if: needs.check-retraining-needed.outputs.should_train == 'true'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download training data
+      uses: actions/download-artifact@v3
+      with:
+        name: training-data
+        path: training/data_collection/
+        
+    - name: Prepare training configuration
+      run: |
+        # Create training config
+        cat > training_config.json << EOF
+        {
+          "training_data_path": "training/data_collection/training_data_*.json",
+          "reason": "${{ needs.check-retraining-needed.outputs.reason }}",
+          "timestamp": "$(date -Iseconds)",
+          "triggered_by": "github_actions",
+          "run_id": "${{ github.run_id }}"
+        }
+        EOF
+        
+    - name: Upload training data to Google Drive
+      run: |
+        # Note: In a real implementation, you would use rclone or similar
+        # to upload to Google Drive for Colab access
+        echo "Training data prepared for Colab access"
+        echo "Reason: ${{ needs.check-retraining-needed.outputs.reason }}"
+        
+    - name: Create Colab training notification
+      run: |
+        # In a real implementation, you could:
+        # 1. Send webhook to trigger Colab notebook
+        # 2. Use Google Colab API if available
+        # 3. Send email/Slack notification to manually start Colab
+        
+        echo "🎯 Training triggered automatically!"
+        echo "📊 Reason: ${{ needs.check-retraining-needed.outputs.reason }}"
+        echo "📁 Training data ready in: training/data_collection/"
+        echo "🔬 Next: Open Colab notebook and upload training data"
+        
+    - name: Notify about training trigger
+      run: |
+        echo "## 🤖 AGENT Training Triggered" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Reason:** ${{ needs.check-retraining-needed.outputs.reason }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Training Data:** Ready in artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+        echo "1. Open: \`training/colab_training/agent_finetuning_colab.ipynb\`" >> $GITHUB_STEP_SUMMARY
+        echo "2. Upload training data from artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "3. Run the notebook to fine-tune model" >> $GITHUB_STEP_SUMMARY
+        echo "4. Download and deploy the trained model" >> $GITHUB_STEP_SUMMARY
+
+  deploy-trained-model:
+    name: 🚀 Deploy Trained Model
+    runs-on: ubuntu-latest
+    needs: trigger-colab-training
+    if: always() && needs.trigger-colab-training.result == 'success'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Wait for model training completion
+      run: |
+        echo "⏳ Waiting for manual Colab training completion..."
+        echo "In a production setup, this would:"
+        echo "- Monitor Colab training status"
+        echo "- Automatically download trained model"
+        echo "- Register and deploy via model manager"
+        
+    - name: Deploy model (manual step placeholder)
+      run: |
+        echo "## 📦 Model Deployment Instructions" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "After Colab training completes:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "1. **Download** the trained model from Colab" >> $GITHUB_STEP_SUMMARY
+        echo "2. **Register** the model:" >> $GITHUB_STEP_SUMMARY
+        echo "   \`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "   cd training/model_versions" >> $GITHUB_STEP_SUMMARY
+        echo "   python model_manager.py register /path/to/model llama3.1-8b" >> $GITHUB_STEP_SUMMARY
+        echo "   \`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "3. **Deploy** with A/B testing:" >> $GITHUB_STEP_SUMMARY
+        echo "   \`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "   python model_manager.py deploy llama3.1-8b.v1" >> $GITHUB_STEP_SUMMARY
+        echo "   \`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "4. **Monitor** performance and rollback if needed" >> $GITHUB_STEP_SUMMARY

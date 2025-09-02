@@ -55,6 +55,24 @@ interface Note {
   linkedPatchId?: string
 }
 
+export function AiToolsSidebar({ activeTab }: { activeTab: 'agents' | 'mcp' }) {
+  return (
+    <div className="p-4">
+      {activeTab === 'agents' ? (
+        <div>
+          <h3 className="font-semibold mb-4">AI Agents</h3>
+          <p className="text-sm text-gray-600">Agent management coming soon...</p>
+        </div>
+      ) : (
+        <div>
+          <h3 className="font-semibold mb-4">MCP Tools</h3>
+          <p className="text-sm text-gray-600">MCP tools coming soon...</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function AIPanelSidebar({ chatId, isCollapsed, onToggle }: AIPanelSidebarProps) {
   const [activeTab, setActiveTab] = useState("patches")
   const [patches, setPatches] = useState<Patch[]>([])

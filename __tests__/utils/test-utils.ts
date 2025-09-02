@@ -15,7 +15,7 @@ export async function advanceTimersBy(ms: number) {
   })
 }
 
-// No-op test to satisfy Jest since this file lives under __tests__
+// No-op test to satisfy Jest since this file lives under tests/unit
 describe('test-utils noop', () => {
   it('does nothing', () => {
     expect(true).toBe(true)

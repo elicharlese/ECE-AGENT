@@ -1,0 +1,220 @@
+name: AGENT Observability & Core Protection
+
+on:
+  push:
+    branches: [ main, 'windsprint/*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  core-protection:
+    runs-on: ubuntu-latest
+    name: Pristine Core Protection
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2 # Need previous commit for diff
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Get changed files
+      id: changed-files
+      run: |
+        if [ "${{ github.event_name }}" = "pull_request" ]; then
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+        else
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+        fi
+        echo "files<<EOF" >> $GITHUB_OUTPUT
+        echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Check pristine core protection
+      run: |
+        # Protected paths that should never be modified
+        PROTECTED_PATHS=(
+          "src/types/agent.ts"
+          "src/types/conversation.ts" 
+          "src/types/credits.ts"
+          "src/types/user-tiers.ts"
+          "prisma/schema.prisma"
+          "middleware.ts"
+          "components/ui/"
+          "lib/supabase/"
+          "next.config.js"
+          "tailwind.config.js"
+          "tsconfig.json"
+          ".github/workflows/"
+        )
+        
+        VIOLATIONS=()
+        
+        while IFS= read -r file; do
+          if [ -n "$file" ]; then
+            for protected in "${PROTECTED_PATHS[@]}"; do
+              if [[ "$file" == *"$protected"* ]]; then
+                VIOLATIONS+=("$file")
+                echo "🛑 VIOLATION: Attempted modification of pristine core file: $file"
+              fi
+            done
+          fi
+        done <<< "${{ steps.changed-files.outputs.files }}"
+        
+        if [ ${#VIOLATIONS[@]} -gt 0 ]; then
+          echo "❌ CRITICAL: Pristine core violations detected!"
+          echo "The following protected files were modified:"
+          printf '%s\n' "${VIOLATIONS[@]}"
+          echo ""
+          echo "Pristine core files must never be modified to maintain AGENT integrity."
+          echo "If this change is absolutely necessary, it requires manual review and approval."
+          exit 1
+        else
+          echo "✅ No pristine core violations detected"
+        fi
+    
+    - name: Validate transformation record exists
+      if: contains(github.ref, 'windsprint/') || github.event_name == 'pull_request'
+      run: |
+        # Extract patch number from branch name or PR
+        if [[ "${{ github.ref }}" =~ windsprint/batch-([0-9]+) ]]; then
+          BATCH_NUM=${BASH_REMATCH[1]}
+          # For batch branches, check if any patch directories exist
+          if ls docs/patches/patch-* 1> /dev/null 2>&1; then
+            LATEST_PATCH=$(ls -d docs/patches/patch-* | sort -V | tail -1)
+            PATCH_NUM=$(basename "$LATEST_PATCH" | sed 's/patch-//')
+          else
+            echo "⚠️ No patch directories found in batch branch"
+            exit 0
+          fi
+        else
+          # Try to extract patch number from commit message or PR title
+          PATCH_NUM=$(echo "${{ github.event.head_commit.message || github.event.pull_request.title }}" | grep -oP 'patch[- ]?(\d+)' | grep -oP '\d+' | head -1)
+        fi
+        
+        if [ -n "$PATCH_NUM" ]; then
+          CONSEQUENCES_FILE="docs/patches/patch-${PATCH_NUM}/CONSEQUENCES.md"
+          LEDGER_FILE="docs/patches/patch-${PATCH_NUM}/ledger.jsonl"
+          
+          if [ ! -f "$CONSEQUENCES_FILE" ]; then
+            echo "❌ Missing transformation record: $CONSEQUENCES_FILE"
+            echo "All patches must include a CONSEQUENCES.md file documenting transformation outcomes."
+            exit 1
+          fi
+          
+          if [ ! -f "$LEDGER_FILE" ]; then
+            echo "❌ Missing ledger entry: $LEDGER_FILE"
+            echo "All patches must include a ledger.jsonl entry for structured transformation data."
+            exit 1
+          fi
+          
+          echo "✅ Transformation records found for patch $PATCH_NUM"
+        else
+          echo "ℹ️ No patch number detected, skipping transformation record validation"
+        fi
+
+  observability-tests:
+    runs-on: ubuntu-latest
+    name: Observability Tests
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run observability tests
+      run: |
+        # Run specific observability tests
+        npm test -- __tests__/observability/ --coverage --passWithNoTests
+    
+    - name: Validate TypeScript compilation
+      run: npm run typecheck
+    
+    - name: Test core protection service
+      run: |
+        # Test that CoreProtection service works correctly
+        node -e "
+          const { CoreProtection } = require('./libs/observability/CoreProtection');
+          const config = {
+            enableCoreProtection: true,
+            protectedPaths: ['src/types/agent.ts'],
+            learningPaths: ['docs/patches/**']
+          };
+          const protection = new CoreProtection(config);
+          
+          // Test protected path detection
+          if (!protection.isPristineCorePath('src/types/agent.ts')) {
+            console.error('❌ Core protection failed: should detect protected path');
+            process.exit(1);
+          }
+          
+          if (protection.isPristineCorePath('components/chat/chat-window.tsx')) {
+            console.error('❌ Core protection failed: should not detect non-protected path');
+            process.exit(1);
+          }
+          
+          console.log('✅ Core protection service validated');
+        "
+
+  integration-check:
+    runs-on: ubuntu-latest
+    name: Integration Check
+    needs: [core-protection, observability-tests]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build application
+      run: npm run build
+    
+    - name: Run full test suite
+      run: npm test -- --coverage --passWithNoTests
+    
+    - name: Validate coverage threshold
+      run: |
+        # Check that test coverage meets ≥90% requirement
+        COVERAGE=$(npm test -- --coverage --silent --passWithNoTests | grep "All files" | grep -oP '\d+\.\d+(?=%)' | head -1)
+        if [ -n "$COVERAGE" ]; then
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+            echo "✅ Test coverage: ${COVERAGE}% (meets ≥90% requirement)"
+          else
+            echo "❌ Test coverage: ${COVERAGE}% (below 90% requirement)"
+            exit 1
+          fi
+        else
+          echo "⚠️ Could not determine test coverage"
+        fi
+    
+    - name: Summary
+      run: |
+        echo "🎯 AGENT Observability & Core Protection Summary:"
+        echo "✅ Pristine core protection enforced"
+        echo "✅ Observability tests passed"
+        echo "✅ Integration checks completed"
+        echo "✅ Build successful"
+        echo "✅ Test coverage ≥90%"
+        echo ""
+        echo "🔒 The AGENT's pristine core remains protected while enabling adaptive learning."

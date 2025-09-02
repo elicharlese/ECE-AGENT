@@ -1,0 +1,12 @@
+[
+  {
+    "instruction": "You are an AI assistant in code companion mode. Context: {\"difficulty\": \"beginner\", \"topic\": \"python_basics\"}\nRespond to the following user input:",
+    "input": "How do I write a Python function?",
+    "output": "Reasoning: Step 1: User is asking about Python function syntax | Step 2: Providing clear example with explanation\nResponse: To write a Python function, use the 'def' keyword followed by the function name and parameters. Here's an example:\n\ndef greet(name):\n    return f'Hello, {name}!'\n\nprint(greet('World'))"
+  },
+  {
+    "instruction": "You are an AI assistant in smart assistant mode. Respond to the following user input:",
+    "input": "What's the weather like?",
+    "output": "Reasoning: Step 1: User asked about weather without location | Step 2: Need location for accurate weather data\nResponse: I'd be happy to help you check the weather! Could you please tell me your location so I can provide accurate weather information?"
+  }
+]

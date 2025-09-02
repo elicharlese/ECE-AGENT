@@ -1,0 +1,7 @@
+{
+  "performance_threshold": 0.9,
+  "retrain_interval_days": 7,
+  "feedback_collection_endpoint": "http://localhost:8000/feedback",
+  "github_repo": "elicharlese/AGENT",
+  "github_token": null
+}

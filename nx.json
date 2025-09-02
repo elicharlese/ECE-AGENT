@@ -4,13 +4,13 @@
     {
       "plugin": "@nx/eslint/plugin",
       "options": {
-        "targetName": "lint"
+        "targetName": "eslint:lint"
       }
     },
     {
-      "plugin": "@nx/jest/plugin",
+      "plugin": "@nx/playwright/plugin",
       "options": {
-        "targetName": "jest:test"
+        "targetName": "e2e"
       }
     },
     {
@@ -25,29 +25,17 @@
       }
     },
     {
-      "plugin": "@nx/react-native/plugin",
+      "plugin": "@nx/expo/plugin",
       "options": {
         "startTargetName": "start",
-        "upgradeTargetName": "update",
-        "bundleTargetName": "bundle",
-        "podInstallTargetName": "pod-install",
+        "buildTargetName": "build",
+        "prebuildTargetName": "prebuild",
+        "serveTargetName": "serve",
+        "installTargetName": "install",
+        "exportTargetName": "export",
+        "submitTargetName": "submit",
         "runIosTargetName": "run-ios",
         "runAndroidTargetName": "run-android",
-        "buildIosTargetName": "build-ios",
-        "buildAndroidTargetName": "build-android",
-        "syncDepsTargetName": "sync-deps"
-      }
-    },
-    {
-      "plugin": "@nx/vite/plugin",
-      "options": {
-        "buildTargetName": "build",
-        "testTargetName": "test",
-        "serveTargetName": "serve",
-        "devTargetName": "dev",
-        "previewTargetName": "preview",
-        "serveStaticTargetName": "serve-static",
-        "typecheckTargetName": "typecheck",
         "buildDepsTargetName": "build-deps",
         "watchDepsTargetName": "watch-deps"
       }

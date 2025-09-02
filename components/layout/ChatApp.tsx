@@ -176,7 +176,13 @@ function AuthenticatedChatApp() {
     return "w-80"
   }
 
-  // removed unused getRightSidebarWidth
+  const getRightSidebarWidth = () => {
+    if (rightPanelState === "collapsed") return "w-0"
+    if (rightPanelState === "minimized") return "w-14"
+    if (screenSize === "mobile") return "w-full"
+    if (screenSize === "tablet") return "w-72"
+    return "w-80"
+  }
 
   const cycleLeft = () => {
     // Mobile & tablet-portrait: open full width directly (skip minimized)
@@ -396,24 +402,28 @@ function AuthenticatedChatApp() {
         </ResizablePanelGroup>
       )}
 
-      {showAgentSidebar && isMobile && rightPanelState === "expanded" && (
+      {showWorkspaceSidebar && isMobile && rightPanelState === "expanded" && (
         <div className="fixed inset-y-0 right-0 z-50 w-full safe-area-inset-right">
-          <AgentSidebar
+          <WorkspaceSidebar
             selectedAgentId={selectedAgentId}
             onSelectAgent={handleSelectAgent}
             panelState={"expanded"}
             onSetPanelState={setRightPanelState}
+            activeParticipants={1}
+            isConnected={true}
           />
         </div>
       )}
 
-      {showAgentSidebar && screenSize === "tablet" && orientation === "portrait" && rightPanelState === "expanded" && (
+      {showWorkspaceSidebar && screenSize === "tablet" && orientation === "portrait" && rightPanelState === "expanded" && (
         <div className="fixed inset-y-0 right-0 z-50 w-72">
-          <AgentSidebar
+          <WorkspaceSidebar
             selectedAgentId={selectedAgentId}
             onSelectAgent={handleSelectAgent}
             panelState={"expanded"}
             onSetPanelState={setRightPanelState}
+            activeParticipants={1}
+            isConnected={true}
           />
         </div>
       )}
@@ -426,7 +436,7 @@ function AuthenticatedChatApp() {
         />
       )}
 
-      {isMobile && showAgentSidebar && rightPanelState === "expanded" && (
+      {isMobile && showWorkspaceSidebar && rightPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setRightPanelState("collapsed")}
@@ -442,7 +452,7 @@ function AuthenticatedChatApp() {
         />
       )}
 
-      {screenSize === "tablet" && orientation === "portrait" && showAgentSidebar && rightPanelState === "expanded" && (
+      {screenSize === "tablet" && orientation === "portrait" && showWorkspaceSidebar && rightPanelState === "expanded" && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
           onClick={() => setRightPanelState("collapsed")}

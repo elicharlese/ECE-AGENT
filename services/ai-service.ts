@@ -56,6 +56,15 @@ class AIService {
         this.config.endpoint = 'https://openrouter.ai/api/v1/chat/completions'
       }
     }
+
+    // Check for server-side environment variables
+    if (typeof process !== 'undefined' && process.env) {
+      if (process.env.NEXT_PUBLIC_OPENROUTER_API_KEY && !this.config.apiKey) {
+        this.config.apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY
+        this.config.provider = 'openrouter'
+        this.config.endpoint = 'https://openrouter.ai/api/v1/chat/completions'
+      }
+    }
   }
 
   setApiKey(apiKey: string) {

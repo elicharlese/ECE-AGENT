@@ -36,7 +36,8 @@ export function CreateAgentDialog({
     mcpToolsCsv: z.string().optional().default(""),
   })
 
-  type FormValues = z.infer<typeof FormSchema>
+  // Use Zod input type to align with zodResolver's expected input when defaults are used
+  type FormValues = z.input<typeof FormSchema>
 
   const {
     register,
@@ -73,13 +74,13 @@ export function CreateAgentDialog({
         .filter(Boolean)
 
       const payload: AgentCreateInput = {
-        name: values.name,
-        description: values.description,
-        model: values.model,
-        system_prompt: values.system_prompt,
+        name: values.name ?? "",
+        description: values.description ?? "",
+        model: values.model ?? "gpt-4o-mini",
+        system_prompt: values.system_prompt ?? "",
         capabilities,
         mcp_tools,
-        status: values.status,
+        status: values.status ?? "online",
         avatar_url: null,
       }
 

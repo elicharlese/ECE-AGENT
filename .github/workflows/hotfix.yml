@@ -1,0 +1,37 @@
+name: "Kilo – Hotfix Workflow"
+
+on:
+  push:
+    branches: ["hotfix/*"]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: node-version: "18"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test -- --ci
+      - run: npm run build
+
+      - name: Semantic Release for Hotfix
+        uses: cycjimmy/semantic-release-action@v5
+        with:
+          extra_plugins: |
+            @semantic-release/changelog@7
+            @semantic-release/git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Hotfix deploy to Vercel
+        uses: amondnet/vercel-action@v28
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod --force"

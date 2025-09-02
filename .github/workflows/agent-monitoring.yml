@@ -1,0 +1,158 @@
+name: 📊 AGENT Performance Monitoring
+
+on:
+  # Run every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Manual trigger
+  workflow_dispatch:
+    
+  # Trigger from other workflows
+  workflow_call:
+
+jobs:
+  performance-check:
+    name: 🔍 Performance Monitoring
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        pip install requests
+        
+    - name: Run performance monitoring
+      id: monitor
+      run: |
+        cd training/monitoring
+        
+        # Run monitoring cycle
+        python -c "
+        from continuous_learning import ContinuousLearningSystem
+        
+        system = ContinuousLearningSystem()
+        metrics = system.performance_monitor.collect_metrics()
+        
+        if metrics:
+            print(f'Current metrics collected: {len(metrics)} measurements')
+            print(f'Feedback Score: {metrics.get(\"avg_feedback_score\", 0):.2f}')
+            print(f'Processing Time: {metrics.get(\"avg_processing_time\", 0):.0f}ms')
+            print(f'Data Quality: {metrics.get(\"data_quality_score\", 0):.2f}')
+        else:
+            print('Failed to collect metrics')
+        "
+        
+    - name: Check for alerts
+      id: alerts
+      run: |
+        cd training/monitoring
+        
+        # Check for performance alerts
+        python -c "
+        from continuous_learning import ContinuousLearningSystem
+        
+        system = ContinuousLearningSystem()
+        alerts = system.performance_monitor.check_alerts()
+        
+        if alerts:
+            print('🚨 ALERTS DETECTED:')
+            for alert in alerts:
+                print(f'  {alert}')
+            print(f'::set-output name=has_alerts::true')
+            print(f'::set-output name=alert_count::{len(alerts)}')
+        else:
+            print('✅ No performance alerts')
+            print(f'::set-output name=has_alerts::false')
+        "
+        
+    - name: Check retraining triggers
+      id: retraining
+      run: |
+        cd training/monitoring
+        
+        # Check if retraining is needed
+        python -c "
+        from continuous_learning import ContinuousLearningSystem
+        
+        system = ContinuousLearningSystem()
+        should_retrain, reason = system.retraining_trigger.should_retrain()
+        
+        if should_retrain:
+            print(f'🎯 RETRAINING NEEDED: {reason}')
+            print(f'::set-output name=should_retrain::true')
+            print(f'::set-output name=retraining_reason::{reason}')
+        else:
+            print(f'✅ No retraining needed: {reason}')
+            print(f'::set-output name=should_retrain::false')
+        "
+        
+    - name: Generate performance report
+      run: |
+        echo "## 📊 AGENT Performance Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Add alerts if any
+        if [ "${{ steps.alerts.outputs.has_alerts }}" == "true" ]; then
+          echo "### 🚨 Performance Alerts" >> $GITHUB_STEP_SUMMARY
+          echo "Found ${{ steps.alerts.outputs.alert_count }} alerts requiring attention" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Add retraining status
+        if [ "${{ steps.retraining.outputs.should_retrain }}" == "true" ]; then
+          echo "### 🎯 Retraining Recommended" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** ${{ steps.retraining.outputs.retraining_reason }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Next: Automated training workflow will be triggered" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ✅ System Status: Healthy" >> $GITHUB_STEP_SUMMARY
+          echo "No immediate action required" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  trigger-retraining:
+    name: 🚀 Trigger Retraining
+    runs-on: ubuntu-latest
+    needs: performance-check
+    if: needs.performance-check.outputs.should_retrain == 'true'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Trigger automated training workflow
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.actions.createWorkflowDispatch({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            workflow_id: 'agent-training-automation.yml',
+            ref: 'main',
+            inputs: {
+              reason: '${{ needs.performance-check.outputs.retraining_reason }}',
+              force_train: false
+            }
+          })
+          
+    - name: Send retraining notification
+      run: |
+        echo "## 🤖 Automated Retraining Triggered" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Reason:** ${{ needs.performance-check.outputs.retraining_reason }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Action:** Training automation workflow started" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "The system will:" >> $GITHUB_STEP_SUMMARY
+        echo "1. 📥 Collect fresh training data" >> $GITHUB_STEP_SUMMARY
+        echo "2. 🔍 Validate retraining conditions" >> $GITHUB_STEP_SUMMARY
+        echo "3. 🚀 Prepare data for Colab training" >> $GITHUB_STEP_SUMMARY
+        echo "4. 📦 Generate deployment instructions" >> $GITHUB_STEP_SUMMARY

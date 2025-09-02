@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react"
 import { CreateAgentDialog } from "@/components/agents/CreateAgentDialog"
-import type { AgentRow } from "@/src/types/agent"
+import type { Agent } from "@/services/agent-service"
 import { useAgentsQuery } from "@/hooks/use-agents"
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
 
@@ -107,8 +107,8 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
       agent.description.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const filteredUserAgents = (userAgentsData ?? []).filter(
-    (a) =>
+  const filteredUserAgents: Agent[] = (userAgentsData ?? []).filter(
+    (a: Agent) =>
       a.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (a.description ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -164,8 +164,8 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
     return list
   }
 
-  const displayAgents = applyFilterMode(filteredAgents)
-  const displayUserAgents = applyFilterMode(filteredUserAgents)
+  const displayAgents = applyFilterMode<typeof agents[number]>(filteredAgents)
+  const displayUserAgents: Agent[] = applyFilterMode<Agent>(filteredUserAgents)
 
   // Demo gating: show pinned agents only in demo mode or when there are no user agents
   const hasAnyUserAgents = (userAgentsData?.length ?? 0) > 0

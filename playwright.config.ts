@@ -10,7 +10,7 @@ export default defineConfig({
     ? [['junit', { outputFile: 'test-results/junit.xml' }], ['list']]
     : [['html'], ['list']],
   use: {
-    baseURL: process.env.E2E_BASE_URL || 'http://localhost:4200',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -18,8 +18,8 @@ export default defineConfig({
   webServer: process.env.E2E_NO_SERVER
     ? undefined
     : {
-        command: 'pnpm dev',
-        url: process.env.E2E_BASE_URL || 'http://localhost:4200',
+        command: 'npm run dev',
+        url: process.env.E2E_BASE_URL || 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
       },

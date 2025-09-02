@@ -1,8 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 // Prevent multiple instances in dev due to HMR
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const globalForPrisma = global as any
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
 export const prisma: PrismaClient = globalForPrisma.prisma || new PrismaClient({
   log: ['warn', 'error'],

@@ -1,0 +1,13 @@
+{
+  "id": "test-strategy-1",
+  "name": "Test File Modification Strategy",
+  "category": "code_generation",
+  "pattern": "test-pattern",
+  "confidence": 0.8,
+  "successRate": 0.9,
+  "usageCount": 5,
+  "lastUsed": "2025-09-02T00:30:58.947Z",
+  "metadata": {
+    "test": true
+  }
+}

@@ -1,0 +1,47 @@
+name: "Kilo – Release & Deployment Checks"
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with: fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with: node-version: "18"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test -- --ci --coverage
+      - run: npm run build
+
+  wait-for-vercel:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Await Vercel deployment readiness
+        uses: UnlyEd/github-action-await-vercel@v1
+        id: await-vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          deployment-url: ${{ secrets.VERCEL_DEPLOYMENT_URL }}  # or manually specify your domain
+          timeout: 600
+          poll-interval: 5
+
+  slack-notify:
+    needs: wait-for-vercel
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_MESSAGE: |
+            Deployed `${{ github.repository }}` `main` ➜ ${{ fromJson(steps.await-vercel.outputs.deploymentDetails).url }}
+          SLACK_TITLE: "✅ Deployed @ ${{ fromJson(steps.await-vercel.outputs.deploymentDetails).readyState }}"
+          SLACK_COLOR: ${{ job.status }}  # green on success, red on failure

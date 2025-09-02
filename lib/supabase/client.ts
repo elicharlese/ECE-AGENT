@@ -26,3 +26,8 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
     path: '/',
   },
 })
+
+// Export createClient function for compatibility
+export function createClient() {
+  return supabase
+}
