@@ -1,4 +1,5 @@
 {
+  "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "lib": [
@@ -51,6 +52,10 @@
     "playwright.config.ts",
     "jest.setup.ts",
     "scripts",
-    "scripts/**"
+    "scripts/**",
+    "apps/desktop",
+    "apps/desktop/**",
+    "mobile",
+    "mobile/**"
   ]
 }

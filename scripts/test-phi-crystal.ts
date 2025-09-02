@@ -5,9 +5,11 @@
  * Tests all components of the self-observation system
  */
 
-import { TransformationRecorder } from '../libs/observability/TransformationRecorder'
-import { CoreProtection } from '../libs/observability/CoreProtection'
-import { AdaptiveLearningService } from '../data/learning/AdaptiveLearningService'
+import { TransformationRecorder } from '../libs/observability/TransformationRecorder.js';
+import { CoreProtection } from '../libs/observability/CoreProtection.js';
+import { CellularOrganelleManager } from '../libs/observability/CellularOrganelles.js';
+import { MitochondriaProcessor } from '../libs/observability/MitochondriaProcessor.js';
+import { CellularMembrane } from '../libs/observability/CellularMembrane.js';
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
 import { join } from 'path'
 
@@ -73,39 +75,107 @@ async function testPhiCrystalArchitecture() {
     failed++
   }
   
-  // Test 2: ❄️ Oort Cloud Nodes (Adaptive Learning)
-  log('blue', '\n❄️ Testing Oort Cloud Nodes (Adaptive Learning)...')
+  // Test 2: 🧪 Cellular Organelles (Specialized Memory Banks)
+  log('blue', '\n🧪 Testing Cellular Organelles (Specialized Memory Banks)...')
   try {
-    const learningService = new AdaptiveLearningService()
+    const organelleManager = new CellularOrganelleManager()
     
-    // Test strategy storage and retrieval
-    const testStrategy = {
-      id: 'test-strategy-1',
-      name: 'Test File Modification Strategy',
-      category: 'code_generation' as const,
-      pattern: 'test-pattern',
-      confidence: 0.8,
-      successRate: 0.9,
-      usageCount: 5,
-      lastUsed: new Date().toISOString(),
-      metadata: { test: true }
-    }
-    
-    await learningService.recordStrategy(testStrategy)
-    log('green', '  ✅ Strategy recorded successfully')
-    passed++
-    
-    const strategies = await learningService.getStrategies('file_modification')
-    if (strategies.length > 0) {
-      log('green', '  ✅ Strategies retrieved successfully')
+    // Test ribosome code generation
+    const organelles = organelleManager.getOrganelles()
+    const codeResult = await organelles.ribosome.synthesizeCode('function', { name: 'testFunc' })
+    if (codeResult.includes('testFunc')) {
+      log('green', '  ✅ Ribosome code synthesis working')
       passed++
     } else {
-      log('red', '  ❌ No strategies retrieved')
+      log('red', '  ❌ Ribosome code synthesis failed')
+      failed++
+    }
+    
+    // Test homeostasis maintenance
+    await organelleManager.maintainHomeostasis()
+    log('green', '  ✅ Cellular homeostasis maintained')
+    passed++
+    
+  } catch (error) {
+    log('red', `  ❌ Cellular Organelles test failed: ${error}`)
+    failed++
+  }
+  
+  // Test 3: ⚡ Mitochondria (Energy Processing)
+  log('blue', '\n⚡ Testing Mitochondria (Energy Processing)...')
+  try {
+    const mitochondria = new MitochondriaProcessor()
+    
+    // Test ATP energy generation
+    const transformationEvent = {
+      timestamp: new Date().toISOString(),
+      id: 'test-transformation',
+      patchId: 999,
+      branch: 'test-branch',
+      authorId: 'test-script',
+      categories: ['code' as const],
+      filesTouched: ['test-file.ts'],
+      gitStats: {
+        sha: 'abc123def456',
+        additions: 10,
+        deletions: 5,
+        changedFiles: 1
+      },
+      coreProtectionStatus: 'safe' as const
+    }
+    
+    const atp = await mitochondria.processTransformation(transformationEvent)
+    if (atp.energyLevel > 0) {
+      log('green', '  ✅ ATP energy generation working')
+      passed++
+    } else {
+      log('red', '  ❌ ATP energy generation failed')
+      failed++
+    }
+    
+    // Test energy status
+    const energyStatus = mitochondria.getEnergyStatus()
+    if (energyStatus.totalATP > 0) {
+      log('green', '  ✅ Energy status monitoring working')
+      passed++
+    } else {
+      log('red', '  ❌ Energy status monitoring failed')
       failed++
     }
     
   } catch (error) {
-    log('red', `  ❌ Adaptive Learning test failed: ${error}`)
+    log('red', `  ❌ Mitochondria test failed: ${error}`)
+    failed++
+  }
+  
+  // Test 4: 🧬 Cellular Membrane (Selective Permeability)
+  log('blue', '\n🧬 Testing Cellular Membrane (Selective Permeability)...')
+  try {
+    const membrane = new CellularMembrane()
+    
+    // Test permeability check
+    const testData = { type: 'transformation', data: 'test' }
+    const permeabilityResult = await membrane.checkPermeability(testData, 'cytoplasm')
+    if (permeabilityResult.allowed) {
+      log('green', '  ✅ Membrane permeability check working')
+      passed++
+    } else {
+      log('red', '  ❌ Membrane permeability check failed')
+      failed++
+    }
+    
+    // Test homeostasis
+    const homeostasis = await membrane.maintainHomeostasis()
+    if (homeostasis.pH > 0) {
+      log('green', '  ✅ Membrane homeostasis working')
+      passed++
+    } else {
+      log('red', '  ❌ Membrane homeostasis failed')
+      failed++
+    }
+    
+  } catch (error) {
+    log('red', `  ❌ Cellular Membrane test failed: ${error}`)
     failed++
   }
   

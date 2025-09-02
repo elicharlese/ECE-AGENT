@@ -96,8 +96,8 @@ export default function ProfilePage() {
 
       <ProfileManager
         currentProfile={profile}
-        teamProfile={teamProfile}
-        enterpriseProfile={enterpriseProfile}
+        teamProfile={teamProfile ?? undefined}
+        enterpriseProfile={enterpriseProfile ?? undefined}
         onTierUpgrade={handleTierUpgrade}
         onCreateTeam={handleCreateTeam}
       />

@@ -1,7 +1,7 @@
 {
   "name": "ece-agent-desktop",
   "version": "1.0.0",
-  "description": "ECE Agent Desktop Application",
+  "description": "AGENT Desktop Application",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
@@ -12,7 +12,7 @@
   },
   "build": {
     "appId": "com.ece.agent.desktop",
-    "productName": "ECE Agent",
+    "productName": "AGENT",
     "directories": {
       "output": "release"
     },
@@ -21,17 +21,30 @@
       "public/**/*"
     ],
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"]
     },
     "win": {
       "target": "nsis"
     },
     "linux": {
       "target": "AppImage"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "elicharlese",
+        "repo": "AGENT"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.8"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.11.0"
   }
 }

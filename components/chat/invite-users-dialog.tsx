@@ -86,16 +86,16 @@ export function InviteUsersDialog({
     const mockResults: InviteUser[] = [
       {
         id: "user-1",
-        identifier: type === "email" ? "john@example.com" : type === "username" ? "@johndoe" : "0x1234...5678",
+        identifier: "",
         type,
-        name: "John Doe",
+        name: "",
         avatar: "/placeholder.svg"
       },
       {
         id: "user-2",
-        identifier: type === "email" ? "jane@example.com" : type === "username" ? "@janesmith" : "0x8765...4321",
+        identifier: "",
         type,
-        name: "Jane Smith"
+        name: ""
       }
     ].filter(user => 
       user.identifier.toLowerCase().includes(query.toLowerCase()) ||

@@ -122,8 +122,8 @@ export function ClickUpIntegration() {
             priority: "high",
             dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24 * 2),
             assignee: {
-              name: "John Doe",
-              email: "john@company.com"
+              name: "",
+              email: ""
             },
             project: mockProjects[0],
             tags: ["security", "auth"],
@@ -137,8 +137,8 @@ export function ClickUpIntegration() {
             priority: "medium",
             dueDate: new Date(Date.now() + 1000 * 60 * 60 * 24),
             assignee: {
-              name: "John Doe",
-              email: "john@company.com"
+              name: "",
+              email: ""
             },
             project: mockProjects[2],
             tags: ["documentation", "api"]
@@ -149,8 +149,8 @@ export function ClickUpIntegration() {
             status: "review",
             priority: "medium",
             assignee: {
-              name: "Sarah Chen",
-              email: "sarah@company.com"
+              name: "",
+              email: ""
             },
             project: mockProjects[1],
             tags: ["design", "mobile"],
@@ -163,8 +163,8 @@ export function ClickUpIntegration() {
             priority: "urgent",
             dueDate: new Date(Date.now() + 1000 * 60 * 60 * 8),
             assignee: {
-              name: "John Doe",
-              email: "john@company.com"
+              name: "",
+              email: ""
             },
             project: mockProjects[1],
             tags: ["bug", "ios"]
@@ -222,7 +222,7 @@ export function ClickUpIntegration() {
 
   const filteredTasks = tasks.filter(task => {
     if (filter === 'assigned') {
-      return task.assignee?.email === 'john@company.com'
+      return task.assignee?.email === userEmail
     }
     if (filter === 'due_soon') {
       return task.dueDate && task.dueDate.getTime() - Date.now() < 1000 * 60 * 60 * 24 * 3

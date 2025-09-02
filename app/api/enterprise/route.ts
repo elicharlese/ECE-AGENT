@@ -82,11 +82,12 @@ export async function POST(request: NextRequest) {
 
         const endpoint = await userTierService.addCustomLLMEndpoint(enterpriseId, {
           name,
-          endpointUrl,
-          apiKeyEncrypted: apiKey, // In production, this should be properly encrypted
-          modelType,
-          rateLimit: rateLimit || 100,
-          isActive: true
+          endpoint: endpointUrl,
+          apiKey, // TODO: encrypt before storing in production
+          model: modelType,
+          provider: 'custom',
+          rateLimitOverride: rateLimit || 100,
+          isActive: true,
         })
         return NextResponse.json({ endpoint })
 
@@ -120,7 +121,12 @@ export async function POST(request: NextRequest) {
           .eq('id', endpointId)
           .single()
 
-        if (!endpointOwnership || endpointOwnership.enterprise_profiles.owner_id !== user.id) {
+        // enterprise_profiles from the join can be typed as an array; guard accordingly
+        const ownerId = Array.isArray((endpointOwnership as any)?.enterprise_profiles)
+          ? (endpointOwnership as any).enterprise_profiles[0]?.owner_id
+          : (endpointOwnership as any)?.enterprise_profiles?.owner_id
+
+        if (!endpointOwnership || ownerId !== user.id) {
           return NextResponse.json({ error: 'Endpoint ownership required' }, { status: 403 })
         }
 

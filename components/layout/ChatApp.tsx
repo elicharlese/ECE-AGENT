@@ -294,6 +294,7 @@ function AuthenticatedChatApp() {
                   onSelectAgent={handleSelectAgent}
                   panelState={rightPanelState}
                   onSetPanelState={setRightPanelState}
+                  chatId={selectedChatId || ""}
                   activeParticipants={1}
                   isConnected={true}
                 />
@@ -392,6 +393,7 @@ function AuthenticatedChatApp() {
                     onSelectAgent={handleSelectAgent}
                     panelState={rightPanelState}
                     onSetPanelState={setRightPanelState}
+                    chatId={selectedChatId || ""}
                     activeParticipants={1}
                     isConnected={true}
                   />
@@ -402,31 +404,7 @@ function AuthenticatedChatApp() {
         </ResizablePanelGroup>
       )}
 
-      {showWorkspaceSidebar && isMobile && rightPanelState === "expanded" && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full safe-area-inset-right">
-          <WorkspaceSidebar
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={handleSelectAgent}
-            panelState={"expanded"}
-            onSetPanelState={setRightPanelState}
-            activeParticipants={1}
-            isConnected={true}
-          />
-        </div>
-      )}
-
-      {showWorkspaceSidebar && screenSize === "tablet" && orientation === "portrait" && rightPanelState === "expanded" && (
-        <div className="fixed inset-y-0 right-0 z-50 w-72">
-          <WorkspaceSidebar
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={handleSelectAgent}
-            panelState={"expanded"}
-            onSetPanelState={setRightPanelState}
-            activeParticipants={1}
-            isConnected={true}
-          />
-        </div>
-      )}
+      
 
       {isMobile && leftPanelState === "expanded" && (
         <div

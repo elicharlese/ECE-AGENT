@@ -28,12 +28,12 @@ interface UserProfile {
 
 const mockUser: UserProfile = {
   id: "1",
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "+1 (555) 123-4567",
-  bio: "Software developer passionate about creating amazing user experiences.",
+  name: "",
+  email: "",
+  phone: "",
+  bio: "",
   status: "online",
-  customStatus: "Working on something cool 🚀",
+  customStatus: "",
 }
 
 interface UserProfileProps {
@@ -90,12 +90,8 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user.avatar || "/placeholder.svg"} />
                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                  {user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
+                  {user.name ? user.name.split(" ").map((n) => n[0]).join("") : "U"}
+                </AvatarFallback>              </Avatar>
               <div
                 className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 ${statusColors[user.status]} border-2 border-white dark:border-gray-800 rounded-full`}
               />

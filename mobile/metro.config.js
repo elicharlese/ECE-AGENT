@@ -1,6 +1,7 @@
 const { withNxMetro } = require('@nx/expo');
 const { getDefaultConfig } = require('@expo/metro-config');
 const { mergeConfig } = require('metro-config');
+const path = require('path');
 
 const defaultConfig = getDefaultConfig(__dirname);
 const { assetExts, sourceExts } = defaultConfig.resolver;
@@ -19,6 +20,11 @@ const customConfig = {
   resolver: {
     assetExts: assetExts.filter((ext) => ext !== 'svg'),
     sourceExts: [...sourceExts, 'cjs', 'mjs', 'svg'],
+    // Explicit aliases to resolve workspace libs from the mobile app
+    alias: {
+      '@ece-agent/shared-ui': path.resolve(__dirname, '../libs/shared-ui/src/index.ts'),
+      '@ece-agent/shared-ui/native': path.resolve(__dirname, '../libs/shared-ui/src/native.ts'),
+    },
   },
 };
 

@@ -1,0 +1,231 @@
+// Updated Prisma schema for AGENT project with LiveKit pricing model
+// Datasource is Supabase Postgres via connection pooling
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// User Profiles with Tier Management
+model UserProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  email             String
+  name              String
+  tier              UserTier @default(TRIAL)
+  trialExpiresAt    DateTime?
+  subscriptionId    String?  @unique
+  stripeCustomerId  String?  @unique
+  cryptoWalletAddress String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  usage             UserUsage?
+  billingHistory    BillingHistory[]
+  invoices          Invoice[]
+  payments          Payment[]
+
+  @@map("user_profiles")
+}
+
+// User Usage Tracking
+model UserUsage {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  userProfile           UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  // LiveKit Usage Metrics
+  videoMinutesUsed      Float    @default(0)
+  audioMinutesUsed      Float    @default(0)
+  messagesSent          Int      @default(0)
+  dataTransferredGB     Float    @default(0)
+
+  // Billing Cycle Tracking
+  currentCycleStart     DateTime @default(now())
+  currentCycleEnd       DateTime
+  lastResetAt           DateTime @default(now())
+
+  // Overage Tracking
+  videoMinutesOverage   Float    @default(0)
+  audioMinutesOverage   Float    @default(0)
+  messagesOverage       Int      @default(0)
+  dataOverageGB         Float    @default(0)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("user_usage")
+}
+
+// Billing History
+model BillingHistory {
+  id                String      @id @default(uuid())
+  userId            String
+  userProfile       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  action            BillingAction
+  tier              UserTier?
+  amount            Float
+  currency          String      @default("USD")
+  description       String
+
+  // Payment details
+  stripePaymentId   String?
+  cryptoTxHash      String?
+  paymentMethod     PaymentMethod
+
+  createdAt         DateTime    @default(now())
+
+  @@map("billing_history")
+}
+
+// Invoices
+model Invoice {
+  id                String      @id @default(uuid())
+  userId            String
+  userProfile       UserProfile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  invoiceNumber     String      @unique
+  billingPeriodStart DateTime
+  billingPeriodEnd   DateTime
+  dueDate           DateTime
+
+  // Amounts
+  subtotal          Float
+  taxAmount         Float       @default(0)
+  totalAmount       Float
+  currency          String      @default("USD")
+
+  // Status
+  status            InvoiceStatus @default(PENDING)
+  paidAt            DateTime?
+
+  // Line items
+  lineItems         InvoiceLineItem[]
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@map("invoices")
+}
+
+// Invoice Line Items
+model InvoiceLineItem {
+  id                String   @id @default(uuid())
+  invoiceId         String
+  invoice           Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description       String
+  quantity          Float
+  unitPrice         Float
+  amount            Float
+  category          UsageCategory
+
+  createdAt         DateTime @default(now())
+
+  @@map("invoice_line_items")
+}
+
+// Payments
+model Payment {
+  id                String        @id @default(uuid())
+  userId            String
+  userProfile       UserProfile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  amount            Float
+  currency          String        @default("USD")
+  status            PaymentStatus @default(PENDING)
+
+  // Payment method details
+  paymentMethod     PaymentMethod
+  stripePaymentId   String?
+  cryptoTxHash      String?
+  cryptoToken       String?       // ETH, USDC, SOL
+
+  // Processing details
+  processedAt       DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+// LiveKit Webhook Logs
+model LiveKitWebhookLog {
+  id                String   @id @default(uuid())
+  eventType         String
+  roomId            String?
+  participantId     String?
+  userId            String?
+
+  // Usage data from webhook
+  videoMinutes      Float?
+  audioMinutes      Float?
+  messages          Int?
+  dataTransferred   Float?
+
+  payload           Json
+  processed         Boolean  @default(false)
+  processedAt       DateTime?
+
+  createdAt         DateTime @default(now())
+
+  @@map("livekit_webhook_logs")
+}
+
+// Enums
+enum UserTier {
+  TRIAL
+  PERSONAL
+  TEAM
+  ENTERPRISE
+}
+
+enum BillingAction {
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_UPDATED
+  SUBSCRIPTION_CANCELLED
+  USAGE_OVERAGE
+  MANUAL_ADJUSTMENT
+  REFUND
+}
+
+enum PaymentMethod {
+  STRIPE
+  CRYPTO_ETH
+  CRYPTO_USDC
+  CRYPTO_SOL
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum UsageCategory {
+  VIDEO_MINUTES
+  AUDIO_MINUTES
+  MESSAGES
+  DATA_TRANSFER
+  SUBSCRIPTION
+  OVERAGE
+}

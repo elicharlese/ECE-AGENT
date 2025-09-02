@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
   Code, 
-  Image, 
+  Image as ImageIcon, 
   Music, 
   FileText, 
   Play, 
@@ -20,6 +20,7 @@ import {
   Eye,
   Bot,
   Settings,
+  Terminal,
   Zap,
   Palette,
   Camera,
@@ -29,6 +30,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { trackEvent } from "@/lib/analytics"
+import { MCPToolsPanel } from "@/components/mcp/mcp-tools-panel"
+import { AIPanelSidebar } from "@/components/ai/ai-panel-sidebar"
 
 interface WorkspaceItem {
   id: string
@@ -44,6 +47,7 @@ interface WorkspaceSidebarProps {
   panelState: "expanded" | "minimized" | "collapsed"
   onSetPanelState: (state: "expanded" | "minimized" | "collapsed") => void
   selectedAgentId?: string
+  chatId?: string
   onSelectAgent?: (agentId: string) => void
   workspaceItems?: WorkspaceItem[]
   onExecuteTool?: (toolType: string) => void
@@ -56,6 +60,7 @@ export function WorkspaceSidebar({
   panelState,
   onSetPanelState,
   selectedAgentId,
+  chatId,
   onSelectAgent,
   workspaceItems = [],
   onExecuteTool,
@@ -130,6 +135,14 @@ export function WorkspaceSidebar({
           <Button
             variant="ghost"
             size="sm"
+            onClick={() => setActiveTab("mcp")}
+            className={cn("p-2", activeTab === "mcp" && "bg-accent")}
+          >
+            <Terminal className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setActiveTab("settings")}
             className={cn("p-2", activeTab === "settings" && "bg-accent")}
           >
@@ -153,7 +166,7 @@ export function WorkspaceSidebar({
                 )}
               </div>
             </div>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="workspace" className="text-xs">
                 <Zap className="h-3 w-3 mr-1" />
                 Workspace
@@ -161,6 +174,10 @@ export function WorkspaceSidebar({
               <TabsTrigger value="ai" className="text-xs">
                 <Bot className="h-3 w-3 mr-1" />
                 AI Models
+              </TabsTrigger>
+              <TabsTrigger value="mcp" className="text-xs">
+                <Terminal className="h-3 w-3 mr-1" />
+                MCP
               </TabsTrigger>
               <TabsTrigger value="settings" className="text-xs">
                 <Settings className="h-3 w-3 mr-1" />
@@ -283,35 +300,18 @@ export function WorkspaceSidebar({
           </TabsContent>
 
           <TabsContent value="ai" className="flex-1 flex flex-col m-0">
-            <div className="p-3">
-              <h3 className="font-medium text-sm mb-3">AI Model Setup</h3>
-              <div className="space-y-3">
-                <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">GPT-4</span>
-                    <Badge variant="secondary" className="text-xs">Active</Badge>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                    Advanced reasoning and code generation
-                  </p>
-                  <Button variant="outline" size="sm" className="w-full text-xs">
-                    Configure
-                  </Button>
-                </div>
-                
-                <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg opacity-60">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">Claude 3</span>
-                    <Badge variant="outline" className="text-xs">Available</Badge>
-                  </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                    Long context and analysis
-                  </p>
-                  <Button variant="outline" size="sm" className="w-full text-xs">
-                    Enable
-                  </Button>
-                </div>
-              </div>
+            <div className="flex-1">
+              <AIPanelSidebar
+                chatId={chatId || ""}
+                isCollapsed={false}
+                onToggle={() => onSetPanelState("minimized")}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="mcp" className="flex-1 flex flex-col m-0">
+            <div className="flex-1 p-3">
+              <MCPToolsPanel chatId={chatId || ""} />
             </div>
           </TabsContent>
 
@@ -375,7 +375,7 @@ function WorkspaceItemCard({ item, isSelected, onSelect, onAction }: WorkspaceIt
       case 'code':
         return <Code className="h-4 w-4" />
       case 'image':
-        return <Image className="h-4 w-4" />
+        return <ImageIcon className="h-4 w-4" />
       case 'audio':
         return <Music className="h-4 w-4" />
       case 'video':

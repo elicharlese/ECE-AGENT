@@ -3,7 +3,7 @@ import clsx from 'clsx'
 
 export type GlassCardProps = React.PropsWithChildren<{
   className?: string
-  as?: keyof JSX.IntrinsicElements
+  as?: React.ElementType
   role?: string
 }>
 

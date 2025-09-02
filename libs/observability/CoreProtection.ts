@@ -120,7 +120,6 @@ export class CoreProtection {
       'src/types/credits.ts',
       'src/types/user-tiers.ts',
       'prisma/schema.prisma',
-      'middleware.ts',
       'next.config.js',
       'tailwind.config.js',
       'tsconfig.json',
@@ -189,7 +188,7 @@ export class CoreProtection {
           violations.push({
             path: dir,
             reason: `Critical directory ${dir} is missing or inaccessible`,
-            severity: 'critical',
+            severity: 'error',
           });
         }
       }

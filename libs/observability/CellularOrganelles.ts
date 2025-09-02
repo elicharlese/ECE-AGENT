@@ -4,7 +4,7 @@ import { join } from 'path';
 import {
   AdaptiveStrategy,
   ConsequenceRecord,
-  TransformationEvent,
+  Transformation,
   AdaptiveStrategySchema,
 } from '../../src/types/agent-observability';
 
@@ -140,7 +140,7 @@ export class EndoplasmicReticulumOrganelle {
       lastUsed: new Date().toISOString(),
       metadata: { 
         source: 'endoplasmic_reticulum',
-        originalRecord: record.id,
+        originalRecord: record.transformation.id,
         processingTime: Date.now()
       }
     };

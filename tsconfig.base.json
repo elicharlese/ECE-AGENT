@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@ece-agent/shared-ui": ["libs/shared-ui/src/index.ts"]
+      "@ece-agent/shared-ui": ["libs/shared-ui/src/index.ts"],
+      "@ece-agent/shared-ui/native": ["libs/shared-ui/src/native.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

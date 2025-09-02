@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/accessible-emoji */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -10,7 +10,11 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { RNThemeProvider, useRNTheme, RNThemeToggle } from '@ece-agent/shared-ui';
+import { RNThemeProvider, useRNTheme, RNThemeToggle } from '@ece-agent/shared-ui/native';
+import * as SplashScreen from 'expo-splash-screen'
+import { Splash } from './Splash'
+import { AuthScreen } from './AuthScreen'
+import { supabase } from '../lib/supabase'
 
 const AppContent = () => {
   const { tokens, resolvedTheme } = useRNTheme();
@@ -53,9 +57,30 @@ const AppContent = () => {
 }
 
 export const App = () => {
+  const [phase, setPhase] = useState<'splash' | 'auth' | 'main'>('splash')
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        await SplashScreen.preventAutoHideAsync()
+      } catch {}
+      // Check auth session while we keep the native splash for a brief moment
+      const { data: { session } } = await supabase.auth.getSession()
+      setTimeout(async () => {
+        if (!mounted) return
+        setPhase(session ? 'main' : 'auth')
+        try { await SplashScreen.hideAsync() } catch {}
+      }, 400)
+    })()
+    return () => { mounted = false }
+  }, [])
+
   return (
     <RNThemeProvider defaultTheme="system">
-      <AppContent />
+      {phase === 'splash' && <Splash onGetStarted={() => setPhase('auth')} />}
+      {phase === 'auth' && <AuthScreen onSignedIn={() => setPhase('main')} />}
+      {phase === 'main' && <AppContent />}
     </RNThemeProvider>
   )
 }
