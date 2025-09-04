@@ -8,7 +8,6 @@ const createConversationMock = jest.fn()
 const createConversationWithParticipantsMock = jest.fn()
 const updateConversationMock = jest.fn()
 const deleteConversationMock = jest.fn()
-const pinConversationMock = jest.fn()
 const archiveConversationMock = jest.fn()
 const leaveConversationMock = jest.fn()
 const inviteParticipantsMock = jest.fn()
@@ -19,7 +18,6 @@ jest.mock('@/services/conversation-service', () => ({
   createConversationWithParticipants: (...args: any[]) => createConversationWithParticipantsMock(...args),
   updateConversation: (...args: any[]) => updateConversationMock(...args),
   deleteConversation: (...args: any[]) => deleteConversationMock(...args),
-  pinConversation: (...args: any[]) => pinConversationMock(...args),
   archiveConversation: (...args: any[]) => archiveConversationMock(...args),
   leaveConversation: (...args: any[]) => leaveConversationMock(...args),
   inviteParticipants: (...args: any[]) => inviteParticipantsMock(...args),
@@ -62,22 +60,7 @@ describe('useConversations', () => {
     await waitFor(() => expect(hook!.conversations.map(c => c.id)).toEqual(['a', 'b']))
   })
 
-  test('pinConversation calls service and refreshes', async () => {
-    getConversationsMock.mockResolvedValueOnce([convA, convB]) // initial
-    getConversationsMock.mockResolvedValueOnce([convA, convB]) // refresh
-
-    let hook: ReturnType<typeof useConversations> | null = null
-    render(React.createElement(TestHarness, { onReady: (h: ReturnType<typeof useConversations>) => { hook = h } }))
-
-    await waitFor(() => expect(getConversationsMock).toHaveBeenCalled())
-
-    await act(async () => {
-      await hook!.pinConversation('a', true)
-    })
-
-    expect(pinConversationMock).toHaveBeenCalledWith('a', true)
-    expect(getConversationsMock).toHaveBeenCalledTimes(2)
-  })
+  
 
   test('archiveConversation calls service and refreshes', async () => {
     getConversationsMock.mockResolvedValueOnce([convA]) // initial

@@ -1,0 +1,15 @@
+{
+  "name": "agent-test-setup",
+  "version": "1.0.0",
+  "description": "Test setup script for AGENT project",
+  "main": "test-setup.js",
+  "scripts": {
+    "setup": "node test-setup.js",
+    "jest": "node test-setup.js jest",
+    "playwright": "node test-setup.js playwright",
+    "mobile": "node test-setup.js mobile",
+    "examples": "node test-setup.js examples",
+    "ci": "node test-setup.js ci",
+    "run-tests": "node test-setup.js run"
+  }
+}
