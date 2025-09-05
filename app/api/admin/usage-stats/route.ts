@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase/client'
+import { getSupabaseServer } from '@/lib/supabase/server'
 
 interface UsageStats {
   totalUsers: number
@@ -35,6 +35,7 @@ interface UsageStats {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await getSupabaseServer()
     const stats: UsageStats = {
       totalUsers: 0,
       activeUsers: 0,
@@ -156,13 +157,19 @@ export async function GET(request: NextRequest) {
       .limit(10)
 
     if (topUsersData) {
-      stats.topUsers = topUsersData.map(user => ({
-        userId: user.userId,
-        email: user.user_profiles.email,
-        tier: user.user_profiles.tier,
-        totalUsage: user.videoMinutesUsed + user.audioMinutesUsed + user.messagesSent + user.dataTransferredGB,
-        revenue: calculateUserRevenue(user.user_profiles.tier, user)
-      }))
+      stats.topUsers = topUsersData.map(user => {
+        const profile = Array.isArray((user as any).user_profiles)
+          ? (user as any).user_profiles[0]
+          : (user as any).user_profiles
+        const tier = (profile?.tier as string) ?? 'PERSONAL'
+        return {
+          userId: user.userId,
+          email: (profile?.email as string) ?? 'unknown',
+          tier,
+          totalUsage: user.videoMinutesUsed + user.audioMinutesUsed + user.messagesSent + user.dataTransferredGB,
+          revenue: calculateUserRevenue(tier, user)
+        }
+      })
     }
 
     // Get recent activity

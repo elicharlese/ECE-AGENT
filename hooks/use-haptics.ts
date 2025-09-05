@@ -8,18 +8,27 @@ export function useHaptics() {
   const triggerHaptic = useCallback((type: HapticType = "light") => {
     // Check if device supports haptics
     if (typeof window !== "undefined" && "navigator" in window) {
+      // Respect user accessibility preferences
+      const prefersReducedMotion = typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+      // If user requests reduced motion, minimize haptic complexity/intensity
+      const effectiveType: HapticType = prefersReducedMotion
+        ? (type === 'error' || type === 'warning' ? 'light' : 'selection')
+        : type
+
       // Modern Haptic API
       if ("vibrate" in navigator) {
         const patterns = {
-          light: [10],
-          medium: [20],
-          heavy: [30],
+          light: [8],
+          medium: [16],
+          heavy: [24],
           selection: [5],
-          success: [10, 50, 10],
-          warning: [20, 100, 20],
-          error: [50, 100, 50],
+          success: [8, 24, 8],
+          warning: [12, 48, 12],
+          error: [20, 60, 20],
         }
-        navigator.vibrate(patterns[type])
+        navigator.vibrate(patterns[effectiveType])
       }
 
       // iOS Haptic Feedback (if available)
@@ -34,7 +43,7 @@ export function useHaptics() {
           error: "notificationError",
         }
         // @ts-ignore - iOS specific API
-        window.hapticFeedback?.(hapticTypes[type])
+        window.hapticFeedback?.(hapticTypes[effectiveType])
       }
     }
   }, [])

@@ -1,3 +1,4 @@
-export * from './theme/native/Provider'
-export * from './theme/native/tokens'
-export * from './theme/native/ThemeToggle'
+// Native theme exports for React Native
+export { RNThemeProvider, useRNTheme } from './theme/native/Provider'
+export { RNThemeToggle } from './theme/native/ThemeToggle'
+export * from './theme/types'

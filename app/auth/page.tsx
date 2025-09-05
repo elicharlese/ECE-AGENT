@@ -1,27 +1,22 @@
-'use client'
+import { redirect } from 'next/navigation'
+import { getSupabaseServer } from '@/lib/supabase/server'
+import { LoginForm } from '@/components/login-form'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { AuthHero } from '@/components/apps/auth/AuthHero'
+export default async function AuthPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }> | { returnTo?: string }
+}) {
+  const sp = await (searchParams as Promise<{ returnTo?: string }> | { returnTo?: string })
+  const returnTo = (sp as { returnTo?: string }).returnTo
 
-export default function AuthPage() {
-  const router = useRouter()
+  const supabase = await getSupabaseServer()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (session) {
-        router.push('/messages')
-      }
-    }
+  if (session) {
+    const safePath = returnTo && returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/messages'
+    redirect(safePath)
+  }
 
-    checkAuth()
-  }, [router])
-
-  return (
-    <AuthHero className="relative min-h-[100svh] w-screen overflow-hidden bg-[#FAFAFA] dark:bg-slate-900" />
-  )
+  return <LoginForm returnTo={returnTo ?? '/messages'} />
 }

@@ -7,6 +7,8 @@ export interface Profile {
   avatar_url?: string | null
   cover_url?: string | null
   solana_address?: string | null
+  // Optional JSONB field for user preferences; added via migration 009
+  settings?: Record<string, any> | null
   created_at: string
   updated_at: string
 }
@@ -40,8 +42,9 @@ const sanitizeUsername = (raw: string) =>
     .replace(/[^a-z0-9_]+/g, '-')
     .replace(/^-+|-+$/g, '')
 
-export async function getProfileByUserId(userId: string): Promise<Profile | null> {
-  const { data, error } = await supabase
+export async function getProfileByUserId(userId: string, sb?: any): Promise<Profile | null> {
+  const client = sb ?? supabase
+  const { data, error } = await client
     .from('profiles')
     .select('*')
     .eq('user_id', userId)
@@ -192,6 +195,64 @@ export async function updateProfile(patch: Partial<Pick<Profile, 'username' | 'f
   return data
 }
 
+// ----- Settings helpers -----
+export type WorkspaceSettings = {
+  autoSaveItems?: boolean
+  showItemPreviews?: boolean
+  enableRTC?: boolean
+  showTypingIndicators?: boolean
+  enableReactions?: boolean
+  autoScroll?: boolean
+}
+
+async function getOwnProfile(): Promise<Profile | null> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user?.id) return null
+  return getProfileByUserId(auth.user.id)
+}
+
+export async function getSettings(): Promise<Record<string, any>> {
+  const me = await getOwnProfile()
+  return (me?.settings as Record<string, any>) ?? {}
+}
+
+export async function updateSettings(updates: Record<string, any>): Promise<Profile> {
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) throw new Error('Not authenticated')
+  const current = await getSettings()
+  const next = { ...current, ...updates }
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ settings: next })
+    .eq('user_id', auth.user.id)
+    .select()
+    .single()
+  if (error) {
+    console.error('updateSettings error', error)
+    throw new Error(error.message)
+  }
+  return data
+}
+
+export async function getWorkspaceSettings(chatId: string | undefined): Promise<WorkspaceSettings> {
+  if (!chatId) return {}
+  const s = await getSettings()
+  return (s.workspaces?.[chatId] as WorkspaceSettings) ?? {}
+}
+
+export async function setWorkspaceSettings(chatId: string | undefined, ws: WorkspaceSettings): Promise<void> {
+  if (!chatId) return
+  const s = await getSettings()
+  const next = {
+    ...s,
+    workspaces: {
+      ...(s.workspaces ?? {}),
+      [chatId]: ws,
+    },
+  }
+  await updateSettings(next)
+}
+
 // Convenience wrapper API used by components like components/user/user-profile.tsx
 export const profileService = {
   // Alias to get by user id
@@ -210,6 +271,11 @@ export const profileService = {
     // Directly pass the typed patch; updateProfile handles username normalization
     return updateProfile(patch)
   },
+  // Settings API
+  getSettings,
+  updateSettings,
+  getWorkspaceSettings,
+  setWorkspaceSettings,
   getProfileByUserId,
   getProfileByUsername,
   getProfileByIdentifier,

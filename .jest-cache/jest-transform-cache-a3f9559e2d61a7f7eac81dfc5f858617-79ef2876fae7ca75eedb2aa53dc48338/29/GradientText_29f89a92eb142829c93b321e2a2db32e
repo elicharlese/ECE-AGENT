@@ -1,0 +1,27 @@
+1a26a9fd01f5f7711f3f595f48708643
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "GradientText", {
+    enumerable: true,
+    get: function() {
+        return GradientText;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = /*#__PURE__*/ _interop_require_default(require("react"));
+const _clsx = /*#__PURE__*/ _interop_require_default(require("clsx"));
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+function GradientText({ children, className }) {
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("span", {
+        className: (0, _clsx.default)("text-brand-gradient bg-clip-text text-transparent", className),
+        children: children
+    });
+} // no default export
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvY29tcG9uZW50cy91aS9HcmFkaWVudFRleHQudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCBjbHN4IGZyb20gJ2Nsc3gnXG5cbmV4cG9ydCB0eXBlIEdyYWRpZW50VGV4dFByb3BzID0gUmVhY3QuUHJvcHNXaXRoQ2hpbGRyZW48e1xuICBjbGFzc05hbWU/OiBzdHJpbmdcbn0+XG5cbmV4cG9ydCBmdW5jdGlvbiBHcmFkaWVudFRleHQoeyBjaGlsZHJlbiwgY2xhc3NOYW1lIH06IEdyYWRpZW50VGV4dFByb3BzKSB7XG4gIHJldHVybiAoXG4gICAgPHNwYW5cbiAgICAgIGNsYXNzTmFtZT17Y2xzeChcbiAgICAgICAgJ3RleHQtYnJhbmQtZ3JhZGllbnQgYmctY2xpcC10ZXh0IHRleHQtdHJhbnNwYXJlbnQnLFxuICAgICAgICBjbGFzc05hbWUsXG4gICAgICApfVxuICAgID5cbiAgICAgIHtjaGlsZHJlbn1cbiAgICA8L3NwYW4+XG4gIClcbn1cblxuLy8gbm8gZGVmYXVsdCBleHBvcnRcbiJdLCJuYW1lcyI6WyJHcmFkaWVudFRleHQiLCJjaGlsZHJlbiIsImNsYXNzTmFtZSIsInNwYW4iLCJjbHN4Il0sIm1hcHBpbmdzIjoiOzs7OytCQU9nQkE7OztlQUFBQTs7Ozs4REFQRTs2REFDRDs7Ozs7O0FBTVYsU0FBU0EsYUFBYSxFQUFFQyxRQUFRLEVBQUVDLFNBQVMsRUFBcUI7SUFDckUscUJBQ0UscUJBQUNDO1FBQ0NELFdBQVdFLElBQUFBLGFBQUksRUFDYixxREFDQUY7a0JBR0REOztBQUdQLEVBRUEsb0JBQW9CIn0=

@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import {
   Play,

@@ -1,12 +1,33 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Select,
+  Tabs,
+  Tooltip
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
 import {
   BarChart3,
   TrendingUp,
@@ -62,25 +83,44 @@ export function UsageTrackingSection({ profile }: UsageTrackingSectionProps) {
       setIsLoading(true)
       // TODO: Load real usage data from API - currently using empty data for production readiness
       const mockData: UsageData[] = [] // Empty for production readiness
-      ]
 
       setUsageData(mockData)
 
-      // Calculate stats
+      // If no data, set safe defaults
+      if (mockData.length === 0) {
+        setUsageStats({
+          totalMessages: 0,
+          totalAgents: 0,
+          totalFiles: 0,
+          totalCost: 0,
+          averageDailyUsage: 0,
+          peakUsageDay: 'N/A',
+          costTrend: 'stable',
+        })
+        return
+      }
+
+      // Calculate stats safely
       const totalMessages = mockData.reduce((sum, day) => sum + day.messages, 0)
       const totalAgents = mockData.reduce((sum, day) => sum + day.agents, 0)
       const totalFiles = mockData.reduce((sum, day) => sum + day.files, 0)
       const totalCost = mockData.reduce((sum, day) => sum + day.cost, 0)
-      const averageDailyUsage = totalMessages / mockData.length
-      const peakUsageDay = mockData.reduce((max, day) =>
-        day.messages > max.messages ? day : max
+      const averageDailyUsage = mockData.length ? totalMessages / mockData.length : 0
+      const peakUsageDay = mockData.reduce(
+        (max, day) => (day.messages > max.messages ? day : max),
+        mockData[0]
       ).date
 
       // Simple cost trend calculation
-      const firstHalf = mockData.slice(0, Math.floor(mockData.length / 2))
-      const secondHalf = mockData.slice(Math.floor(mockData.length / 2))
-      const firstHalfAvg = firstHalf.reduce((sum, day) => sum + day.cost, 0) / firstHalf.length
-      const secondHalfAvg = secondHalf.reduce((sum, day) => sum + day.cost, 0) / secondHalf.length
+      const mid = Math.floor(mockData.length / 2)
+      const firstHalf = mockData.slice(0, mid)
+      const secondHalf = mockData.slice(mid)
+      const firstHalfAvg = firstHalf.length
+        ? firstHalf.reduce((sum, day) => sum + day.cost, 0) / firstHalf.length
+        : 0
+      const secondHalfAvg = secondHalf.length
+        ? secondHalf.reduce((sum, day) => sum + day.cost, 0) / secondHalf.length
+        : 0
       const costTrend = secondHalfAvg > firstHalfAvg ? 'up' : secondHalfAvg < firstHalfAvg ? 'down' : 'stable'
 
       setUsageStats({
@@ -90,7 +130,7 @@ export function UsageTrackingSection({ profile }: UsageTrackingSectionProps) {
         totalCost,
         averageDailyUsage,
         peakUsageDay,
-        costTrend
+        costTrend,
       })
     } catch (error) {
       console.error('Failed to load usage data:', error)
@@ -256,7 +296,7 @@ export function UsageTrackingSection({ profile }: UsageTrackingSectionProps) {
                     Approaching Message Limit
                   </p>
                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                    You've used {Math.round((profile.usage.conversationsToday / profile.limits.maxMessagesPerDay) * 100)}%
+                    You&apos;ve used {Math.round((profile.usage.conversationsToday / profile.limits.maxMessagesPerDay) * 100)}%
                     of your daily message limit.
                   </p>
                 </div>
@@ -344,7 +384,11 @@ export function UsageTrackingSection({ profile }: UsageTrackingSectionProps) {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={(props) => {
+                        const p = props?.percent ?? 0
+                        const n = typeof props?.name === 'string' ? props.name : String(props?.name ?? '')
+                        return `${n} ${(p * 100).toFixed(0)}%`
+                      }}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

@@ -81,7 +81,7 @@ jest.mock('@/lib/supabase/client', () => ({
       select: () => ({
         eq: () => ({
           eq: () => ({
-            maybeSingle: async () => ({ data: { is_pinned: false, is_archived: false }, error: null }),
+            maybeSingle: async () => ({ data: { is_archived: false }, error: null }),
           }),
         }),
       }),
@@ -98,14 +98,12 @@ jest.mock('@/services/conversation-service', () => ({
 }))
 
 // useConversations spies
-const pinSpy = jest.fn()
 const archiveSpy = jest.fn()
 const leaveSpy = jest.fn()
 const inviteSpy = jest.fn()
 
 jest.mock('@/hooks/use-conversations', () => ({
   useConversations: () => ({
-    pinConversation: (...args: any[]) => pinSpy(...args),
     archiveConversation: (...args: any[]) => archiveSpy(...args),
     leaveConversation: (...args: any[]) => leaveSpy(...args),
     inviteParticipants: (...args: any[]) => inviteSpy(...args),
@@ -127,18 +125,6 @@ describe('ConversationMenu', () => {
     const trigger = screen.getByRole('button', { name: /conversation options/i })
     fireEvent.click(trigger)
   }
-
-  test('pin -> calls pinConversation(chatId, true) and shows toast', async () => {
-    render(<ConversationMenu {...baseProps} />)
-    openMenu()
-
-    fireEvent.click(await screen.findByText(/pin conversation/i))
-
-    await waitFor(() => {
-      expect(pinSpy).toHaveBeenCalledWith('chat-1', true)
-      expect(toastMock).toHaveBeenCalled()
-    })
-  })
 
   test('archive -> calls archiveConversation(chatId, true), navigates, onEnded("archived")', async () => {
     const onEnded = jest.fn()

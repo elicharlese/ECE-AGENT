@@ -51,8 +51,38 @@ export function validateEnv(): Env {
     return validatedEnv
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
-      throw new Error(`Environment validation failed:\n${missingVars}`)
+      // In production, fail fast
+      if (process.env.NODE_ENV === 'production') {
+        const missingVars = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join('\n')
+        throw new Error(`Environment validation failed:\n${missingVars}`)
+      }
+      // In development, fall back to safe defaults
+      const fallback: Record<string, string | undefined> = {
+        NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dev-anon-key',
+        LIVEKIT_API_KEY: process.env.LIVEKIT_API_KEY || 'dev-livekit-key',
+        LIVEKIT_API_SECRET: process.env.LIVEKIT_API_SECRET || 'dev-livekit-secret',
+        NEXT_PUBLIC_LIVEKIT_WS_URL: process.env.NEXT_PUBLIC_LIVEKIT_WS_URL || 'ws://localhost:7880',
+        NEXT_PUBLIC_WEBSOCKET_URL: process.env.NEXT_PUBLIC_WEBSOCKET_URL,
+        STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        NEXT_PUBLIC_CREDITS_ENABLED: process.env.NEXT_PUBLIC_CREDITS_ENABLED,
+        NEXT_PUBLIC_CREDITS_PER_AI_REQUEST: process.env.NEXT_PUBLIC_CREDITS_PER_AI_REQUEST,
+        NEXT_PUBLIC_CREDITS_PURCHASE_URL: process.env.NEXT_PUBLIC_CREDITS_PURCHASE_URL,
+        CREDITS_CURRENCY: process.env.CREDITS_CURRENCY,
+        CENTS_PER_CREDIT: process.env.CENTS_PER_CREDIT,
+        NODE_ENV: 'development',
+        DATABASE_URL: process.env.DATABASE_URL,
+        DIRECT_URL: process.env.DIRECT_URL,
+      }
+      try {
+        validatedEnv = envSchema.parse(fallback)
+      } catch {
+        validatedEnv = fallback as Env
+      }
+      return validatedEnv
     }
     throw error
   }

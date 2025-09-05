@@ -18,7 +18,19 @@ if (typeof (global as any).TextDecoder === 'undefined') {
   ;(global as any).TextDecoder = TextDecoder
 }
 
-import { server } from './__tests__/msw/server'
+// MSW: set up conditionally to avoid hard failure if subpath exports are unavailable
+// in certain package manager or Node environments. We'll require at runtime.
+let __mswServer: { listen: () => void; resetHandlers: () => void; close: () => void } | null = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { setupServer } = require('msw/node')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { handlers } = require('./__tests__/msw/handlers')
+  __mswServer = setupServer(...handlers)
+} catch (err) {
+  // eslint-disable-next-line no-console
+  console.warn('[jest.setup] MSW not available, continuing without request interception')
+}
 
 // Ensure fetch API classes exist on global for modules that reference them at import time
 // Next's next/server defines classes extending global Request/Response during import
@@ -74,9 +86,11 @@ if (typeof window !== 'undefined') {
 }
 
 // Start MSW before all tests, reset after each, and close after all
-beforeAll(() => server.listen())
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+if (__mswServer) {
+  beforeAll(() => __mswServer!.listen())
+  afterEach(() => __mswServer!.resetHandlers())
+  afterAll(() => __mswServer!.close())
+}
 
 // Mock 'vaul' drawer primitives used by components/ui/drawer.tsx so tests
 // don't require the real dependency or DOM behaviors.
@@ -110,3 +124,43 @@ jest.mock('@/components/credits/CreditsPopover', () => {
     }, React.createElement('span', null, '42'))
   }
 })
+
+// Mock ESM-only modules that Jest struggles to transform from node_modules
+// react-markdown: simple passthrough that renders children
+jest.mock('react-markdown', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const React = require('react') as typeof import('react')
+  return {
+    __esModule: true,
+    default: ({ children }: { children: any }) =>
+      React.createElement('div', { 'data-testid': 'react-markdown-mock' }, children),
+  }
+})
+
+// react-resizable-panels: pass-through wrappers so layout renders in tests
+jest.mock('react-resizable-panels', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const React = require('react') as typeof import('react')
+  const PassThrough = ({ children, ...props }: any) => React.createElement('div', props, children)
+  return {
+    __esModule: true,
+    PanelGroup: PassThrough,
+    Panel: PassThrough,
+    PanelResizeHandle: PassThrough,
+  }
+})
+
+// react-syntax-highlighter and its styles: provide minimal mocks
+jest.mock('react-syntax-highlighter', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const React = require('react') as typeof import('react')
+  return {
+    __esModule: true,
+    Prism: ({ children }: any) => React.createElement('pre', { 'data-testid': 'syntax-highlighter-mock' }, children),
+  }
+})
+
+jest.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
+  __esModule: true,
+  oneDark: {},
+}))

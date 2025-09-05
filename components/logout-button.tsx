@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser } from '@/contexts/user-context'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/libs/design-system'
 
 export function LogoutButton() {
   const { logout } = useUser()

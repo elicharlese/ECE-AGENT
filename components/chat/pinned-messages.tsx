@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { Button } from '@/libs/design-system'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
 import { Pin, X } from "lucide-react"
 
 interface PinnedMessage {

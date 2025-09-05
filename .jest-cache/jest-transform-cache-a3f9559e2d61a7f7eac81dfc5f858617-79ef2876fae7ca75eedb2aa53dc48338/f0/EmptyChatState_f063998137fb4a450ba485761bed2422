@@ -1,0 +1,55 @@
+e423e9ba549a205e924f02d6ace3453e
+"use client";
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "EmptyChatState", {
+    enumerable: true,
+    get: function() {
+        return EmptyChatState;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _lucidereact = require("lucide-react");
+const _button = require("../ui/button");
+function EmptyChatState({ onStartNewChat }) {
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+        className: "h-full w-full flex items-center justify-center",
+        children: /*#__PURE__*/ (0, _jsxruntime.jsxs)("div", {
+            className: "text-center p-6 md:p-8 max-w-md",
+            children: [
+                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "mx-auto mb-4 h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500/15 to-purple-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center",
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.MessageSquarePlus, {
+                        className: "h-6 w-6"
+                    })
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)("h2", {
+                    className: "text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100",
+                    children: "No conversation selected"
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)("p", {
+                    className: "mt-2 text-sm md:text-base text-gray-600 dark:text-gray-300",
+                    children: "Select a conversation from the left, or start a new one to begin chatting."
+                }),
+                /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+                    className: "mt-4",
+                    children: /*#__PURE__*/ (0, _jsxruntime.jsxs)(_button.Button, {
+                        onClick: onStartNewChat,
+                        className: "gap-2",
+                        "aria-label": "Start new chat",
+                        children: [
+                            /*#__PURE__*/ (0, _jsxruntime.jsx)(_lucidereact.MessageSquarePlus, {
+                                className: "h-4 w-4"
+                            }),
+                            "Start new chat"
+                        ]
+                    })
+                })
+            ]
+        })
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvY29tcG9uZW50cy9jaGF0L0VtcHR5Q2hhdFN0YXRlLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJcInVzZSBjbGllbnRcIlxuXG5pbXBvcnQgeyBNZXNzYWdlU3F1YXJlUGx1cyB9IGZyb20gXCJsdWNpZGUtcmVhY3RcIlxuaW1wb3J0IHsgQnV0dG9uIH0gZnJvbSBcIkAvY29tcG9uZW50cy91aS9idXR0b25cIlxuXG5leHBvcnQgdHlwZSBFbXB0eUNoYXRTdGF0ZVByb3BzID0ge1xuICBvblN0YXJ0TmV3Q2hhdD86ICgpID0+IHZvaWRcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIEVtcHR5Q2hhdFN0YXRlKHsgb25TdGFydE5ld0NoYXQgfTogRW1wdHlDaGF0U3RhdGVQcm9wcykge1xuICByZXR1cm4gKFxuICAgIDxkaXYgY2xhc3NOYW1lPVwiaC1mdWxsIHctZnVsbCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPlxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LWNlbnRlciBwLTYgbWQ6cC04IG1heC13LW1kXCI+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibXgtYXV0byBtYi00IGgtMTIgdy0xMiByb3VuZGVkLXhsIGJnLWdyYWRpZW50LXRvLWJyIGZyb20taW5kaWdvLTUwMC8xNSB0by1wdXJwbGUtNTAwLzE1IHRleHQtaW5kaWdvLTYwMCBkYXJrOnRleHQtaW5kaWdvLTMwMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPlxuICAgICAgICAgIDxNZXNzYWdlU3F1YXJlUGx1cyBjbGFzc05hbWU9XCJoLTYgdy02XCIgLz5cbiAgICAgICAgPC9kaXY+XG4gICAgICAgIDxoMiBjbGFzc05hbWU9XCJ0ZXh0LWxnIG1kOnRleHQteGwgZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktOTAwIGRhcms6dGV4dC1ncmF5LTEwMFwiPk5vIGNvbnZlcnNhdGlvbiBzZWxlY3RlZDwvaDI+XG4gICAgICAgIDxwIGNsYXNzTmFtZT1cIm10LTIgdGV4dC1zbSBtZDp0ZXh0LWJhc2UgdGV4dC1ncmF5LTYwMCBkYXJrOnRleHQtZ3JheS0zMDBcIj5cbiAgICAgICAgICBTZWxlY3QgYSBjb252ZXJzYXRpb24gZnJvbSB0aGUgbGVmdCwgb3Igc3RhcnQgYSBuZXcgb25lIHRvIGJlZ2luIGNoYXR0aW5nLlxuICAgICAgICA8L3A+XG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwibXQtNFwiPlxuICAgICAgICAgIDxCdXR0b24gb25DbGljaz17b25TdGFydE5ld0NoYXR9IGNsYXNzTmFtZT1cImdhcC0yXCIgYXJpYS1sYWJlbD1cIlN0YXJ0IG5ldyBjaGF0XCI+XG4gICAgICAgICAgICA8TWVzc2FnZVNxdWFyZVBsdXMgY2xhc3NOYW1lPVwiaC00IHctNFwiIC8+XG4gICAgICAgICAgICBTdGFydCBuZXcgY2hhdFxuICAgICAgICAgIDwvQnV0dG9uPlxuICAgICAgICA8L2Rpdj5cbiAgICAgIDwvZGl2PlxuICAgIDwvZGl2PlxuICApXG59XG4iXSwibmFtZXMiOlsiRW1wdHlDaGF0U3RhdGUiLCJvblN0YXJ0TmV3Q2hhdCIsImRpdiIsImNsYXNzTmFtZSIsIk1lc3NhZ2VTcXVhcmVQbHVzIiwiaDIiLCJwIiwiQnV0dG9uIiwib25DbGljayIsImFyaWEtbGFiZWwiXSwibWFwcGluZ3MiOiJBQUFBOzs7OzsrQkFTZ0JBOzs7ZUFBQUE7Ozs7NkJBUGtCO3dCQUNYO0FBTWhCLFNBQVNBLGVBQWUsRUFBRUMsY0FBYyxFQUF1QjtJQUNwRSxxQkFDRSxxQkFBQ0M7UUFBSUMsV0FBVTtrQkFDYixjQUFBLHNCQUFDRDtZQUFJQyxXQUFVOzs4QkFDYixxQkFBQ0Q7b0JBQUlDLFdBQVU7OEJBQ2IsY0FBQSxxQkFBQ0MsOEJBQWlCO3dCQUFDRCxXQUFVOzs7OEJBRS9CLHFCQUFDRTtvQkFBR0YsV0FBVTs4QkFBb0U7OzhCQUNsRixxQkFBQ0c7b0JBQUVILFdBQVU7OEJBQTZEOzs4QkFHMUUscUJBQUNEO29CQUFJQyxXQUFVOzhCQUNiLGNBQUEsc0JBQUNJLGNBQU07d0JBQUNDLFNBQVNQO3dCQUFnQkUsV0FBVTt3QkFBUU0sY0FBVzs7MENBQzVELHFCQUFDTCw4QkFBaUI7Z0NBQUNELFdBQVU7OzRCQUFZOzs7Ozs7O0FBT3JEIn0=

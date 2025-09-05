@@ -4,11 +4,26 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Label,
+  Textarea
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
 import { AgentInsertSchema, AgentCreateInput } from "@/src/types/agent"
 import type { Agent } from "@/services/agent-service"
 import { toast } from "sonner"

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/libs/design-system';
+import { Alert, AlertDescription } from '@/libs/design-system';
 import { Loader2, Wallet, Shield, CheckCircle } from 'lucide-react';
 
 type Props = { className?: string; onLinked?: () => void }

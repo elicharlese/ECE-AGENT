@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase/client'
+import { getSupabaseServer } from '@/lib/supabase/server'
 
 // Admin role check
 export async function GET(request: NextRequest) {
@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 401 })
     }
+
+    const supabase = await getSupabaseServer()
 
     // Check if user has admin role
     const { data: userProfile, error } = await supabase

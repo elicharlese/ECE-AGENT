@@ -1,11 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Tabs
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
 import {
   Activity,
   Database,

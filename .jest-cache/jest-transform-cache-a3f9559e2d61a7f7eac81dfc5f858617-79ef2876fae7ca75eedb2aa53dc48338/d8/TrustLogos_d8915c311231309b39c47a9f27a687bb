@@ -1,0 +1,54 @@
+ac0c016b3b7862274d8075021828b485
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "TrustLogos", {
+    enumerable: true,
+    get: function() {
+        return TrustLogos;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _image = /*#__PURE__*/ _interop_require_default(require("next/image"));
+const _react = /*#__PURE__*/ _interop_require_default(require("react"));
+const _clsx = /*#__PURE__*/ _interop_require_default(require("clsx"));
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+const logos = [
+    {
+        src: "/placeholder-logo.svg",
+        alt: "OpenAI",
+        width: 84,
+        height: 24
+    },
+    {
+        src: "/placeholder-logo.svg",
+        alt: "Benzinga",
+        width: 120,
+        height: 24
+    },
+    {
+        src: "/placeholder-logo.svg",
+        alt: "Partner",
+        width: 96,
+        height: 24
+    }
+];
+function TrustLogos({ className }) {
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+        className: (0, _clsx.default)("flex w-full items-center justify-start gap-8 opacity-70", className),
+        children: logos.map((logo, i)=>/*#__PURE__*/ (0, _jsxruntime.jsx)(_image.default, {
+                src: logo.src,
+                alt: logo.alt,
+                width: logo.width,
+                height: logo.height,
+                className: "h-5 w-auto grayscale contrast-125 opacity-80"
+            }, i))
+    });
+} // no default export
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvY29tcG9uZW50cy91aS9UcnVzdExvZ29zLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgSW1hZ2UgZnJvbSAnbmV4dC9pbWFnZSdcbmltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCBjbHN4IGZyb20gJ2Nsc3gnXG5cbmV4cG9ydCB0eXBlIFRydXN0TG9nb3NQcm9wcyA9IHtcbiAgY2xhc3NOYW1lPzogc3RyaW5nXG59XG5cbmNvbnN0IGxvZ29zID0gW1xuICB7IHNyYzogJy9wbGFjZWhvbGRlci1sb2dvLnN2ZycsIGFsdDogJ09wZW5BSScsIHdpZHRoOiA4NCwgaGVpZ2h0OiAyNCB9LFxuICB7IHNyYzogJy9wbGFjZWhvbGRlci1sb2dvLnN2ZycsIGFsdDogJ0JlbnppbmdhJywgd2lkdGg6IDEyMCwgaGVpZ2h0OiAyNCB9LFxuICB7IHNyYzogJy9wbGFjZWhvbGRlci1sb2dvLnN2ZycsIGFsdDogJ1BhcnRuZXInLCB3aWR0aDogOTYsIGhlaWdodDogMjQgfSxcbl1cblxuZXhwb3J0IGZ1bmN0aW9uIFRydXN0TG9nb3MoeyBjbGFzc05hbWUgfTogVHJ1c3RMb2dvc1Byb3BzKSB7XG4gIHJldHVybiAoXG4gICAgPGRpdiBjbGFzc05hbWU9e2Nsc3goJ2ZsZXggdy1mdWxsIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LXN0YXJ0IGdhcC04IG9wYWNpdHktNzAnLCBjbGFzc05hbWUpfT5cbiAgICAgIHtsb2dvcy5tYXAoKGxvZ28sIGkpID0+IChcbiAgICAgICAgPEltYWdlXG4gICAgICAgICAga2V5PXtpfVxuICAgICAgICAgIHNyYz17bG9nby5zcmN9XG4gICAgICAgICAgYWx0PXtsb2dvLmFsdH1cbiAgICAgICAgICB3aWR0aD17bG9nby53aWR0aH1cbiAgICAgICAgICBoZWlnaHQ9e2xvZ28uaGVpZ2h0fVxuICAgICAgICAgIGNsYXNzTmFtZT1cImgtNSB3LWF1dG8gZ3JheXNjYWxlIGNvbnRyYXN0LTEyNSBvcGFjaXR5LTgwXCJcbiAgICAgICAgLz5cbiAgICAgICkpfVxuICAgIDwvZGl2PlxuICApXG59XG4vLyBubyBkZWZhdWx0IGV4cG9ydFxuIl0sIm5hbWVzIjpbIlRydXN0TG9nb3MiLCJsb2dvcyIsInNyYyIsImFsdCIsIndpZHRoIiwiaGVpZ2h0IiwiY2xhc3NOYW1lIiwiZGl2IiwiY2xzeCIsIm1hcCIsImxvZ28iLCJpIiwiSW1hZ2UiXSwibWFwcGluZ3MiOiI7Ozs7K0JBY2dCQTs7O2VBQUFBOzs7OzhEQWRFOzhEQUNBOzZEQUNEOzs7Ozs7QUFNakIsTUFBTUMsUUFBUTtJQUNaO1FBQUVDLEtBQUs7UUFBeUJDLEtBQUs7UUFBVUMsT0FBTztRQUFJQyxRQUFRO0lBQUc7SUFDckU7UUFBRUgsS0FBSztRQUF5QkMsS0FBSztRQUFZQyxPQUFPO1FBQUtDLFFBQVE7SUFBRztJQUN4RTtRQUFFSCxLQUFLO1FBQXlCQyxLQUFLO1FBQVdDLE9BQU87UUFBSUMsUUFBUTtJQUFHO0NBQ3ZFO0FBRU0sU0FBU0wsV0FBVyxFQUFFTSxTQUFTLEVBQW1CO0lBQ3ZELHFCQUNFLHFCQUFDQztRQUFJRCxXQUFXRSxJQUFBQSxhQUFJLEVBQUMsMkRBQTJERjtrQkFDN0VMLE1BQU1RLEdBQUcsQ0FBQyxDQUFDQyxNQUFNQyxrQkFDaEIscUJBQUNDLGNBQUs7Z0JBRUpWLEtBQUtRLEtBQUtSLEdBQUc7Z0JBQ2JDLEtBQUtPLEtBQUtQLEdBQUc7Z0JBQ2JDLE9BQU9NLEtBQUtOLEtBQUs7Z0JBQ2pCQyxRQUFRSyxLQUFLTCxNQUFNO2dCQUNuQkMsV0FBVTtlQUxMSzs7QUFVZixFQUNBLG9CQUFvQiJ9

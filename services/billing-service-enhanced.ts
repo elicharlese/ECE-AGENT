@@ -19,7 +19,12 @@ export const TIER_PRICING = {
   ENTERPRISE: 99
 }
 
-export const TIER_LIMITS = {
+export const TIER_LIMITS: Record<UserTier, {
+  videoMinutes: number
+  audioMinutes: number
+  messages: number
+  dataGB: number
+}> = {
   TRIAL: {
     videoMinutes: 5000,
     audioMinutes: 10000,
@@ -44,6 +49,11 @@ export const TIER_LIMITS = {
     messages: -1,
     dataGB: -1
   }
+}
+
+const USER_TIERS: readonly UserTier[] = ['TRIAL', 'PERSONAL', 'TEAM', 'ENTERPRISE'] as const
+function asUserTier(value: any): UserTier {
+  return USER_TIERS.includes(value as UserTier) ? (value as UserTier) : 'TRIAL'
 }
 
 export class BillingService {
@@ -322,9 +332,10 @@ export class BillingService {
     const billingPeriodEnd = new Date(usage.currentCycleEnd)
 
     // Calculate costs
-    const subscriptionCost = this.getSubscriptionCost(profile.tier)
+    const tier = asUserTier(profile.tier)
+    const subscriptionCost = this.getSubscriptionCost(tier)
     const overageCost = this.calculateOverageCost(
-      profile.tier,
+      tier,
       usage.videoMinutesUsed,
       usage.audioMinutesUsed,
       usage.messagesSent,
@@ -365,7 +376,7 @@ export class BillingService {
     if (subscriptionCost > 0) {
       lineItems.push({
         invoiceId: invoice.id,
-        description: `${profile.tier} Plan Subscription`,
+        description: `${tier} Plan Subscription`,
         quantity: 1,
         unitPrice: subscriptionCost,
         amount: subscriptionCost,
@@ -375,7 +386,7 @@ export class BillingService {
 
     if (overageCost > 0) {
       // Add overage line items
-      const limits = TIER_LIMITS[profile.tier]
+      const limits = TIER_LIMITS[tier]
 
       if (usage.videoMinutesUsed > limits.videoMinutes) {
         const overageVideo = usage.videoMinutesUsed - limits.videoMinutes
@@ -467,10 +478,12 @@ export class BillingService {
       .order('createdAt', { ascending: false })
       .limit(5)
 
+    const tier = asUserTier(profile.tier)
+
     return {
       profile,
       usage,
-      limits: TIER_LIMITS[profile.tier],
+      limits: TIER_LIMITS[tier],
       pendingInvoices: pendingInvoices || [],
       recentPayments: recentPayments || [],
       nextBillingDate: usage?.currentCycleEnd,

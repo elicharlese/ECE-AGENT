@@ -1,15 +1,38 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Button,
+  DropdownMenu,
+  Label,
+  Select,
+  Tabs,
+  Textarea
+} from '@/libs/design-system';
+import { Input } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
 import {
   Search,
   UserPlus,
@@ -22,7 +45,11 @@ import {
   User,
   Smartphone,
 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: DropdownMenu
+// 
+// TODO: Replace deprecated components: DropdownMenu
+// import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { PhoneCallUI } from "../calls/phone-call-ui"
 import { VideoCallUI } from "../calls/video-call-ui"
 

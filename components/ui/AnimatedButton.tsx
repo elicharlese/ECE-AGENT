@@ -19,10 +19,13 @@ export function AnimatedButton({
   variant = 'primary',
   'aria-label': ariaLabel 
 }: AnimatedButtonProps) {
+  const isExternal = /^https?:\/\//i.test(href)
   return (
     <Link
       href={href}
       aria-label={ariaLabel}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
       className={cn(
         'group relative overflow-hidden rounded-xl px-6 py-3 text-base font-semibold transition-all duration-300',
         'transform hover:scale-105 active:scale-95 w-full sm:w-auto',

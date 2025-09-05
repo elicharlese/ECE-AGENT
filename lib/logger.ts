@@ -16,17 +16,21 @@ const loggerConfig = {
   },
 }
 
-// Add pretty printing in development
+// Create the logger instance (use pino-pretty transport in development)
+const baseConfig: pino.LoggerOptions = { ...loggerConfig } as any
+
 if (isDevelopment) {
-  loggerConfig.prettyPrint = {
-    colorize: true,
-    translateTime: 'SYS:standard',
-    ignore: 'pid,hostname',
+  ;(baseConfig as any).transport = {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'SYS:standard',
+      ignore: 'pid,hostname',
+    },
   }
 }
 
-// Create the logger instance
-export const logger = pino(loggerConfig)
+export const logger = pino(baseConfig)
 
 // Helper functions for different log levels
 export const log = {
@@ -49,7 +53,7 @@ export const logRequest = (req: Request, res?: Response, responseTime?: number) 
   const method = req.method
   const url = new URL(req.url).pathname
   
-  const logData = {
+  const logData: Record<string, any> = {
     method,
     url,
     userAgent: req.headers.get('user-agent'),

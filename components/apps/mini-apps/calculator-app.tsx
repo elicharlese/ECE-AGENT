@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from '@/libs/design-system'
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
 
 interface CalculatorAppProps {
   onShare?: (result: string) => void

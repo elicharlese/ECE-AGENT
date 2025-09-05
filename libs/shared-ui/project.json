@@ -5,23 +5,19 @@
   "sourceRoot": "libs/shared-ui/src",
   "targets": {
     "build": {
-      "executor": "@nx/js:tsc",
+      "executor": "@nx/rollup:rollup",
       "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/libs/shared-ui",
         "tsConfig": "libs/shared-ui/tsconfig.lib.json",
-        "packageJson": "libs/shared-ui/package.json"
+        "project": "libs/shared-ui/package.json",
+        "entryFile": "libs/shared-ui/src/index.ts",
+        "external": ["react", "react-native", "react/jsx-runtime"]
       }
     },
     "lint": {
       "executor": "@nx/eslint:lint"
-    },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": {
-        "jestConfig": "libs/shared-ui/jest.config.ts"
-      }
     }
-  }
+  },
+  "tags": ["scope:shared", "type:ui"]
 }

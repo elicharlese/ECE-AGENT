@@ -7,23 +7,30 @@ import { PanelLeftIcon } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import {
+  Button,
+  Label,
+  Separator,
   Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
-import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+  Tooltip
+} from '@/libs/design-system';
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Separator
+// 
+// TODO: Replace deprecated components: Separator
+// import { Separator } from '@/components/ui/separator'
+import { SheetContent, SheetDescription, SheetHeader, SheetTitle,  } from '@/libs/design-system'
+// TODO: Replace deprecated components: Sheet
+// 
+// TODO: Replace deprecated components: Sheet
+// import { Sheet } from '@/components/ui/sheet'
+import { Skeleton } from '@/libs/design-system'
+import { TooltipContent, TooltipProvider, TooltipTrigger,  } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tooltip
+// 
+// TODO: Replace deprecated components: Tooltip
+// import { Tooltip } from '@/components/ui/tooltip'
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7

@@ -1,11 +1,19 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { useState, useCallback, useEffect, useMemo } from "react"
+import {
+  Button,
+  ScrollArea,
+  Select
+} from '@/libs/design-system';
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: ScrollArea
+// 
+// TODO: Replace deprecated components: ScrollArea
+// import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Bot,
   MessageSquare,
@@ -341,6 +349,8 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
   const [agentResponses, setAgentResponses] = useState<Record<string, AgentResponse>>({})
   const [showReasoning, setShowReasoning] = useState<Record<string, boolean>>({})
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, boolean>>({})
+  const [query, setQuery] = useState("")
+  const [activeOnly, setActiveOnly] = useState(false)
 
   // Test AGENT API connection
   const testAgentAPI = useCallback(async (agentMode: string) => {
@@ -504,28 +514,80 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
   const totalCapabilities = integrations.reduce((sum, i) => sum + i.capabilities.length, 0)
   const activeTriggers = integrations.reduce((sum, i) => sum + i.triggers.filter((t) => t.enabled).length, 0)
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return integrations.filter(i => {
+      const matches = !q || i.agentName.toLowerCase().includes(q) || i.agentId.toLowerCase().includes(q)
+      const statusOk = !activeOnly || i.status === 'active'
+      return matches && statusOk
+    })
+  }, [integrations, query, activeOnly])
+
+  const handleActivateAll = useCallback(() => {
+    setIntegrations(prev => prev.map(i => ({ ...i, status: 'active' })))
+  }, [])
+
+  const handleDeactivateAll = useCallback(() => {
+    setIntegrations(prev => prev.map(i => ({ ...i, status: 'inactive' })))
+  }, [])
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Brain className="h-5 w-5 text-blue-500" />
-            AGENT - AI Assistant
+            Agent Integrations
           </h3>
-          <div className="flex gap-2">
-            <Badge variant="outline">{activeAgents} Active</Badge>
-            <Badge variant="secondary">{totalCapabilities} Capabilities</Badge>
-            <Badge variant="default">{activeTriggers} Triggers</Badge>
+          <div className="hidden md:flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">{activeAgents} active</Badge>
+            <Badge variant="outline" className="text-xs">{totalCapabilities} capabilities</Badge>
+            <Badge variant="outline" className="text-xs">{activeTriggers} triggers</Badge>
           </div>
         </div>
-        <Button onClick={() => setIsConfiguring(true)}>
-          <Settings className="h-4 w-4 mr-2" />
-          Configure
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search agents…"
+              className="h-8 w-44 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <label className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+              <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
+              Active only
+            </label>
+          </div>
+          <Button variant="outline" onClick={handleDeactivateAll} className="hidden md:inline-flex">Deactivate All</Button>
+          <Button variant="outline" onClick={handleActivateAll} className="hidden md:inline-flex">Activate All</Button>
+          <Button onClick={() => setIsConfiguring(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Configure
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {integrations.map((integration) => (
+      {/* Mobile Filters */}
+      <div className="md:hidden flex items-center gap-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search agents…"
+          className="h-9 flex-1 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <label className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+          <input type="checkbox" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />
+          Active
+        </label>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400 border rounded-lg bg-gray-50 dark:bg-gray-800">
+          No agents match your filters.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {filtered.map((integration) => (
           <AgentIntegrationCard
             key={integration.id}
             integration={integration}
@@ -539,7 +601,8 @@ export function AgentIntegration({ chatId, onAgentMessage, onAppLaunch, onWorkfl
             feedbackGiven={feedbackGiven}
           />
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Configuration Dialog */}
       <Dialog open={isConfiguring} onOpenChange={setIsConfiguring}>

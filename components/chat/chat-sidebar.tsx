@@ -1,17 +1,29 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Plus, Menu, X, Zap } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import { Search, Plus, X, Zap, Archive, Trash2, Share2 } from "lucide-react"
+import {
+  Button,
+  Separator,
+  Switch
+} from '@/libs/design-system';
+import { Input } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
 import { UserProfile } from "./user-profile"
 import { ContactsManager } from "./contacts-manager"
 import { useConversations } from "@/hooks/use-conversations"
 import { useResponsiveLayout } from "@/hooks/use-responsive-layout"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Switch } from "@/components/ui/switch"
+import { Skeleton } from '@/libs/design-system'
+// TODO: Replace deprecated components: ContextMenu
+// 
+// TODO: Replace deprecated components: ContextMenu
+// import { ContextMenu } from '@/components/ui/context-menu'
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
  
 
 interface ChatSidebarProps {
@@ -39,15 +51,13 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
     timestamp: new Date(conv.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     unreadCount: 0,
     isOnline: false,
-    isPinned: !!conv.is_pinned,
   }))
 
   const filteredChats = chats.filter(chat =>
     chat.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const pinnedChats = filteredChats.filter((chat) => chat.isPinned)
-  const regularChats = filteredChats.filter((chat) => !chat.isPinned)
+  // No pinned grouping; show a single list
 
   const handleStartChat = async (contactId: string) => {
     // Open invite dialog instead of creating placeholder conversation
@@ -65,17 +75,8 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   if (panelState === "minimized") {
     // Compact rail with an expand button and a couple of quick actions
     return (
-      <div className="h-full bg-white dark:bg-gray-800 border-r border-transparent flex flex-col items-center py-3 w-full">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onSetPanelState("expanded")}
-          aria-label="Expand conversations sidebar"
-          className="mb-2"
-        >
-          <Menu className="h-4 w-4" />
-        </Button>
-        <div className="flex-1 overflow-y-auto hide-scrollbar w-full px-2">
+      <div className="h-full bg-white dark:bg-[#1f2937] border-r border-transparent flex flex-col items-center py-3 w-full">
+        <div className="flex-1 overflow-y-auto hide-scrollbar w-full px-2 pt-3">
           {/* Minimal list of recent conversations: just avatars */}
           <div className="flex flex-col items-center gap-2">
             {chats.slice(0, 12).map((chat) => (
@@ -84,7 +85,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
                 title={chat.name}
                 aria-label={chat.name}
                 onClick={() => onSelectChat(chat.id)}
-                className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 dark:bg-white/10 hover:bg-gray-100 dark:hover:bg-white/15 transition ${
                   selectedChatId === chat.id ? "ring-2 ring-indigo-500" : ""
                 }`}
               >
@@ -105,21 +106,16 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
   }
 
   return (
-    <div className="h-full bg-white dark:bg-gray-800 border-r border-transparent flex flex-col">
+    <div className="h-full bg-white dark:bg-[#1f2937] border-r border-transparent flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-transparent">
+      <div className="px-3 py-2 border-b border-transparent">
         
         {/* Profile + actions (moved from footer) */}
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center justify-between gap-2 mb-2">
           <div className="min-w-0 flex-1">
             <UserProfile />
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {onToggleWorkspace && (
-              <Button variant="ghost" size="sm" aria-label="Toggle workspace" onClick={onToggleWorkspace}>
-                <Zap className="h-4 w-4" />
-              </Button>
-            )}
             <ContactsManager onStartChat={handleStartChat} />
             <Button variant="ghost" size="sm" aria-label="New chat" onClick={handleNewChat}>
               <Plus className="h-4 w-4" />
@@ -144,21 +140,15 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-gray-50 dark:bg-gray-700 border-0"
+            className="pl-10 h-9 bg-gray-50 dark:bg-white/10 border-0 placeholder:text-gray-400 dark:placeholder:text-gray-400"
           />
-        </div>
-
-        {/* Archived toggle */}
-        <div className="mt-3 flex items-center justify-between">
-          <span className="text-xs text-gray-500 dark:text-gray-400">Show archived</span>
-          <Switch checked={showArchived} onCheckedChange={(v) => setShowArchived(!!v)} aria-label="Show archived conversations" />
         </div>
 
         {/* Quick Actions removed; moved into UserProfile popout */}
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto hide-scrollbar">
+      <div className="flex-1 overflow-y-auto hide-scrollbar pt-2">
         {/* Loading skeleton */}
         {loading && (
           <div className="p-2 space-y-2">
@@ -186,37 +176,16 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
 
         {/* Data present */}
         {!loading && filteredChats.length > 0 && (
-          <>
-            {/* Pinned Chats */}
-            {pinnedChats.length > 0 && (
-              <div className="p-2">
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">PINNED</div>
-                {pinnedChats.map((chat) => (
-                  <ChatItem
-                    key={chat.id}
-                    chat={chat}
-                    isSelected={selectedChatId === chat.id}
-                    onSelect={() => onSelectChat(chat.id)}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Regular Chats */}
-            <div className="p-2">
-              {regularChats.length > 0 && pinnedChats.length > 0 && (
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 px-2 py-1 mb-1">ALL MESSAGES</div>
-              )}
-              {regularChats.map((chat) => (
-                <ChatItem
-                  key={chat.id}
-                  chat={chat}
-                  isSelected={selectedChatId === chat.id}
-                  onSelect={() => onSelectChat(chat.id)}
-                />
-              ))}
-            </div>
-          </>
+          <div className="p-2 pt-2">
+            {filteredChats.map((chat) => (
+              <ChatItem
+                key={chat.id}
+                chat={chat}
+                isSelected={selectedChatId === chat.id}
+                onSelect={() => onSelectChat(chat.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
 
@@ -230,11 +199,11 @@ function ChatItem({ chat, isSelected, onSelect }: { chat: any; isSelected: boole
     <div
       onClick={onSelect}
       className={`
-        flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors
+        flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-colors
         ${
           isSelected
-            ? "bg-blue-50 dark:bg-blue-900/20 border border-transparent"
-            : "hover:bg-gray-50 dark:hover:bg-gray-700"
+            ? "bg-blue-50 dark:bg-white/15 border border-transparent"
+            : "hover:bg-gray-50 dark:hover:bg-white/10"
         }
       `}
     >

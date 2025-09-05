@@ -1,0 +1,15 @@
+export {
+  Card,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  cardVariants,
+  type CardProps,
+  type CardHeaderProps,
+  type CardContentProps,
+  type CardFooterProps,
+  type CardTitleProps,
+  type CardDescriptionProps,
+} from './Card';

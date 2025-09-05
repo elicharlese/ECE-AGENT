@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useUser } from '@/contexts/user-context'
 import { supabase } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
 import { Icon } from '@/components/icons/Icon'
 import { SolanaWalletProvider } from '@/components/solana-wallet-provider'
 import { useRouter } from 'next/navigation'
@@ -26,6 +26,21 @@ export function LoginForm({ returnTo, embedded = false }: LoginFormProps) {
   const [step, setStep] = useState<'email' | 'password'>('email')
   const { login } = useUser()
   const router = useRouter()
+  // Defer environment-dependent flags to client after hydration to avoid SSR mismatch
+  const [mounted, setMounted] = useState(false)
+  const [isElectron, setIsElectron] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    try {
+      // Only compute electron flag on client after mount
+      if (typeof window !== 'undefined' && (window as any)?.electronAPI) {
+        setIsElectron(true)
+      }
+    } catch {
+      // noop
+    }
+  }, [])
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -228,21 +243,25 @@ export function LoginForm({ returnTo, embedded = false }: LoginFormProps) {
             </div>
 
             <div className="mt-6">
-              <Button
-                onClick={handleGoogleLogin}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
-              >
-                <Icon name="brand-google" className="mr-2 h-5 w-5" />
-                Continue with Google
-              </Button>
+              {mounted && (
+                <Button
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
+                >
+                  <Icon name="brand-google" className="mr-2 h-5 w-5" />
+                  Continue with Google
+                </Button>
+              )}
             </div>
             {/* Connect Wallet button styled like Google button */}
             <div className="mt-3">
-              <SolanaWalletProvider>
-                <ConnectWalletButton />
-              </SolanaWalletProvider>
+              {mounted && (
+                <SolanaWalletProvider>
+                  <ConnectWalletButton />
+                </SolanaWalletProvider>
+              )}
             </div>
           </div>
 
@@ -367,21 +386,25 @@ export function LoginForm({ returnTo, embedded = false }: LoginFormProps) {
               </div>
 
               <div className="mt-6">
-                <Button
-                  onClick={handleGoogleLogin}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
-                >
-                  <Icon name="brand-google" className="mr-2 h-5 w-5" />
-                  Continue with Google
-                </Button>
+                {mounted && (
+                  <Button
+                    onClick={handleGoogleLogin}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full h-11 sm:h-12 border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 font-medium rounded-xl transition-colors"
+                  >
+                    <Icon name="brand-google" className="mr-2 h-5 w-5" />
+                    Continue with Google
+                  </Button>
+                )}
               </div>
               {/* Connect Wallet button styled like Google button */}
               <div className="mt-3">
-                <SolanaWalletProvider>
-                  <ConnectWalletButton />
-                </SolanaWalletProvider>
+                {mounted && (
+                  <SolanaWalletProvider>
+                    <ConnectWalletButton />
+                  </SolanaWalletProvider>
+                )}
               </div>
             </div>
 

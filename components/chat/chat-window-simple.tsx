@@ -10,8 +10,15 @@ import { supabase } from '@/lib/supabase/client'
 import { aiService } from '@/services/ai-service'
 import { VideoCallUI } from '@/components/calls/video-call-ui'
 import { ConversationMenu } from '@/components/chat/ConversationMenu'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import {
+  Button,
+  Textarea
+} from '@/libs/design-system';
 import { CREDITS_ENABLED } from '@/lib/pricing'
 import { CreditBadge } from '@/components/credits/CreditBadge'
 import { BuyCreditsButton } from '@/components/credits/BuyCreditsButton'

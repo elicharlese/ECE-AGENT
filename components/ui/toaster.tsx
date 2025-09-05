@@ -7,8 +7,12 @@ import {
   ToastDescription,
   ToastProvider,
   ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast"
+  ToastViewport
+} from '@/libs/design-system';
+// TODO: Replace deprecated components: Toast
+// 
+// TODO: Replace deprecated components: Toast
+// import { Toast } from '@/components/ui/toast'
 
 export function Toaster() {
   const { toasts } = useToast()

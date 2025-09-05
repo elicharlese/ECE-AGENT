@@ -1,7 +1,17 @@
 "use client"
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Tabs
+} from '@/libs/design-system';
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
 import { CheckInOverview } from "./CheckInOverview"
 import { RecentMessages } from "./RecentMessages"
 import { DocsSection } from "./DocsSection"

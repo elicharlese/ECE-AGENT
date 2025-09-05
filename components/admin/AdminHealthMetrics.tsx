@@ -1,9 +1,20 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+import { Alert, AlertDescription, AlertTitle } from '@/libs/design-system'
 import {
   Activity,
   Database,

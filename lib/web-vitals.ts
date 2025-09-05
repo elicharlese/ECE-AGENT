@@ -94,7 +94,7 @@ export function initWebVitals() {
         value: metric.value,
         rating: getRating('CLS', metric.value),
         timestamp: Date.now(),
-        navigationType: metric.navigationType,
+        navigationType: (metric as any).navigationType,
       }
       reportWebVitals(webVitalsMetric)
     })
@@ -106,7 +106,7 @@ export function initWebVitals() {
         value: metric.value,
         rating: getRating('FID', metric.value),
         timestamp: Date.now(),
-        navigationType: metric.navigationType,
+        navigationType: (metric as any).navigationType,
       }
       reportWebVitals(webVitalsMetric)
     })
@@ -118,7 +118,7 @@ export function initWebVitals() {
         value: metric.value,
         rating: getRating('FCP', metric.value),
         timestamp: Date.now(),
-        navigationType: metric.navigationType,
+        navigationType: (metric as any).navigationType,
       }
       reportWebVitals(webVitalsMetric)
     })
@@ -130,7 +130,7 @@ export function initWebVitals() {
         value: metric.value,
         rating: getRating('LCP', metric.value),
         timestamp: Date.now(),
-        navigationType: metric.navigationType,
+        navigationType: (metric as any).navigationType,
       }
       reportWebVitals(webVitalsMetric)
     })
@@ -142,7 +142,7 @@ export function initWebVitals() {
         value: metric.value,
         rating: getRating('TTFB', metric.value),
         timestamp: Date.now(),
-        navigationType: metric.navigationType,
+        navigationType: (metric as any).navigationType,
       }
       reportWebVitals(webVitalsMetric)
     })

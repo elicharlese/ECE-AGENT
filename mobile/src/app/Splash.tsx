@@ -1,9 +1,13 @@
 import React from 'react'
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity } from 'react-native'
-import { useRNTheme } from '@ece-agent/shared-ui/native'
+// import { useRNTheme } from '@ece-agent/shared-ui/native'
+// import {
+//   Sheet
+// } from '@/libs/design-system';
 
 export function Splash({ onGetStarted }: { onGetStarted?: () => void }) {
-  const { tokens } = useRNTheme()
+  // const { tokens } = useRNTheme()
+  const tokens = { background: '#ffffff', foreground: '#000000', subtleText: '#666666' }
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: tokens.background }]}> 

@@ -1,15 +1,40 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Label,
+  Select,
+  Switch,
+  Tabs
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
 import { 
   Building2, 
   Zap, 

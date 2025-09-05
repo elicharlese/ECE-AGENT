@@ -1,9 +1,20 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Tabs,
+  Tooltip
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
 import {
   LineChart,
   Line,
@@ -194,12 +205,12 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[400px]">
+              <div config={chartConfig} className="h-[400px]">
                 <LineChart data={usageTrendData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Tooltip />
                   <Legend />
                   <Line
                     type="monotone"
@@ -223,7 +234,7 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
                     name="Messages"
                   />
                 </LineChart>
-              </ChartContainer>
+              </div>
             </CardContent>
           </Card>
 
@@ -235,12 +246,12 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px]">
+              <div config={chartConfig} className="h-[300px]">
                 <AreaChart data={usageTrendData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Tooltip />
                   <Area
                     type="monotone"
                     dataKey="dataGB"
@@ -250,7 +261,7 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
                     name="Data (GB)"
                   />
                 </AreaChart>
-              </ChartContainer>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -265,7 +276,7 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ChartContainer config={chartConfig} className="h-[300px]">
+                <div config={chartConfig} className="h-[300px]">
                   <PieChart>
                     <Pie
                       data={tierDistributionData}
@@ -274,15 +285,15 @@ export function AdminUsageCharts({ usageStats }: AdminUsageChartsProps) {
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${(((percent ?? 0) * 100)).toFixed(0)}%`}
                     >
                       {tierDistributionData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Tooltip />
                   </PieChart>
-                </ChartContainer>
+                </div>
               </CardContent>
             </Card>
 

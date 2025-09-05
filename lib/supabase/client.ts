@@ -15,8 +15,9 @@ export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
     autoRefreshToken: true,
     persistSession: true,
-    // Let the SDK handle PKCE and OTP detection directly from the URL
-    detectSessionInUrl: true,
+    // We manually handle the OAuth/OTP callback at /auth/callback using
+    // supabase.auth.exchangeCodeForSession, so avoid double-processing here.
+    detectSessionInUrl: false,
   },
   cookieOptions: {
     // Allow cookies over http locally to avoid dev redirect loops

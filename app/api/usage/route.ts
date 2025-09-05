@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       const report = await usageTrackingService.generateUsageReport(userId, startDate, endDate)
 
       if (format === 'csv') {
-        const csvData = await usageTrackingService.exportUsageData(userId, 'csv')
+        const csvData = (await usageTrackingService.exportUsageData(userId, 'csv')) as string
         return new Response(csvData, {
           headers: {
             'Content-Type': 'text/csv',
@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
         const exportData = await usageTrackingService.exportUsageData(userId, format)
 
         if (format === 'csv') {
-          return new Response(exportData, {
+          const csvData = exportData as string
+          return new Response(csvData, {
             headers: {
               'Content-Type': 'text/csv',
               'Content-Disposition': 'attachment; filename="usage-data.csv"'

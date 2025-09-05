@@ -1,20 +1,33 @@
 "use client"
 
-import { DialogTitle } from "@/components/ui/dialog"
+import {
+  DialogTitle,
+  Progress,
+  Select,
+  Textarea
+} from '@/libs/design-system';
 
-import { DialogHeader } from "@/components/ui/dialog"
+import { DialogHeader } from '@/libs/design-system'
 
-import { DialogContent } from "@/components/ui/dialog"
+import { DialogContent } from '@/libs/design-system'
 
-import { Dialog } from "@/components/ui/dialog"
+import { Dialog } from '@/libs/design-system'
 
 import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
+import { Button } from '@/libs/design-system'
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
 import { Vote, Shield, CheckCircle, Clock, Plus, X } from "lucide-react"
 
 export interface VotingSession {

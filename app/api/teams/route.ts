@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import { userTierService } from '@/services/user-tier-service'
+import { getSupabaseServer } from '@/lib/supabase/server'
+import { createUserTierService } from '@/services/user-tier-service'
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await getSupabaseServer()
+    const userTierService = createUserTierService(supabase)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = await getSupabaseServer()
+    const userTierService = createUserTierService(supabase)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {

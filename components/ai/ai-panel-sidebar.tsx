@@ -18,15 +18,42 @@ import {
   CheckSquare,
   AlertCircle
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  Button,
+  ScrollArea,
+  Separator,
+  Switch,
+  Tabs,
+  Textarea
+} from '@/libs/design-system';
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: ScrollArea
+// 
+// TODO: Replace deprecated components: ScrollArea
+// import { ScrollArea } from '@/components/ui/scroll-area'
+
+// TODO: Replace deprecated components: Separator
+// 
+// TODO: Replace deprecated components: Separator
+// import { Separator } from '@/components/ui/separator'
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
 import { cn } from "@/lib/utils"
 
 interface AIPanelSidebarProps {
@@ -259,14 +286,14 @@ export function AIPanelSidebar({ chatId, isCollapsed, onToggle }: AIPanelSidebar
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-4 px-4">
-          <TabsTrigger value="patches">Patches</TabsTrigger>
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="messages">Messages</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 gap-1 sm:gap-2 rounded-xl bg-gray-50 dark:bg-gray-800/50 p-1 ring-1 ring-gray-200 dark:ring-gray-700 px-4">
+          <TabsTrigger value="patches" aria-label="Patches" title="Patches" className="text-xs truncate min-h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm">Patches</TabsTrigger>
+          <TabsTrigger value="notes" aria-label="Notes" title="Notes" className="text-xs truncate min-h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm">Notes</TabsTrigger>
+          <TabsTrigger value="messages" aria-label="Messages" title="Messages" className="text-xs truncate min-h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm">Messages</TabsTrigger>
+          <TabsTrigger value="settings" aria-label="Settings" title="Settings" className="text-xs truncate min-h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm">Settings</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 pb-24 sm:pb-8">
           {/* Patches Tab */}
           <TabsContent value="patches" className="px-4 space-y-3">
             <div className="space-y-3">

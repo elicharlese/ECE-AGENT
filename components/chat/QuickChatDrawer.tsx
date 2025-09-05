@@ -1,12 +1,28 @@
 "use client"
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+  Textarea
+} from '@/libs/design-system';
+// TODO: Replace deprecated components: Drawer
+// 
+// TODO: Replace deprecated components: Drawer
+// import { Drawer } from '@/components/ui/drawer'
+import { Button } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
 import { Bot, X } from "lucide-react"
 import { useWebSocket } from "@/hooks/use-websocket"
-import { VerticalDraggableTab } from "@/components/ui/VerticalDraggableTab"
+import { VerticalDraggableTab } from '@/libs/design-system'
 
 // A lightweight Quick Chat drawer, pinned on the right side of the screen.
 // Provides a simple composer and sends messages over the shared WebSocket.

@@ -1,9 +1,16 @@
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  Button,
+  Tabs
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels"
 import { 
   MessageSquare, 
@@ -55,6 +62,12 @@ interface WorkspaceModeProps {
   onEditMessage: (id: string, content: string) => void
   typingUsers: Record<string, { name: string; timestamp: number }>
   isConnected: boolean
+  // When false, hides the inline message input(s) rendered inside WorkspaceMode.
+  // Useful when a global input bar is already present to avoid duplicates.
+  showInlineInput?: boolean
+  // When false, hides the internal "Workspace Header" bar rendered by this component.
+  // Useful when a parent header (e.g., WorkspaceToolbar) should be the only header.
+  showHeader?: boolean
 }
 
 export function WorkspaceMode({
@@ -63,7 +76,9 @@ export function WorkspaceMode({
   onSendMessage,
   onEditMessage,
   typingUsers,
-  isConnected
+  isConnected,
+  showInlineInput = true,
+  showHeader = true
 }: WorkspaceModeProps) {
   const [activeMode, setActiveMode] = useState<'unified' | 'split'>('unified')
   const [activeTab, setActiveTab] = useState<'chat' | 'media' | 'tools'>('chat')
@@ -320,51 +335,53 @@ export function WorkspaceMode({
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-      {/* Workspace Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold">Active Workspace</h2>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {Object.keys(typingUsers).length + 1} active
-          </Badge>
-          {!isConnected && (
-            <Badge variant="destructive">Disconnected</Badge>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          {/* Communication Controls */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsPhoneCallOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <Phone className="h-4 w-4" />
-            {!isMobile && "Voice"}
-          </Button>
+      {/* Workspace Header (optional) */}
+      {showHeader && (
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-4">
+            <h2 className="text-lg font-semibold">Active Workspace</h2>
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {Object.keys(typingUsers).length + 1} active
+            </Badge>
+            {!isConnected && (
+              <Badge variant="destructive">Disconnected</Badge>
+            )}
+          </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsVideoCallOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <Video className="h-4 w-4" />
-            {!isMobile && "Video"}
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Communication Controls */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsPhoneCallOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Phone className="h-4 w-4" />
+              {!isMobile && "Voice"}
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsVideoCallOpen(true)}
+              className="flex items-center gap-1"
+            >
+              <Video className="h-4 w-4" />
+              {!isMobile && "Video"}
+            </Button>
 
-          {/* Mode Toggle */}
-          <Button
-            variant={activeMode === 'unified' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveMode(activeMode === 'unified' ? 'split' : 'unified')}
-          >
-            {activeMode === 'unified' ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
-          </Button>
+            {/* Mode Toggle */}
+            <Button
+              variant={activeMode === 'unified' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveMode(activeMode === 'unified' ? 'split' : 'unified')}
+            >
+              {activeMode === 'unified' ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Workspace Content */}
       {activeMode === 'unified' ? (
@@ -396,23 +413,24 @@ export function WorkspaceMode({
                   />
                 ))}
               </div>
-              
-              {isMobile ? (
-                <MobileMessageInput
-                  value=""
-                  onChange={(_v) => {}}
-                  onSend={onSendMessage}
-                  onEmojiSelect={(_emoji) => {}}
-                  onFileSelect={(_file, _type) => {}}
-                  placeholder="Type a message or describe what you want to create..."
-                />
-              ) : (
-                <DesktopMessageInput
-                  value=""
-                  onChange={(_v) => {}}
-                  onSend={onSendMessage}
-                  placeholder="Type a message or describe what you want to create..."
-                />
+              {showInlineInput && (
+                isMobile ? (
+                  <MobileMessageInput
+                    value=""
+                    onChange={(_v) => {}}
+                    onSend={onSendMessage}
+                    onEmojiSelect={(_emoji) => {}}
+                    onFileSelect={(_file, _type) => {}}
+                    placeholder="Type a message or describe what you want to create..."
+                  />
+                ) : (
+                  <DesktopMessageInput
+                    value=""
+                    onChange={(_v) => {}}
+                    onSend={onSendMessage}
+                    placeholder="Type a message or describe what you want to create..."
+                  />
+                )
               )}
             </TabsContent>
 
@@ -507,22 +525,24 @@ export function WorkspaceMode({
                   />
                 ))}
               </div>
-              {isMobile ? (
-                <MobileMessageInput
-                  value=""
-                  onChange={(_v) => {}}
-                  onSend={onSendMessage}
-                  onEmojiSelect={(_emoji) => {}}
-                  onFileSelect={(_file, _type) => {}}
-                  placeholder="Type a message..."
-                />
-              ) : (
-                <DesktopMessageInput
-                  value=""
-                  onChange={(_v) => {}}
-                  onSend={onSendMessage}
-                  placeholder="Type a message..."
-                />
+              {showInlineInput && (
+                isMobile ? (
+                  <MobileMessageInput
+                    value=""
+                    onChange={(_v) => {}}
+                    onSend={onSendMessage}
+                    onEmojiSelect={(_emoji) => {}}
+                    onFileSelect={(_file, _type) => {}}
+                    placeholder="Type a message..."
+                  />
+                ) : (
+                  <DesktopMessageInput
+                    value=""
+                    onChange={(_v) => {}}
+                    onSend={onSendMessage}
+                    placeholder="Type a message..."
+                  />
+                )
               )}
             </div>
           </Panel>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase/client'
+import { getSupabaseServer } from '@/lib/supabase/server'
 
 interface SystemHealth {
   database: 'healthy' | 'warning' | 'error'
@@ -30,6 +30,7 @@ interface SystemHealth {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await getSupabaseServer()
     const health: SystemHealth = {
       database: 'healthy',
       livekit: 'healthy',

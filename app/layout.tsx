@@ -4,6 +4,8 @@ import { UserProvider } from '@/contexts/user-context'
 import ErrorBoundary from '@/components/ui/error-boundary'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { WebVitalsInit } from '@/components/analytics/WebVitalsInit'
+import { ConditionalFooter } from '@/components/layout/ConditionalFooter'
+import { QuickChatMount } from '@/components/chat/QuickChatMount'
 
 export const metadata: Metadata = {
   title: 'AGENT',
@@ -24,11 +26,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <body className="h-[100svh] flex flex-col antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem enableColorScheme>
           <ErrorBoundary>
             <WebVitalsInit />
-            <UserProvider>{children}</UserProvider>
+            <UserProvider>
+              <main className="flex-1">
+                {children}
+              </main>
+              {/* Global Apple‑style quick chat */}
+              <QuickChatMount />
+              <ConditionalFooter />
+            </UserProvider>
           </ErrorBoundary>
         </ThemeProvider>
       </body>

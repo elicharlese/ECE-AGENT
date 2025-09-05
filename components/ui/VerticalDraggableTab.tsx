@@ -2,6 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import {
+  Label
+} from '@/libs/design-system';
 
 export type VerticalDraggableTabProps = React.ComponentPropsWithoutRef<"button"> & {
   ariaLabel: string

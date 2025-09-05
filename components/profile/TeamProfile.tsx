@@ -1,14 +1,29 @@
 "use client"
 
 import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Select,
+  Tabs
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
 import { 
   Users, 
   Bot, 

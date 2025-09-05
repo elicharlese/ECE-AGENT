@@ -1,13 +1,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Progress } from '@/components/ui/progress'
-import { Separator } from '@/components/ui/separator'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Tabs
+} from '@/libs/design-system';
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+import { Alert, AlertDescription, AlertTitle } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+
+// TODO: Replace deprecated components: Separator
+// 
+// TODO: Replace deprecated components: Separator
+// import { Separator } from '@/components/ui/separator'
 import {
   Activity,
   Users,
@@ -158,7 +178,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="text-center">Access Denied</CardTitle>
             <CardDescription className="text-center">
-              You don't have permission to access the admin dashboard.
+              You don&apos;t have permission to access the admin dashboard.
             </CardDescription>
           </CardHeader>
           <CardContent>

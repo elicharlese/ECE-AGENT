@@ -1,14 +1,17 @@
 'use client'
 
 import * as React from 'react'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
-import { toast } from '@/components/ui/use-toast'
-import { supabase } from '@/lib/supabase/client'
-import { conversationService } from '@/services/conversation-service'
-import { useRouter } from 'next/navigation'
-import { Icon } from '@/components/icons/Icon'
-import { useConversations } from '@/hooks/use-conversations'
-import { 
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Label,
+  Separator,
+  Button,
   AlertDialog,
   AlertDialogTrigger,
   AlertDialogContent,
@@ -17,8 +20,15 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogAction,
-  AlertDialogCancel,
-} from '@/components/ui/alert-dialog'
+  AlertDialogCancel
+} from '@/libs/design-system';
+import { toast } from '@/libs/design-system'
+import { supabase } from '@/lib/supabase/client'
+import { conversationService } from '@/services/conversation-service'
+import { useRouter } from 'next/navigation'
+import { Icon } from '@/components/icons/Icon'
+import { useConversations } from '@/hooks/use-conversations'
+// import { AlertDialog } from '@/components/ui/alert-dialog'
 import { UserSelectorDialog } from '@/components/chat/UserSelectorDialog'
 
 export interface ConversationMenuProps {
@@ -33,8 +43,7 @@ export interface ConversationMenuProps {
 export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenMCPSettings, onEnded, className }: ConversationMenuProps) {
   const [muted, setMuted] = React.useState(false)
   const router = useRouter()
-  const { pinConversation, archiveConversation, leaveConversation, inviteParticipants } = useConversations()
-  const [isPinned, setIsPinned] = React.useState<boolean>(false)
+  const { archiveConversation, leaveConversation, inviteParticipants } = useConversations()
   const [isArchived, setIsArchived] = React.useState<boolean>(false)
   const [inviteOpen, setInviteOpen] = React.useState<boolean>(false)
 
@@ -45,13 +54,12 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
       try {
         const { data, error } = await supabase
           .from('conversation_participants')
-          .select('is_pinned, is_archived')
+          .select('is_archived')
           .eq('conversation_id', chatId)
           .eq('user_id', currentUserId)
           .maybeSingle()
         if (!active) return
         if (error) return
-        setIsPinned(!!data?.is_pinned)
         setIsArchived(!!data?.is_archived)
       } catch {}
     }
@@ -106,16 +114,6 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
     } catch (e) {
       toast({ title: 'Failed to end chat', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
       onEnded?.('failed')
-    }
-  }
-
-  const handleTogglePin = async (next: boolean) => {
-    try {
-      await pinConversation(chatId, next)
-      setIsPinned(next)
-      toast({ title: next ? 'Conversation pinned' : 'Conversation unpinned' })
-    } catch (e) {
-      toast({ title: 'Failed to toggle pin', description: e instanceof Error ? e.message : String(e), variant: 'destructive' })
     }
   }
 
@@ -184,9 +182,6 @@ export function ConversationMenu({ chatId, currentUserId, creatorUserId, onOpenM
           }}
         >
           Mute notifications
-        </DropdownMenuCheckboxItem>
-        <DropdownMenuCheckboxItem checked={isPinned} onCheckedChange={(v) => handleTogglePin(!!v)}>
-          {isPinned ? 'Unpin conversation' : 'Pin conversation'}
         </DropdownMenuCheckboxItem>
         <DropdownMenuCheckboxItem checked={isArchived} onCheckedChange={(v) => handleToggleArchive(!!v)}>
           {isArchived ? 'Unarchive conversation' : 'Archive conversation'}

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { billingService } from '@/services/billing-service-enhanced'
 import { usageTrackingService } from '@/services/usage-tracking-service-enhanced'
-import { supabase } from '@/lib/supabase/client'
 
 // GET /api/billing - Get user's billing summary
 export async function GET(request: NextRequest) {

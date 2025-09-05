@@ -268,7 +268,129 @@ class MCPService {
       results: []
     }
   }
+
+  // --- Event bus for MCP SSE ---
+  private emitMcpEvent(eventText: string): void {
+    this.lastMcpEventAt = Date.now()
+    for (const listener of this.mcpListeners) {
+      try {
+        listener(eventText)
+      } catch (_) {
+        // ignore listener errors
+      }
     }
--e 
+  }
+
+  public onMcpEvent(handler: (eventText: string) => void): void {
+    this.mcpListeners.push(handler)
+  }
+
+  public offMcpEvent(handler: (eventText: string) => void): void {
+    this.mcpListeners = this.mcpListeners.filter((h) => h !== handler)
+  }
+
+  // --- Public getters ---
+  public getTools(): MCPTool[] {
+    return [...this.tools]
+  }
+
+  public getGateways(): MCPGateway[] {
+    return [...this.gateways]
+  }
+
+  public getMcpStatus(): {
+    connected: boolean
+    sessionId: string | null
+    streaming: boolean
+    lastEventAt: number | null
+  } {
+    return {
+      connected: !!(this.githubToken && this.mcpSessionId),
+      sessionId: this.mcpSessionId,
+      streaming: !!this.mcpStreamAbort,
+      lastEventAt: this.lastMcpEventAt,
+    }
+  }
+
+  // --- Tool toggling & persistence ---
+  public toggleTool(id: string, enabled: boolean): void {
+    this.tools = this.tools.map((t) => (t.id === id ? { ...t, enabled } : t))
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('mcp_tools', JSON.stringify(this.tools))
+      } catch (_) {
+        // ignore
+      }
+    }
+  }
+
+  // --- GitHub gateway management ---
+  public async connectGitHub(token: string): Promise<void> {
+    this.githubToken = token
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('github_token', token)
+    }
+    // upsert gateway
+    const existing = this.gateways.find((g) => g.type === 'github')
+    const gateway: MCPGateway = existing
+      ? { ...existing, status: 'connected' }
+      : { id: 'github', type: 'github', name: 'GitHub', status: 'connected', config: {} }
+    this.gateways = [gateway, ...this.gateways.filter((g) => g.type !== 'github')]
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('mcp_gateways', JSON.stringify(this.gateways))
+      } catch (_) {}
+    }
+    // Initialize/stream in background
+    await this.startMcpStreaming()
+  }
+
+  public async disconnectGitHub(): Promise<void> {
+    await this.stopRemoteGitHubMCP()
+    this.githubToken = null
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('github_token')
+    }
+    // update gateway
+    const existing = this.gateways.find((g) => g.type === 'github')
+    if (existing) {
+      existing.status = 'disconnected'
+      this.gateways = [existing, ...this.gateways.filter((g) => g.type !== 'github')]
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('mcp_gateways', JSON.stringify(this.gateways))
+        } catch (_) {}
+      }
+    }
+  }
+
+  // --- Public tool execution API ---
+  public async executeTool(toolId: string, params: any = {}): Promise<any> {
+    const tool = this.tools.find((t) => t.id === toolId && t.enabled)
+    if (!tool) {
+      throw new Error('Tool not found or disabled')
+    }
+    switch (toolId) {
+      case 'web-search':
+        return this.executeWebSearch(params)
+      case 'github-mcp':
+        return this.executeGitHubMCP(params)
+      case 'calculator':
+        try {
+          // Extremely simple demo calculator; not for production use
+          // eslint-disable-next-line no-new-func
+          const fn = new Function(`return (${params.expression ?? '0'})`)
+          const value = fn()
+          return { success: true, value }
+        } catch (e) {
+          return { success: false, error: (e as Error).message }
+        }
+      default:
+        return { success: false, error: 'Tool not implemented yet' }
+    }
+  }
+
+ }
+ 
 // Export singleton instance
 export const mcpService = new MCPService()

@@ -3,10 +3,20 @@
 import { useState } from "react"
 import { z } from "zod"
 import { useRouter } from "next/navigation"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Label
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
 import { createConversation } from "@/services/conversation-service"
 import { toast } from "sonner"
 

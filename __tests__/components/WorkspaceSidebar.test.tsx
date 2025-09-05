@@ -1,5 +1,6 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { WorkspaceSidebar } from '@/components/workspace/workspace-sidebar'
 
 // Mock analytics
@@ -61,40 +62,45 @@ describe('WorkspaceSidebar', () => {
     expect(buttons.length).toBeGreaterThan(0)
   })
 
-  it('switches between tabs correctly', () => {
+  it('switches between tabs correctly', async () => {
+    const user = userEvent.setup()
     render(<WorkspaceSidebar {...defaultProps} />)
     
-    const aiModelsTab = screen.getByText('AI Models')
-    fireEvent.click(aiModelsTab)
+    const aiModelsTab = screen.getByRole('tab', { name: /AI Models/i })
+    await user.click(aiModelsTab)
     
-    expect(screen.getByText('AI Model Setup')).toBeInTheDocument()
-    expect(screen.getByText('GPT-4')).toBeInTheDocument()
+    // Updated expectations: AIPanelSidebar is rendered under AI Models tab
+    expect(await screen.findByText('AI Panel')).toBeInTheDocument()
+    expect(await screen.findByText('View All Patches')).toBeInTheDocument()
   })
 
-  it('shows workspace settings in settings tab', () => {
+  it('shows workspace settings in settings tab', async () => {
+    const user = userEvent.setup()
     render(<WorkspaceSidebar {...defaultProps} />)
     
-    const settingsTab = screen.getByText('Settings')
-    fireEvent.click(settingsTab)
+    const settingsTab = screen.getByRole('tab', { name: /Settings/i })
+    await user.click(settingsTab)
     
-    expect(screen.getByText('Workspace Settings')).toBeInTheDocument()
-    expect(screen.getByText('Chat Settings')).toBeInTheDocument()
+    expect(await screen.findByText('Workspace Settings')).toBeInTheDocument()
+    expect(await screen.findByText('Chat Settings')).toBeInTheDocument()
   })
 
-  it('handles tool execution', () => {
+  it('handles tool execution', async () => {
+    const user = userEvent.setup()
     render(<WorkspaceSidebar {...defaultProps} />)
     
     const codeButton = screen.getByText('Code')
-    fireEvent.click(codeButton)
+    await user.click(codeButton)
     
     expect(defaultProps.onExecuteTool).toHaveBeenCalledWith('code_interpreter')
   })
 
-  it('handles media generation', () => {
+  it('handles media generation', async () => {
+    const user = userEvent.setup()
     render(<WorkspaceSidebar {...defaultProps} />)
     
     const imageButton = screen.getByText('Image')
-    fireEvent.click(imageButton)
+    await user.click(imageButton)
     
     expect(defaultProps.onGenerateMedia).toHaveBeenCalledWith('image')
   })

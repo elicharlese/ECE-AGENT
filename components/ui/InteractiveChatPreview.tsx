@@ -74,7 +74,7 @@ export function InteractiveChatPreview({ className }: InteractiveChatPreviewProp
   }
 
   return (
-    <div className={cn('relative w-full flex flex-col glass-3d rounded-3xl overflow-hidden pointer-events-auto', 'h-[500px] sm:h-[550px] lg:h-[600px]', className)}>
+    <div className={cn('relative w-full flex flex-col glass-3d rounded-3xl overflow-hidden pointer-events-auto', 'h-[420px] sm:h-[460px] lg:h-[520px]', className)}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/20 dark:border-slate-700/50 p-4 bg-white/5 dark:bg-slate-800/20">
         <div className="flex items-center gap-3">

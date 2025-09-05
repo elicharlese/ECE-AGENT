@@ -1,0 +1,16 @@
+9c0a56fbcbc8d25faab5068b17b62b0d
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "server", {
+    enumerable: true,
+    get: function() {
+        return server;
+    }
+});
+const _node = require("msw/node");
+const _handlers = require("./handlers");
+const server = (0, _node.setupServer)(..._handlers.handlers);
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvX190ZXN0c19fL21zdy9zZXJ2ZXIudHMiXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgc2V0dXBTZXJ2ZXIgfSBmcm9tICdtc3cvbm9kZSdcbmltcG9ydCB7IGhhbmRsZXJzIH0gZnJvbSAnLi9oYW5kbGVycydcblxuZXhwb3J0IGNvbnN0IHNlcnZlciA9IHNldHVwU2VydmVyKC4uLmhhbmRsZXJzKVxuIl0sIm5hbWVzIjpbInNlcnZlciIsInNldHVwU2VydmVyIiwiaGFuZGxlcnMiXSwibWFwcGluZ3MiOiI7Ozs7K0JBR2FBOzs7ZUFBQUE7OztzQkFIZTswQkFDSDtBQUVsQixNQUFNQSxTQUFTQyxJQUFBQSxpQkFBVyxLQUFJQyxrQkFBUSJ9

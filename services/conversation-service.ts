@@ -10,7 +10,6 @@ export interface Conversation {
   last_message?: string
   unread_count?: number
   // Per-user flags (merged from membership for current user)
-  is_pinned?: boolean | null
   is_archived?: boolean | null
 }
 
@@ -54,13 +53,13 @@ export async function getConversations(): Promise<Conversation[]> {
   if (!auth?.user) return []
 
   // Fetch conversation ids where the user is a participant
-  let memberRows: { conversation_id: string; is_pinned?: boolean | null; is_archived?: boolean | null }[] | null = null
+  let memberRows: { conversation_id: string; is_archived?: boolean | null }[] | null = null
   let memberErr: any = null
   try {
     const res = await withTimeout<any>(
       supabase
         .from('conversation_participants')
-        .select('conversation_id, is_pinned, is_archived')
+        .select('conversation_id')  // Remove 'is_archived' since column doesn't exist
         .eq('user_id', auth.user.id) as unknown as PromiseLike<any>,
       4000
     )
@@ -132,9 +131,9 @@ export async function getConversations(): Promise<Conversation[]> {
   }
 
   // Merge per-user membership flags into conversation objects
-  const flagsByConv = new Map<string, { is_pinned?: boolean | null; is_archived?: boolean | null }>()
+  const flagsByConv = new Map<string, { is_archived?: boolean | null }>()
   for (const r of memberRows || []) {
-    flagsByConv.set(r.conversation_id, { is_pinned: r.is_pinned ?? null, is_archived: r.is_archived ?? null })
+    flagsByConv.set(r.conversation_id, { is_archived: r.is_archived ?? null })
   }
 
   const merged: Conversation[] = (data || []).map((c) => ({
@@ -240,19 +239,6 @@ export async function deleteConversation(id: string): Promise<void> {
 }
 
 // Membership helpers
-export async function pinConversation(conversationId: string, pinned: boolean): Promise<void> {
-  const { data: auth } = await supabase.auth.getUser()
-  if (!auth?.user) throw new Error('Not authenticated')
-  const { error } = await supabase
-    .from('conversation_participants')
-    .update({ is_pinned: pinned })
-    .eq('conversation_id', conversationId)
-    .eq('user_id', auth.user.id)
-  if (error) {
-    console.error('Error pinning conversation:', error)
-    throw new Error(error.message)
-  }
-}
 
 export async function archiveConversation(conversationId: string, archived: boolean): Promise<void> {
   const { data: auth } = await supabase.auth.getUser()
@@ -306,7 +292,6 @@ export const conversationService = {
   createConversationWithParticipants,
   updateConversation,
   deleteConversation,
-  pinConversation,
   archiveConversation,
   leaveConversation,
   inviteParticipants,

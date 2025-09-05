@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { UserTier, PaymentMethod, BillingAction, InvoiceStatus } from '@/src/types/billing'
+import { UserTier, PaymentMethod, BillingAction, InvoiceStatus } from '@/types/billing'
 
 // Pricing constants with 20% markup
 export const LIVEKIT_PRICING = {
@@ -15,7 +15,12 @@ export const TIER_PRICING = {
   ENTERPRISE: 99
 }
 
-export const TIER_LIMITS = {
+export const TIER_LIMITS: Record<UserTier, {
+  videoMinutes: number
+  audioMinutes: number
+  messages: number
+  dataGB: number
+}> = {
   TRIAL: {
     videoMinutes: 5000,
     audioMinutes: 10000,
@@ -40,6 +45,11 @@ export const TIER_LIMITS = {
     messages: -1,
     dataGB: -1
   }
+}
+
+const USER_TIERS: readonly UserTier[] = ['TRIAL', 'PERSONAL', 'TEAM', 'ENTERPRISE'] as const
+function asUserTier(value: any): UserTier {
+  return USER_TIERS.includes(value as UserTier) ? (value as UserTier) : 'TRIAL'
 }
 
 export class BillingService {
@@ -111,9 +121,10 @@ export class BillingService {
     }
 
     // Calculate costs
-    const subscriptionCost = this.getSubscriptionCost(profile.tier)
+    const tier = asUserTier(profile.tier)
+    const subscriptionCost = this.getSubscriptionCost(tier)
     const overageCost = this.calculateOverageCost(
-      profile.tier,
+      tier,
       usage.videoMinutes,
       usage.audioMinutes,
       usage.messages,
@@ -154,7 +165,7 @@ export class BillingService {
     if (subscriptionCost > 0) {
       lineItems.push({
         invoiceId: invoice.id,
-        description: `${profile.tier} Plan Subscription`,
+        description: `${tier} Plan Subscription`,
         quantity: 1,
         unitPrice: subscriptionCost,
         amount: subscriptionCost,
@@ -163,8 +174,8 @@ export class BillingService {
     }
 
     if (overageCost > 0) {
-      if (usage.videoMinutes > TIER_LIMITS[profile.tier].videoMinutes) {
-        const overageVideo = usage.videoMinutes - TIER_LIMITS[profile.tier].videoMinutes
+      if (usage.videoMinutes > TIER_LIMITS[tier].videoMinutes) {
+        const overageVideo = usage.videoMinutes - TIER_LIMITS[tier].videoMinutes
         lineItems.push({
           invoiceId: invoice.id,
           description: `Video Minutes Overage (${overageVideo} mins)`,
@@ -175,8 +186,8 @@ export class BillingService {
         })
       }
 
-      if (usage.audioMinutes > TIER_LIMITS[profile.tier].audioMinutes) {
-        const overageAudio = usage.audioMinutes - TIER_LIMITS[profile.tier].audioMinutes
+      if (usage.audioMinutes > TIER_LIMITS[tier].audioMinutes) {
+        const overageAudio = usage.audioMinutes - TIER_LIMITS[tier].audioMinutes
         lineItems.push({
           invoiceId: invoice.id,
           description: `Audio Minutes Overage (${overageAudio} mins)`,
@@ -187,8 +198,8 @@ export class BillingService {
         })
       }
 
-      if (usage.messages > TIER_LIMITS[profile.tier].messages) {
-        const overageMessages = usage.messages - TIER_LIMITS[profile.tier].messages
+      if (usage.messages > TIER_LIMITS[tier].messages) {
+        const overageMessages = usage.messages - TIER_LIMITS[tier].messages
         lineItems.push({
           invoiceId: invoice.id,
           description: `Messages Overage (${overageMessages} msgs)`,
@@ -199,8 +210,8 @@ export class BillingService {
         })
       }
 
-      if (usage.dataGB > TIER_LIMITS[profile.tier].dataGB) {
-        const overageData = usage.dataGB - TIER_LIMITS[profile.tier].dataGB
+      if (usage.dataGB > TIER_LIMITS[tier].dataGB) {
+        const overageData = usage.dataGB - TIER_LIMITS[tier].dataGB
         lineItems.push({
           invoiceId: invoice.id,
           description: `Data Transfer Overage (${overageData} GB)`,
@@ -367,14 +378,15 @@ export class BillingService {
       dataTransferredGB: 0
     }
 
-    const { withinLimits, overages } = this.checkUsageLimits(profile.tier, {
+    const tier2 = asUserTier(profile.tier)
+    const { withinLimits, overages } = this.checkUsageLimits(tier2, {
       videoMinutes: usage.videoMinutesUsed,
       audioMinutes: usage.audioMinutesUsed,
       messages: usage.messagesSent,
       dataGB: usage.dataTransferredGB
     })
 
-    const subscriptionCost = this.getSubscriptionCost(profile.tier)
+    const subscriptionCost = this.getSubscriptionCost(tier2)
     const overageCost = this.calculateUsageCost(
       overages.videoMinutes,
       overages.audioMinutes,
@@ -385,7 +397,7 @@ export class BillingService {
     return {
       profile,
       usage,
-      limits: TIER_LIMITS[profile.tier],
+      limits: TIER_LIMITS[tier2],
       withinLimits,
       overages,
       costs: {

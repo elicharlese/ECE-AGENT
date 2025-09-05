@@ -1,12 +1,22 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Textarea
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/libs/design-system'
+import { Avatar, AvatarFallback } from '@/libs/design-system'
 import { 
   MessageSquare, 
   Send, 

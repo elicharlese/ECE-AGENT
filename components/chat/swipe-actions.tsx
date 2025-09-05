@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/libs/design-system'
 import { useTouchGestures } from "@/hooks/use-touch-gestures"
 import { useHaptics } from "@/hooks/use-haptics"
 import { Reply, Pin, Heart, Trash2 } from "lucide-react"

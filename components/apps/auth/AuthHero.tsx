@@ -1,11 +1,11 @@
 "use client"
 
 import React from 'react'
-import { GridOverlay } from '@/components/ui/backgrounds/GridOverlay'
-import { Vignette } from '@/components/ui/backgrounds/Vignette'
-import { LightDim } from '@/components/ui/backgrounds/LightDim'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { GlassCard } from '@/components/ui/GlassCard'
+import { GridOverlay } from '@/libs/design-system'
+import { Vignette } from '@/libs/design-system'
+import { LightDim } from '@/libs/design-system'
+import { ThemeToggle } from '@/libs/design-system'
+import { GlassCard } from '@/libs/design-system'
 import { LoginForm } from '@/components/login-form'
 
 export type AuthHeroProps = {

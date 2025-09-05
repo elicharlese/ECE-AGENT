@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGENT Desktop</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; padding: 2rem; background: #0b0b0f; color: #e5e7eb; }
+      .box { max-width: 720px; margin: 10vh auto; background: #111827; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+      h1 { margin: 0 0 0.5rem; font-size: 1.5rem; }
+      p { margin: 0.5rem 0 0; line-height: 1.6; color: #cbd5e1; }
+      code { background: #0f172a; color: #93c5fd; padding: 0.2rem 0.35rem; border-radius: 6px; }
+      a { color: #93c5fd; }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h1>AGENT Desktop is installed</h1>
+      <p>
+        The packaged app couldn't find a production web URL. To load your UI from your deployed Next.js app,
+        set an environment variable named <code>AGENT_DESKTOP_WEB_URL</code> to your site, for example:
+      </p>
+      <p>
+        <code>AGENT_DESKTOP_WEB_URL=https://your-domain.example</code>
+      </p>
+      <p>
+        Alternatively, point the Electron app to a locally hosted site by setting that variable before launching.
+      </p>
+      <p>
+        If you prefer bundling static pages, export your Next app and include the files in <code>apps/desktop/public/</code>.
+      </p>
+    </div>
+  </body>
+</html>

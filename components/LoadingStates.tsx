@@ -1,7 +1,7 @@
 "use client"
 
 import { Loader2, MessageSquare, Users, Settings } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from '@/libs/design-system'
 
 export function PageLoadingSpinner({ message = "Loading..." }: { message?: string }) {
   return (

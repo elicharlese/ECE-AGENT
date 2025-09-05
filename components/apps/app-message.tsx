@@ -1,8 +1,8 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
 import { ExternalLink, Calculator, Calendar, Gamepad2 } from "lucide-react"
 
 interface AppMessage {

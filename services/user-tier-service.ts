@@ -1,23 +1,56 @@
-import { supabase } from '@/lib/supabase/client'
+import { supabase as browserSupabase } from '@/lib/supabase/client'
 import { UserProfile, TeamProfile, EnterpriseProfile, UserTier, TIER_LIMITS, TeamMember, SharedResource, LLMEndpoint } from '@/src/types/user-tiers'
 import { profileService } from './profile-service'
 
 export class UserTierService {
+  constructor(private sb: any) {}
   // User Profile Management
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const { data, error } = await supabase
+      const { data: row, error } = await this.sb
         .from('user_profiles')
         .select('*')
-        .eq('id', userId)
-        .single()
+        .eq('user_id', userId)
+        .maybeSingle()
 
       if (error) {
-        if (error.code === 'PGRST116') return null
+        if ((error as any)?.code === 'PGRST116') return null
         throw error
       }
 
-      return data
+      if (!row) return null
+
+      // Map DB row -> domain shape with sane defaults
+      const base = await profileService.getProfileByUserId(userId, this.sb)
+      const tier = (row as any).tier as UserTier
+      const limits = {
+        ...TIER_LIMITS[tier],
+        ...((row as any).limits ?? {}),
+      }
+      const u = (row as any).usage ?? {}
+      const usage = {
+        agentsCreated: u.agentsCreated ?? 0,
+        conversationsToday: u.conversationsToday ?? 0,
+        messagesThisMonth: u.messagesThisMonth ?? 0,
+        filesUploaded: u.filesUploaded ?? 0,
+        apiCallsThisMonth: u.apiCallsThisMonth ?? 0,
+        lastActive: u.lastActive ?? new Date().toISOString(),
+      }
+
+      const profile: UserProfile = {
+        id: userId,
+        email: '',
+        name: base?.full_name ?? base?.username ?? '',
+        tier,
+        createdAt: (row as any).created_at ?? new Date().toISOString(),
+        updatedAt: (row as any).updated_at ?? new Date().toISOString(),
+        limits,
+        usage,
+        teamId: (row as any).team_id ?? undefined,
+        organizationId: (row as any).organization_id ?? undefined,
+      }
+
+      return profile
     } catch (error) {
       console.error('Error fetching user profile:', error)
       return null
@@ -28,70 +61,107 @@ export class UserTierService {
   // TODO: Add better error handling for edge cases
   // TODO: Ensure email is properly populated from baseProfile
   async createUserProfile(userId: string, tier: UserTier = 'personal'): Promise<UserProfile> {
-    const baseProfile = await profileService.getProfileByUserId(userId)
+    const baseProfile = await profileService.getProfileByUserId(userId, this.sb)
     if (!baseProfile) {
       throw new Error('Base profile not found')
     }
 
-    // Persist using the DB schema (unknown columns), but return a domain UserProfile
-    const userProfileRow: any = {
-      id: userId,
-      email: '',
-      name: baseProfile.full_name ?? baseProfile.username ?? '',
-      tier,
-      limits: TIER_LIMITS[tier],
-      usage: {
-        agentsCreated: 0,
-        conversationsToday: 0,
-        messagesThisMonth: 0,
-        filesUploaded: 0,
-        apiCallsThisMonth: 0,
-        lastActive: new Date().toISOString()
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    // Only insert columns that exist in the DB
+    const usage = {
+      agentsCreated: 0,
+      conversationsToday: 0,
+      messagesThisMonth: 0,
+      filesUploaded: 0,
+      apiCallsThisMonth: 0,
+      lastActive: new Date().toISOString(),
     }
 
-    const { data, error } = await supabase
+    const insertRow: any = {
+      user_id: userId,
+      tier,
+      limits: TIER_LIMITS[tier],
+      usage,
+    }
+
+    const { data: row, error } = await this.sb
       .from('user_profiles')
-      .insert(userProfileRow)
-      .select()
+      .insert(insertRow)
+      .select('*')
       .single()
 
     if (error) {
       throw new Error(`Failed to create user profile: ${error.message}`)
     }
 
-    return (data as unknown) as UserProfile
+    // Map to domain
+    const profile: UserProfile = {
+      id: userId,
+      email: '',
+      name: baseProfile.full_name ?? baseProfile.username ?? '',
+      tier,
+      createdAt: (row as any).created_at ?? new Date().toISOString(),
+      updatedAt: (row as any).updated_at ?? new Date().toISOString(),
+      limits: { ...TIER_LIMITS[tier] },
+      usage,
+    }
+
+    return profile
   }
 
   async upgradeTier(userId: string, newTier: UserTier): Promise<UserProfile> {
-    const { data, error } = await supabase
+    const baseProfile = await profileService.getProfileByUserId(userId, this.sb)
+    const { data: row, error } = await this.sb
       .from('user_profiles')
       .update({
         tier: newTier,
         limits: TIER_LIMITS[newTier],
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
-      .select()
+      .eq('user_id', userId)
+      .select('*')
       .single()
 
     if (error) {
       throw new Error(`Failed to upgrade tier: ${error.message}`)
     }
 
-    return data
+    // Map to domain
+    return {
+      id: userId,
+      email: '',
+      name: baseProfile?.full_name ?? baseProfile?.username ?? '',
+      tier: newTier,
+      createdAt: (row as any).created_at ?? new Date().toISOString(),
+      updatedAt: (row as any).updated_at ?? new Date().toISOString(),
+      limits: { ...TIER_LIMITS[newTier] },
+      usage: (row as any).usage ?? {
+        agentsCreated: 0,
+        conversationsToday: 0,
+        messagesThisMonth: 0,
+        filesUploaded: 0,
+        apiCallsThisMonth: 0,
+        lastActive: new Date().toISOString(),
+      },
+    }
   }
 
   async updateUsage(userId: string, usage: Partial<UserProfile['usage']>): Promise<void> {
-    const { error } = await supabase
+    const { data: row } = await this.sb
+      .from('user_profiles')
+      .select('usage')
+      .eq('user_id', userId)
+      .maybeSingle()
+
+    const current = (row as any)?.usage ?? {}
+    const next = { ...current, ...usage }
+
+    const { error } = await this.sb
       .from('user_profiles')
       .update({
-        usage,
-        updatedAt: new Date().toISOString()
+        usage: next,
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Failed to update usage: ${error.message}`)
@@ -101,7 +171,7 @@ export class UserTierService {
   // Team Profile Management
   async getTeamProfile(teamId: string): Promise<TeamProfile | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.sb
         .from('team_profiles')
         .select(`
           *,
@@ -127,21 +197,21 @@ export class UserTierService {
     const teamProfileRow: any = {
       name,
       description,
-      ownerId,
+      owner_id: ownerId,
+      // keep JSONB fields minimal; DB has defaults
       settings: {
         allowMemberInvites: true,
         requireApprovalForSharing: false,
         defaultPermissions: [],
-        meetingIntegration: false
+        meetingIntegration: false,
       },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      billing: {},
     }
 
-    const { data, error } = await supabase
+    const { data: row, error } = await this.sb
       .from('team_profiles')
       .insert(teamProfileRow)
-      .select()
+      .select('*')
       .single()
 
     if (error) {
@@ -149,13 +219,27 @@ export class UserTierService {
     }
 
     // Add owner as admin member
-    await this.addTeamMember(data.id, ownerId, 'admin')
+    await this.addTeamMember(row.id, ownerId, 'admin')
 
-    return ({
-      ...data,
+    // Map DB row to domain
+    const profile: TeamProfile = {
+      id: row.id,
+      name: row.name,
+      description: row.description ?? undefined,
+      ownerId: row.owner_id,
       members: [],
-      sharedResources: []
-    } as unknown) as TeamProfile
+      sharedResources: [],
+      settings: row.settings ?? {
+        allowMemberInvites: true,
+        requireApprovalForSharing: false,
+        defaultPermissions: [],
+        meetingIntegration: false,
+      },
+      createdAt: row.created_at ?? new Date().toISOString(),
+      updatedAt: row.updated_at ?? new Date().toISOString(),
+    }
+
+    return profile
   }
 
   async addTeamMember(teamId: string, userId: string, role: TeamMember['role'] = 'member'): Promise<TeamMember> {
@@ -166,7 +250,7 @@ export class UserTierService {
       joined_at: new Date().toISOString()
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await this.sb
       .from('team_members')
       .insert(memberRow)
       .select()
@@ -180,7 +264,7 @@ export class UserTierService {
   }
 
   async removeTeamMember(teamId: string, userId: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await this.sb
       .from('team_members')
       .delete()
       .eq('team_id', teamId)
@@ -201,7 +285,7 @@ export class UserTierService {
       permissions: []
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await this.sb
       .from('team_shared_resources')
       .insert(resourceRow)
       .select()
@@ -217,7 +301,7 @@ export class UserTierService {
   // Enterprise Profile Management
   async getEnterpriseProfile(enterpriseId: string): Promise<EnterpriseProfile | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.sb
         .from('enterprise_profiles')
         .select(`
           *,
@@ -240,66 +324,94 @@ export class UserTierService {
 
   async createEnterpriseProfile(ownerId: string, organizationName: string): Promise<EnterpriseProfile> {
     const enterpriseProfileRow: any = {
-      name: organizationName,
-      ownerId,
-      description: organizationName,
-      settings: {
-        allowMemberInvites: true,
-        requireApprovalForSharing: false,
-        defaultPermissions: [],
-        meetingIntegration: true
-      },
-      customRateLimit: 1000,
-      dedicatedSupport: true,
-      billingContact: '',
-      technicalContact: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      organization_name: organizationName,
+      owner_id: ownerId,
+      rate_limits: { rpm: 1000 },
+      billing: {},
+      support: { dedicatedSupport: true },
     }
 
-    const { data, error } = await supabase
+    const { data: row, error } = await this.sb
       .from('enterprise_profiles')
       .insert(enterpriseProfileRow)
-      .select()
+      .select('*')
       .single()
 
     if (error) {
       throw new Error(`Failed to create enterprise profile: ${error.message}`)
     }
 
-    return ({
-      ...data,
-      customLLMEndpoints: []
-    } as unknown) as EnterpriseProfile
+    // Map to domain EnterpriseProfile
+    const enterprise: EnterpriseProfile = {
+      id: row.id,
+      name: row.organization_name,
+      description: row.organization_name,
+      ownerId: row.owner_id,
+      members: [],
+      sharedResources: [],
+      settings: {
+        allowMemberInvites: true,
+        requireApprovalForSharing: false,
+        defaultPermissions: [],
+        meetingIntegration: true,
+      },
+      createdAt: row.created_at ?? new Date().toISOString(),
+      updatedAt: row.updated_at ?? new Date().toISOString(),
+      customRateLimit: (row.rate_limits?.rpm as number) ?? 1000,
+      customLLMEndpoints: [],
+      dedicatedSupport: !!row.support?.dedicatedSupport,
+      slaAgreement: undefined,
+      billingContact: '',
+      technicalContact: '',
+    }
+
+    return enterprise
   }
 
   async addCustomLLMEndpoint(enterpriseId: string, endpoint: Omit<LLMEndpoint, 'id'>): Promise<LLMEndpoint> {
-    // Supabase row may include extra fields like enterpriseId/createdAt which are not part of domain LLMEndpoint
-    const llmEndpoint = {
-      ...endpoint,
-      enterpriseId,
-      createdAt: new Date().toISOString()
-    } as any
+    // Map domain -> DB columns
+    const modelType = `${endpoint.provider}:${endpoint.model}`
+    const insertRow: any = {
+      enterprise_id: enterpriseId,
+      name: endpoint.name,
+      endpoint_url: endpoint.endpoint,
+      api_key_encrypted: null,
+      model_type: modelType,
+      rate_limit: endpoint.rateLimitOverride ?? 100,
+      is_active: endpoint.isActive,
+    }
 
-    const { data, error } = await supabase
+    const { data: row, error } = await this.sb
       .from('enterprise_llm_endpoints')
-      .insert(llmEndpoint)
-      .select()
+      .insert(insertRow)
+      .select('*')
       .single()
 
     if (error) {
       throw new Error(`Failed to add custom LLM endpoint: ${error.message}`)
     }
 
-    return data
+    // Map DB -> domain
+    const [prov, mod] = String(row.model_type ?? '').split(':') as [LLMEndpoint['provider'], string]
+    const mapped: LLMEndpoint = {
+      id: row.id,
+      name: row.name,
+      endpoint: row.endpoint_url,
+      apiKey: '',
+      model: mod || row.model_type,
+      provider: (prov as any) || 'custom',
+      isActive: !!row.is_active,
+      rateLimitOverride: row.rate_limit ?? undefined,
+    }
+    return mapped
   }
 
   async updateRateLimits(enterpriseId: string, customRateLimit: number): Promise<void> {
-    const { error } = await supabase
+    const { error } = await this.sb
       .from('enterprise_profiles')
       .update({
-        customRateLimit,
-        updatedAt: new Date().toISOString()
+        rate_limits: { rpm: customRateLimit },
+        updated_at: new Date().toISOString(),
       })
       .eq('id', enterpriseId)
 
@@ -351,4 +463,5 @@ export class UserTierService {
   }
 }
 
-export const userTierService = new UserTierService()
+export const createUserTierService = (sb: any) => new UserTierService(sb)
+export const userTierService = new UserTierService(browserSupabase)

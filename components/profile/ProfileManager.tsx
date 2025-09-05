@@ -1,11 +1,21 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Tabs
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
 import { User, Users, Building2, Crown, ArrowRight, Check } from 'lucide-react'
 import { PersonalProfile } from './PersonalProfile'
 import { TeamProfile } from './TeamProfile'

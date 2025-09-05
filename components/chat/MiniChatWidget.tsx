@@ -2,10 +2,16 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { createPortal } from "react-dom"
-import { Bot, Minimize2, Maximize2, X } from "lucide-react"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { Bot, Minimize2, Maximize2, X, Plus, Mic, Circle, Code2, Pin, PinOff } from "lucide-react"
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/libs/design-system'
 import { useWebSocket } from "@/hooks/use-websocket"
+import { useHotkeys } from "@/hooks/use-hotkeys"
+import { useHaptics } from "@/hooks/use-haptics"
 
 // Lightweight draggable + resizable floating chat widget.
 // - Fixed positioned (bottom-right by default)
@@ -68,8 +74,11 @@ export function MiniChatWidget({
   const [message, setMessage] = useState("")
   const [mounted, setMounted] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [pinned, setPinned] = useState(false)
+  const quickInputRef = useRef<HTMLInputElement | null>(null)
 
-  const { sendChatMessage, joinConversation } = useWebSocket()
+  const { sendChatMessage, joinConversation, messages } = useWebSocket()
+  const { triggerHaptic } = useHaptics()
   // Stable mini-chat conversation id
   const miniChatConversationId = useMemo(() => {
     if (conversationId) return conversationId
@@ -106,6 +115,8 @@ export function MiniChatWidget({
           h: initialH ?? parsed.h,
         }))
       }
+      const pinnedRaw = localStorage.getItem("miniChatPinned")
+      if (pinnedRaw) setPinned(pinnedRaw === "1")
     } catch {}
   }, [initialH, initialMinimized, initialW, initialX, initialY])
 
@@ -115,6 +126,68 @@ export function MiniChatWidget({
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
     } catch {}
   }, [state])
+
+  // Persist pin
+  useEffect(() => {
+    try { localStorage.setItem("miniChatPinned", pinned ? "1" : "0") } catch {}
+  }, [pinned])
+
+  // Hotkey: ⌘L focuses the quick chat input (when minimized)
+  useHotkeys([
+    {
+      combo: "meta+l",
+      preventDefault: true,
+      onTrigger: () => {
+        if (state.minimized) {
+          quickInputRef.current?.focus()
+          triggerHaptic("selection")
+        }
+      },
+    },
+  ])
+
+  // Expose imperative API for popout/minimize and listen to CustomEvents
+  useEffect(() => {
+    const popoutListener = () => expandToPopout()
+    const minimizeListener = () => minimizeToBar()
+    const togglePopoutListener = () => toggleMinimize()
+    const focusInputListener = () => quickInputRef.current?.focus()
+
+    window.addEventListener('quickchat:popout', popoutListener)
+    window.addEventListener('quickchat:minimize', minimizeListener)
+    window.addEventListener('quickchat:toggle-popout', togglePopoutListener)
+    window.addEventListener('quickchat:focus-input', focusInputListener)
+
+    // Merge into global API without clobbering
+    const existing = (window as any).quickChat || {}
+    const injected = {
+      ...existing,
+      popout: expandToPopout,
+      minimize: minimizeToBar,
+      togglePopout: toggleMinimize,
+    }
+    ;(window as any).quickChat = injected
+
+    return () => {
+      window.removeEventListener('quickchat:popout', popoutListener)
+      window.removeEventListener('quickchat:minimize', minimizeListener)
+      window.removeEventListener('quickchat:toggle-popout', togglePopoutListener)
+      window.removeEventListener('quickchat:focus-input', focusInputListener)
+      try {
+        const qc = (window as any).quickChat || {}
+        if (qc) {
+          delete qc.popout
+          delete qc.minimize
+          delete qc.togglePopout
+          if (Object.keys(qc).length === 0) {
+            delete (window as any).quickChat
+          } else {
+            ;(window as any).quickChat = qc
+          }
+        }
+      } catch {}
+    }
+  }, [])
 
   // One-time hint for discoverability (only when minimized and first visit)
   useEffect(() => {
@@ -132,17 +205,21 @@ export function MiniChatWidget({
     } catch {}
   }, [mounted, state.minimized])
 
-  // Clamp to viewport on resize
+  // Clamp to viewport on resize and keep popout aligned to bar width/offset
   useEffect(() => {
     const onResize = () => {
       setState((s) => {
-        const maxX = Math.max(0, window.innerWidth - s.w)
-        const maxY = Math.max(0, window.innerHeight - (s.minimized ? 56 : s.h))
-        return {
-          ...s,
-          x: Math.min(Math.max(0, s.x), maxX),
-          y: Math.min(Math.max(0, s.y), maxY),
-        }
+        const isMin = s.minimized
+        const w = isMin ? s.w : computeBarWidth()
+        const x = isMin ? Math.min(Math.max(0, s.x), Math.max(0, window.innerWidth - w)) : Math.max(0, Math.floor((window.innerWidth - w) / 2))
+        const h = s.h
+        const y = isMin
+          ? Math.min(Math.max(0, s.y), Math.max(0, window.innerHeight - 56))
+          : Math.max(
+              16,
+              Math.floor(window.innerHeight - (BAR_BOTTOM_MARGIN + EST_BAR_HEIGHT + POPOUT_OFFSET_ABOVE_BAR) - h)
+            )
+        return { ...s, x, y, w, h }
       })
     }
     window.addEventListener("resize", onResize)
@@ -214,10 +291,47 @@ export function MiniChatWidget({
     try { localStorage.setItem(HINT_KEY, "1") } catch {}
   }
 
+  // Layout constants for the bottom bar and popout relationship
+  const BAR_SIDE_MARGIN = 16 // tailwind bottom-4/left-right margins in px
+  const BAR_BOTTOM_MARGIN = 16
+  const BAR_MAX_WIDTH = 720
+  const EST_BAR_HEIGHT = 48 // approximate height of the compact bar
+  const POPOUT_OFFSET_ABOVE_BAR = 15
+
+  const computeBarWidth = () => {
+    if (typeof window === "undefined") return Math.min(BAR_MAX_WIDTH, 360)
+    return Math.min(BAR_MAX_WIDTH, window.innerWidth - BAR_SIDE_MARGIN * 2)
+  }
+
+  const expandToPopout = () => {
+    setState((s) => {
+      const w = computeBarWidth()
+      const x = Math.max(0, Math.floor((window.innerWidth - w) / 2))
+      const h = s.h
+      const y = Math.max(
+        16,
+        Math.floor(window.innerHeight - (BAR_BOTTOM_MARGIN + EST_BAR_HEIGHT + POPOUT_OFFSET_ABOVE_BAR) - h)
+      )
+      return { ...s, minimized: false, w, x, y, h }
+    })
+  }
+
+  const minimizeToBar = () => {
+    setState((s) => ({ ...s, minimized: true }))
+  }
+
   const toggleMinimize = () => {
     dismissHint()
-    setState((s) => ({ ...s, minimized: !s.minimized }))
+    setState((s) => {
+      if (pinned) {
+        // If pinned, ensure popout stays open
+        return { ...s, minimized: false }
+      }
+      return { ...s, minimized: !s.minimized }
+    })
   }
+
+  // Note: Widget-level Ctrl/Cmd+Q handled by QuickChatMount to toggle visibility.
 
   // Resize helpers for header controls
   const setCompactSize = () => {
@@ -237,53 +351,96 @@ export function MiniChatWidget({
     setMessage("")
   }
 
-  // Minimized pill
+  // Minimized compact bar (Apple‑style)
   if (state.minimized) {
     if (!mounted) return null
 
-    const pill = (
-      <button
-        onClick={toggleMinimize}
-        className="fixed z-[9999] bottom-5 right-5 flex items-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 shadow-lg hover:bg-indigo-700 focus:outline-none"
-        title="Open quick chat"
-      >
-        <Bot className="h-5 w-5" />
-        <span className="text-sm font-medium">{title}</span>
-      </button>
-    )
+    const onQuickKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      const isComposing = (e.nativeEvent as any)?.isComposing
+      if (isComposing) return
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault()
+        if (message.trim()) {
+          try { sendChatMessage(message.trim(), miniChatConversationId) } catch {}
+          setMessage("")
+          triggerHaptic("light")
+          // After sending from the bar, open the popout to show the AI chat
+          expandToPopout()
+        }
+      } else if (e.key === "Escape") {
+        (e.currentTarget as HTMLInputElement).blur()
+      }
+    }
 
-    const tooltip = (
-      <div className="fixed z-[10000] bottom-16 right-5">
-        <div className="relative max-w-xs bg-gray-900 text-white text-xs rounded-lg shadow-lg px-3 py-2 flex items-start gap-2">
-          <span>Click Quick Chat to draft a prompt. Drag to move.</span>
+    const bar = (
+      <div className="fixed z-[9999] bottom-4 left-1/2 -translate-x-1/2 w-[min(720px,calc(100%-2rem))]">
+        <div
+          className="group flex items-center gap-2 rounded-2xl border border-gray-200/60 dark:border-gray-700/70 bg-white/80 dark:bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:bg-white/70 supports-[backdrop-filter]:dark:bg-gray-900/70 shadow-lg hover:shadow-xl transition-shadow duration-200 motion-reduce:transition-none px-3 py-2"
+          role="search"
+          aria-label="Quick chat"
+        >
           <button
-            onClick={dismissHint}
-            className="ml-1 text-gray-300 hover:text-white"
-            aria-label="Close hint"
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="New quick chat"
+            onClick={() => { expandToPopout(); triggerHaptic("selection") }}
+            type="button"
           >
-            <X className="h-3 w-3" />
+            <Plus className="h-4 w-4" />
           </button>
-          <div className="absolute -bottom-1 right-6 w-2 h-2 bg-gray-900 rotate-45" />
+
+          <input
+            ref={quickInputRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={onQuickKeyDown}
+            placeholder={"Ask anything (⌘L)"}
+            className="flex-1 bg-transparent text-sm md:text-base placeholder:text-gray-500 dark:placeholder:text-gray-400 text-gray-900 dark:text-gray-100 outline-none"
+            aria-label="Ask anything"
+          />
+
+          {/* Subtle chips (non-interactive for now) */}
+          <div className="hidden sm:flex items-center gap-1 mr-1">
+            <div className="hidden md:inline-flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300 border border-gray-300/70 dark:border-gray-700 rounded-full px-2 py-1">
+              <Code2 className="h-3.5 w-3.5" />
+              <span>Code</span>
+            </div>
+            <div className="hidden lg:inline-flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300 border border-gray-300/70 dark:border-gray-700 rounded-full px-2 py-1">
+              <span>GPT-5 (high reasoning)</span>
+            </div>
+          </div>
+
+          <button
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="Voice input"
+            type="button"
+            onClick={() => triggerHaptic("selection")}
+          >
+            <Mic className="h-4 w-4" />
+          </button>
+
+          <button
+            className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-white text-gray-900 dark:bg-white dark:text-gray-900 shadow-sm hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            aria-label="Record"
+            type="button"
+            onClick={() => triggerHaptic("light")}
+          >
+            <Circle className="h-4 w-4" />
+          </button>
         </div>
       </div>
     )
 
-    return (
-      <>
-        {createPortal(pill, document.body)}
-        {showHint ? createPortal(tooltip, document.body) : null}
-      </>
-    )
+    return createPortal(bar, document.body)
   }
 
   const content = (
     <div
-      className="fixed z-[9999] bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+      className="fixed z-[9999] rounded-2xl border border-gray-200/60 dark:border-gray-700/70 bg-white/80 dark:bg-gray-900/80 backdrop-blur supports-[backdrop-filter]:bg-white/70 supports-[backdrop-filter]:dark:bg-gray-900/70 shadow-2xl overflow-hidden"
       style={{ left: state.x, top: state.y, width: state.w, height: state.h }}
     >
       {/* Header (drag handle) */}
       <div
-        className="cursor-move select-none flex items-center justify-between px-3 py-2 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
+        className="cursor-move select-none flex items-center justify-between px-3 py-2 bg-white/60 dark:bg-gray-900/60 border-b border-gray-200/60 dark:border-gray-700/60 backdrop-blur"
         onMouseDown={startDrag}
       >
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
@@ -291,6 +448,16 @@ export function MiniChatWidget({
           <span className="text-sm font-medium">{title}</span>
         </div>
         <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={() => setPinned((p) => !p)}
+            title={pinned ? "Unpin" : "Pin"}
+          >
+            {pinned ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -324,29 +491,22 @@ export function MiniChatWidget({
         </div>
       </div>
 
-      {/* Messages placeholder (simple for now) */}
-      <div className="flex-1 h-[calc(100%-110px)] overflow-y-auto p-3 text-sm text-gray-600 dark:text-gray-300">
-        <p className="opacity-80">Start a quick note to yourself or draft a prompt for an agent.</p>
-      </div>
-
-      {/* Composer */}
-      <div className="border-t border-gray-200 dark:border-gray-700 p-3">
-        <div className="flex items-end gap-2">
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={1}
-            placeholder="Type a quick message..."
-            className="resize-none border-0 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2 min-h-[40px] focus:ring-2 focus:ring-indigo-500"
-          />
-          <Button
-            disabled={!message.trim()}
-            onClick={onSend}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            Send
-          </Button>
-        </div>
+      {/* Feed-only content */}
+      <div className="flex-1 h-[calc(100%-42px)] overflow-y-auto p-3 text-sm text-gray-700 dark:text-gray-200 space-y-2">
+        {messages.filter(m => m.conversationId === miniChatConversationId).length === 0 ? (
+          <p className="opacity-80">Your quick chat feed will appear here.</p>
+        ) : (
+          messages
+            .filter(m => m.conversationId === miniChatConversationId)
+            .map(m => (
+              <div key={m.id} className="rounded-lg border border-gray-200/60 dark:border-gray-700/60 bg-white/60 dark:bg-gray-900/60 backdrop-blur px-3 py-2">
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 mb-1">
+                  {m.senderName || (m.sender === 'user' ? 'You' : m.sender === 'ai' ? 'AI Assistant' : 'Contact')} · {new Date(m.timestamp).toLocaleTimeString()}
+                </div>
+                <div className="whitespace-pre-wrap text-gray-900 dark:text-gray-100">{m.text}</div>
+              </div>
+            ))
+        )}
       </div>
 
       {/* Resize handle */}

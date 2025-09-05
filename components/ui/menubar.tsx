@@ -5,6 +5,10 @@ import * as MenubarPrimitive from "@radix-ui/react-menubar"
 import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import {
+  Label,
+  Separator
+} from '@/libs/design-system';
 
 function Menubar({
   className,

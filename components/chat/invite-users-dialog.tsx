@@ -16,18 +16,33 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
+  Label,
+  Tabs,
+  Textarea
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+import { Badge } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/libs/design-system'
 import { cn } from "@/lib/utils"
 
 interface InviteUsersDialogProps {
@@ -65,15 +80,48 @@ export function InviteUsersDialog({
   const [customMessage, setCustomMessage] = useState("")
   const [isInviting, setIsInviting] = useState(false)
   const [shareLink, setShareLink] = useState("")
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false)
   const displayChatName = chatName || "New chat"
 
-  // Generate share link
-  const generateShareLink = () => {
+  // Generate secure share link
+  const generateShareLink = async () => {
     if (!chatId) return undefined
-    const baseUrl = window.location.origin
-    const link = `${baseUrl}/join/${chatId}?invite=${Date.now()}`
-    setShareLink(link)
-    return link
+
+    setIsGeneratingLink(true)
+    try {
+      const response = await fetch('/api/invitations/create-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId,
+          chatName: displayChatName,
+          isGroupChat,
+          customMessage: customMessage.trim() || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate invite link')
+      }
+
+      const baseUrl = window.location.origin
+      const link = `${baseUrl}/join/${chatId}?invite=${data.inviteToken}`
+      setShareLink(link)
+      return link
+    } catch (error: any) {
+      toast({
+        title: "Failed to generate link",
+        description: error.message,
+        variant: "destructive"
+      })
+      return undefined
+    } finally {
+      setIsGeneratingLink(false)
+    }
   }
 
   // Search for users
@@ -181,14 +229,25 @@ export function InviteUsersDialog({
   }
 
   // Copy share link
-  const copyShareLink = () => {
-    const link = shareLink || generateShareLink()
-    if (!link) return
-    navigator.clipboard.writeText(link)
-    toast({
-      title: "Link copied!",
-      description: "Share link has been copied to clipboard"
-    })
+  const copyShareLink = async () => {
+    try {
+      let linkToCopy: string | undefined = shareLink || undefined
+      if (!linkToCopy) {
+        linkToCopy = await generateShareLink()
+      }
+      if (!linkToCopy) return
+      await navigator.clipboard.writeText(linkToCopy)
+      toast({
+        title: "Link copied!",
+        description: "Share link has been copied to clipboard"
+      })
+    } catch (err: any) {
+      toast({
+        title: "Failed to copy",
+        description: err?.message ?? "Could not copy link to clipboard",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -365,8 +424,9 @@ export function InviteUsersDialog({
                   <Button
                     onClick={generateShareLink}
                     variant="outline"
+                    disabled={isGeneratingLink}
                   >
-                    Generate
+                    {isGeneratingLink ? "Generating..." : "Generate"}
                   </Button>
                   <Button
                     onClick={copyShareLink}

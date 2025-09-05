@@ -3,8 +3,7 @@
 import type React from "react"
 
 import { useRef, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button, Input, Progress, Popover, PopoverContent, PopoverTrigger } from '@/libs/design-system';
 import { Paperclip, ImageIcon, Video, Music, FileText, Camera } from "lucide-react"
 
 interface FileUploadProps {

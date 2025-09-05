@@ -1,0 +1,15 @@
+export {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+  DialogOverlay,
+  DialogPortal,
+  type DialogProps,
+  type DialogContentProps,
+  type DialogOverlayProps,
+} from './Dialog';

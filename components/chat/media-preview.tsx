@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from '@/libs/design-system'
+import { Dialog, DialogContent, DialogTrigger } from '@/libs/design-system'
 import { Play, Download, X } from "lucide-react"
 
 interface MediaPreviewProps {

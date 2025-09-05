@@ -1,0 +1,23 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.ece.agent.desktop
+productName: AGENT
+files:
+  - filter:
+      - dist/**/*
+      - public/**/*
+mac:
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip
+win:
+  target: nsis
+linux:
+  target: AppImage
+publish:
+  - provider: github
+    owner: elicharlese
+    repo: AGENT
+electronVersion: 30.5.1

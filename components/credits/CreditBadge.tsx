@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/libs/design-system'
 import { getCreditBalance } from '@/services/credit-service'
 import { CREDITS_ENABLED } from '@/lib/pricing'
 

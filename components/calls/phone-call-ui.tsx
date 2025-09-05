@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Button } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Dialog, DialogContent } from '@/libs/design-system'
 import { Phone, PhoneOff, Mic, MicOff, Volume2, VolumeX, MessageCircle, UserPlus } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
 import { useUser } from "@/contexts/user-context"

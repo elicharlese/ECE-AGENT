@@ -1,5 +1,5 @@
 "use client"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/libs/design-system'
 import { useHaptics } from "@/hooks/use-haptics"
 import { useIsMobile } from "@/hooks/use-mobile"
 

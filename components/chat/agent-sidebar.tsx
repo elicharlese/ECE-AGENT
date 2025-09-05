@@ -1,10 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Button,
+  ScrollArea
+} from '@/libs/design-system';
+import { Input } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: ScrollArea
+// 
+// TODO: Replace deprecated components: ScrollArea
+// import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Search,
   Bot,

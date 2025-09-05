@@ -1,11 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Switch
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
 import { 
   Calendar, 
   Clock, 

@@ -3,9 +3,17 @@
 import type React from "react"
 import { useEffect, useRef, useState } from "react"
 import { Bot, Plus, Send, X, Calculator, Calendar, GamepadIcon, Sparkles, Zap, Brain } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import {
+  Button,
+  Select,
+  Textarea
+} from '@/libs/design-system';
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/libs/design-system'
 import { CreditBadge } from "@/components/credits/CreditBadge"
 import { BuyCreditsButton } from "@/components/credits/BuyCreditsButton"
 import { CREDITS_ENABLED, CREDITS_PER_AI_REQUEST } from "@/lib/pricing"
@@ -127,14 +135,6 @@ export function DesktopMessageInput({
 
   return (
     <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      {/* Credits UI aligned to the top-right for desktop */}
-      {CREDITS_ENABLED && (
-        <div className="px-4 pt-3 pb-0 flex items-center gap-2 justify-end">
-          <CreditBadge />
-          <BuyCreditsButton size="sm" />
-        </div>
-      )}
-
       {/* Action panel (collapsed by default) */}
       {showActions && (
         <div className="border-b border-gray-200 dark:border-gray-700">
@@ -282,36 +282,24 @@ export function DesktopMessageInput({
           {value.length > 100 && (
             <div className="absolute -top-6 right-2 text-xs text-gray-500 dark:text-gray-400">{value.length}/1000</div>
           )}
-          {CREDITS_ENABLED && (
-            <div
-              className={
-                agentMode
-                  ? value.length > 100
-                    ? "absolute -top-10 right-2 text-xs text-gray-500 dark:text-gray-400"
-                    : "absolute -top-6 right-2 text-xs text-gray-500 dark:text-gray-400"
-                  : "absolute -top-6 left-2 text-xs text-gray-500 dark:text-gray-400"
-              }
-            >
-              Est. credits: {CREDITS_PER_AI_REQUEST}
-            </div>
-          )}
-        </div>
+            
+         </div>
 
-        <Button
-          onClick={handleSend}
-          disabled={!value.trim()}
-          aria-label="Send message"
-          className={`
-            rounded-full h-8 w-8 p-0
-            ${agentMode ? "bg-indigo-500 hover:bg-indigo-600" : "bg-blue-500 hover:bg-blue-600"} text-white
-            disabled:bg-gray-300 dark:disabled:bg-gray-600
-            transition-all duration-200
-            ${value.trim() ? "scale-100" : "scale-95 opacity-50"}
-          `}
-        >
-          <Send className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  )
-}
+         <Button
+           onClick={handleSend}
+           disabled={!value.trim()}
+           aria-label="Send message"
+           className={`
+             rounded-full h-8 w-8 p-0
+             ${agentMode ? "bg-indigo-500 hover:bg-indigo-600" : "bg-blue-500 hover:bg-blue-600"} text-white
+             disabled:bg-gray-300 dark:disabled:bg-gray-600
+             transition-all duration-200
+             ${value.trim() ? "scale-100" : "scale-95 opacity-50"}
+           `}
+         >
+           <Send className="h-4 w-4" />
+         </Button>
+       </div>
+     </div>
+   )
+ }

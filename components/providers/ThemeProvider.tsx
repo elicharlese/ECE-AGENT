@@ -7,6 +7,7 @@ export type ThemeProviderProps = React.PropsWithChildren<{
   attribute?: 'class' | 'data-theme'
   defaultTheme?: 'system' | 'light' | 'dark'
   enableSystem?: boolean
+  enableColorScheme?: boolean
 }>
 
 export function ThemeProvider({
@@ -14,12 +15,14 @@ export function ThemeProvider({
   attribute = 'class',
   defaultTheme = 'system',
   enableSystem = true,
+  enableColorScheme = true,
 }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute={attribute}
       defaultTheme={defaultTheme}
       enableSystem={enableSystem}
+      enableColorScheme={enableColorScheme}
       disableTransitionOnChange
     >
       {children}

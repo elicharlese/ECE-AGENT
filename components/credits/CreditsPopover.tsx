@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Coins, ExternalLink } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Progress, Popover, PopoverContent, PopoverTrigger } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
 import { clientEnv } from "@/lib/env-validation"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from '@/libs/design-system'
 
 // Named export only, per repo rules
 export function CreditsPopover() {

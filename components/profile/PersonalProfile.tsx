@@ -1,11 +1,21 @@
 "use client"
 
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Progress
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
 import { User, MessageCircle, Bot, Upload, Crown } from 'lucide-react'
 import { UserProfile, TIER_LIMITS } from '@/src/types/user-tiers'
 

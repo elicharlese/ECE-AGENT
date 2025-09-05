@@ -4,9 +4,17 @@ import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
 import { Send, Plus, X, Bot, Calculator, Calendar, GamepadIcon, Sparkles, Zap, Brain } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import {
+  Button,
+  Select,
+  Textarea
+} from '@/libs/design-system';
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/libs/design-system'
 import { EmojiPicker } from "./emoji-picker"
 import { FileUpload } from "./file-upload"
 import { GifPicker } from "./gif-picker"

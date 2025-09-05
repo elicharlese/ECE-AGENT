@@ -1,11 +1,23 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Button,
+  Progress,
+  ScrollArea
+} from '@/libs/design-system';
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
+
+// TODO: Replace deprecated components: ScrollArea
+// 
+// TODO: Replace deprecated components: ScrollArea
+// import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Play,
   Pause,

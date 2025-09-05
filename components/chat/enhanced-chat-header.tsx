@@ -19,21 +19,20 @@ import {
   Trash2,
   Box
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
+  Button,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card"
+  Label,
+  Separator
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,  } from '@/libs/design-system'
+// TODO: Replace deprecated components: DropdownMenu
+// 
+// TODO: Replace deprecated components: DropdownMenu
+// import { DropdownMenu } from '@/components/ui/dropdown-menu'
+import { Card, CardContent,  } from '@/libs/design-system'
 import { cn } from "@/lib/utils"
 import { CreditsPopover } from "@/components/credits/CreditsPopover"
 import { isFeatureEnabled, FEATURES } from '@/lib/feature-flags'

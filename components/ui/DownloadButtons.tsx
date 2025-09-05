@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useMemo } from 'react'
-import { AnimatedButton } from '@/components/ui/AnimatedButton'
+import React from 'react'
+import { AnimatedButton } from '@/libs/design-system'
 
 function getPlatform(): 'mac' | 'windows' | 'linux' | 'other' {
   if (typeof navigator === 'undefined') return 'other'
@@ -13,11 +13,19 @@ function getPlatform(): 'mac' | 'windows' | 'linux' | 'other' {
 }
 
 export function DownloadButtons({ className }: { className?: string }) {
-  const platform = useMemo(() => getPlatform(), [])
+  // Default to 'other' to match SSR, then detect on mount to avoid hydration mismatch
+  const [platform, setPlatform] = React.useState<'mac' | 'windows' | 'linux' | 'other'>('other')
+  React.useEffect(() => {
+    setPlatform(getPlatform())
+  }, [])
 
   const macUrl = process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_MAC || ''
   const winUrl = process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN || ''
   const linuxUrl = process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_LINUX || ''
+
+  // Fallback to Releases page if specific URLs are not configured
+  const desktopReleaseUrl =
+    process.env.NEXT_PUBLIC_DESKTOP_RELEASE_URL || 'https://github.com/elicharlese/AGENT/releases/latest'
 
   const iosUrl = process.env.NEXT_PUBLIC_MOBILE_APPSTORE_URL || process.env.NEXT_PUBLIC_MOBILE_TESTFLIGHT_URL || ''
   const androidUrl = process.env.NEXT_PUBLIC_MOBILE_PLAY_URL || ''
@@ -29,9 +37,9 @@ export function DownloadButtons({ className }: { className?: string }) {
     macUrl ||
     winUrl ||
     linuxUrl ||
-    '#'
+    desktopReleaseUrl
 
-  const desktopLabel = useMemo(() => {
+  const desktopLabel = React.useMemo(() => {
     switch (platform) {
       case 'mac':
         return 'Download for macOS'
@@ -52,7 +60,7 @@ export function DownloadButtons({ className }: { className?: string }) {
     androidUrl ||
     '#'
 
-  const mobileLabel = useMemo(() => {
+  const mobileLabel = React.useMemo(() => {
     if (mobileHref === iosUrl && iosUrl) return 'Get on App Store'
     if (mobileHref === androidUrl && androidUrl) return 'Get on Google Play'
     return 'Get Mobile App'

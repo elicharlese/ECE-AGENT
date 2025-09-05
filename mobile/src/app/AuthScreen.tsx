@@ -3,6 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, StyleSheet,
 import * as ExpoLinking from 'expo-linking'
 import { useRNTheme, RNThemeToggle } from '@ece-agent/shared-ui/native'
 import { supabase } from '../lib/supabase'
+import {
+  Label,
+  Sheet
+} from '@/libs/design-system';
 
 export type AuthScreenProps = {
   onSignedIn?: () => void

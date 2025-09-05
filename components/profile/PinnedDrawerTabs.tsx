@@ -3,7 +3,16 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import { Bot, Wallet } from 'lucide-react'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle
+} from '@/libs/design-system';
+// TODO: Replace deprecated components: Drawer
+// 
+// TODO: Replace deprecated components: Drawer
+// import { Drawer } from '@/components/ui/drawer'
 import { WalletLinker } from '@/components/user/WalletLinker'
 
 // Lazy-load ChatWindow to avoid importing Supabase client in test/SSR envs

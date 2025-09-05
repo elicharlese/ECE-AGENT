@@ -1,52 +1,56 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { useColorScheme } from 'react-native'
-import type { ThemeName, ResolvedThemeName, ThemeTokens } from '../types'
-import { lightTokens, darkTokens } from './tokens'
+import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
+import { Appearance, ColorSchemeName } from 'react-native'
+import { Theme, ResolvedTheme, ThemeContextValue } from '../types'
+import { getThemeTokens } from './tokens'
 
-export type RNThemeContextValue = {
-  theme: ThemeName
-  resolvedTheme: ResolvedThemeName
-  setTheme: (t: ThemeName) => void
-  isDark: boolean
-  tokens: ThemeTokens
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
+
+interface RNThemeProviderProps {
+  children: ReactNode
+  defaultTheme?: Theme
 }
 
-const RNThemeContext = createContext<RNThemeContextValue | undefined>(undefined)
-
-export type RNThemeProviderProps = React.PropsWithChildren<{
-  defaultTheme?: ThemeName
-}>
-
 export function RNThemeProvider({ children, defaultTheme = 'system' }: RNThemeProviderProps) {
-  const systemScheme = useColorScheme() // 'light' | 'dark' | null
-  const [theme, setThemeState] = useState<ThemeName>(defaultTheme)
+  const [theme, setTheme] = useState<Theme>(defaultTheme)
+  const [systemTheme, setSystemTheme] = useState<ColorSchemeName>(Appearance.getColorScheme())
 
-  const setTheme = useCallback((t: ThemeName) => {
-    setThemeState(t)
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemTheme(colorScheme)
+    })
+
+    return () => subscription?.remove()
   }, [])
 
-  const resolvedTheme: ResolvedThemeName = useMemo(() => {
+  const resolvedTheme: ResolvedTheme = useMemo(() => {
     if (theme === 'system') {
-      return systemScheme === 'dark' ? 'dark' : 'light'
+      return systemTheme === 'dark' ? 'dark' : 'light'
     }
     return theme
-  }, [theme, systemScheme])
+  }, [theme, systemTheme])
 
-  const tokens: ThemeTokens = useMemo(() => (resolvedTheme === 'dark' ? darkTokens : lightTokens), [resolvedTheme])
+  const isDark = resolvedTheme === 'dark'
+  const tokens = useMemo(() => getThemeTokens(isDark), [isDark])
 
-  const value = useMemo<RNThemeContextValue>(() => ({
+  const value: ThemeContextValue = useMemo(() => ({
     theme,
     resolvedTheme,
     setTheme,
-    isDark: resolvedTheme === 'dark',
-    tokens,
-  }), [theme, resolvedTheme, setTheme, tokens])
+    isDark,
+    tokens
+  }), [theme, resolvedTheme, isDark, tokens])
 
-  return <RNThemeContext.Provider value={value}>{children}</RNThemeContext.Provider>
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  )
 }
 
-export function useRNTheme(): RNThemeContextValue {
-  const ctx = useContext(RNThemeContext)
-  if (!ctx) throw new Error('useRNTheme must be used within RNThemeProvider')
-  return ctx
+export function useRNTheme(): ThemeContextValue {
+  const context = useContext(ThemeContext)
+  if (context === undefined) {
+    throw new Error('useRNTheme must be used within an RNThemeProvider')
+  }
+  return context
 }

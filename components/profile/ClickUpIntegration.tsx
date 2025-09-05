@@ -1,13 +1,28 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Switch } from "@/components/ui/switch"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Progress,
+  Switch
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
+import { Avatar, AvatarFallback, AvatarImage } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Progress
+// 
+// TODO: Replace deprecated components: Progress
+// import { Progress } from '@/components/ui/progress'
 import { 
   CheckSquare, 
   Clock, 
@@ -22,6 +37,7 @@ import {
   Target
 } from "lucide-react"
 import { formatDistanceToNow, format } from "date-fns"
+import { useUser } from "@/contexts/user-context"
 
 interface Task {
   id: string
@@ -62,6 +78,7 @@ interface ClickUpIntegration {
 }
 
 export function ClickUpIntegration() {
+  const { user } = useUser()
   const [tasks, setTasks] = useState<Task[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [integration, setIntegration] = useState<ClickUpIntegration>({
@@ -71,6 +88,7 @@ export function ClickUpIntegration() {
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [filter, setFilter] = useState<'all' | 'assigned' | 'due_soon'>('all')
+  const userEmail = user?.email ?? ''
 
   useEffect(() => {
     const fetchTaskData = async () => {

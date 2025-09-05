@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getSupabaseServer } from '@/lib/supabase/server'
 
 // Health check response type
 interface HealthStatus {
@@ -30,7 +30,7 @@ const startTime = Date.now()
 
 async function checkDatabaseHealth(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
-    const supabase = createClient()
+    const supabase = await getSupabaseServer()
     
     // Simple query to check database connectivity
     const { error } = await supabase

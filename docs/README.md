@@ -3,8 +3,8 @@
 ## 📚 Main Documentation
 
 - [README.md](../README.md) - Main project overview, features, and architecture
-- [STARTUP_GUIDE.md](../STARTUP_GUIDE.md) - Quick start instructions and usage guide
-- [END_GOAL.md](../END_GOAL.md) - Project vision and final objectives
+
+- [END_GOAL.md](END_GOAL.md) - Project vision and final objectives
 
 ## 📁 Development Documentation
 
@@ -65,3 +65,38 @@ Major feature batches and releases:
 ## 🛠 Quick Start
 
 See the main [README.md](../README.md) for setup and usage instructions.
+
+## 📁 Scripts Organization
+
+The `/scripts` directory has been reorganized for better maintainability:
+
+### `scripts/auth/`
+- `final-authentication-test.js` - Comprehensive authentication flow testing
+- `test-authentication.js` - Basic authentication verification  
+- `verify-authentication.js` - Authentication fixes verification
+
+### `scripts/database/`
+- `create_agents_table.sql` - SQL script for creating agents table
+- `create_credits_tables.sql` - SQL script for creating credits/billing tables
+
+### `scripts/dev/`
+- `capture-screenshots.ts` - Screenshot capture utility
+- `quick-dev.sh` - Quick development setup script
+- `record-transformation.ts` - Data transformation recording
+- `setup_agent_training.sh` - Agent training setup script
+- `test-phi-crystal.ts` - PHI crystal testing utility
+
+### `scripts/testing/`
+- `production-check.js` - Production environment verification
+
+## 📁 Development Pages
+
+Development and testing pages have been moved to `app/dev/`:
+- `workspace-test/` - Manual testing interface for workspace sidebar component
+
+## 📁 File Organization Changes
+
+- Moved `END_GOAL.md` from root to `docs/` directory
+- Removed backup files (`babel.config.backup.json`, `package.minimal.json`)
+- Cleaned up empty directories (`test-transformation/`)
+- Fixed broken documentation links

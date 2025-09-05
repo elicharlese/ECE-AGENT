@@ -3,9 +3,19 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger
+} from '@/libs/design-system';
+// TODO: Replace deprecated components: Drawer
+// 
+// TODO: Replace deprecated components: Drawer
+// import { Drawer } from '@/components/ui/drawer'
 import { Grid3X3, Calculator, Music, MapPin, Gamepad2 } from "lucide-react"
-import { VerticalDraggableTab } from "@/components/ui/VerticalDraggableTab"
+import { VerticalDraggableTab } from '@/libs/design-system'
 
 interface InstalledApp {
   id: string

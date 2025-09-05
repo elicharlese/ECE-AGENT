@@ -1,8 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { usageTrackingService } from '@/services/usage-tracking-service-enhanced'
 import { billingService } from '@/services/billing-service-enhanced'
-import { supabase } from '@/lib/supabase/client'
+import { getSupabaseServer } from '@/lib/supabase/server'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+
+// Define a usage event shape with optional usage fields added by handlers
+type LiveKitUsageEvent = {
+  eventType: string
+  roomId?: string
+  participantId?: string
+  userId?: string
+  timestamp: Date
+  videoMinutes?: number
+  audioMinutes?: number
+  messages?: number
+  dataTransferred?: number
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,11 +33,12 @@ export async function POST(request: NextRequest) {
     console.log('Received LiveKit webhook:', payload.event)
 
     // Process the webhook event
-    await processLiveKitEvent(payload)
+    const supabase = await getSupabaseServer()
+    await processLiveKitEvent(payload, supabase)
 
     return NextResponse.json({ success: true })
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('LiveKit webhook error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
@@ -57,15 +72,15 @@ function verifySignature(payload: string, signature: string | null): boolean {
       Buffer.from(expectedSignature, 'hex'),
       Buffer.from(providedSignature, 'hex')
     )
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Signature verification error:', error)
     return false
   }
 }
 
 // Process LiveKit webhook events with comprehensive handling
-async function processLiveKitEvent(payload: any) {
-  const event = {
+async function processLiveKitEvent(payload: any, supabase: SupabaseClient) {
+  const event: LiveKitUsageEvent = {
     eventType: payload.event,
     roomId: payload.room?.sid,
     participantId: payload.participant?.sid,
@@ -76,43 +91,43 @@ async function processLiveKitEvent(payload: any) {
   // Extract usage data based on event type
   switch (payload.event) {
     case 'room_started':
-      await handleRoomStarted(event, payload)
+      await handleRoomStarted(event, payload, supabase)
       break
 
     case 'room_finished':
-      await handleRoomFinished(event, payload)
+      await handleRoomFinished(event, payload, supabase)
       break
 
     case 'participant_joined':
-      await handleParticipantJoined(event, payload)
+      await handleParticipantJoined(event, payload, supabase)
       break
 
     case 'participant_left':
-      await handleParticipantLeft(event, payload)
+      await handleParticipantLeft(event, payload, supabase)
       break
 
     case 'track_published':
-      await handleTrackPublished(event, payload)
+      await handleTrackPublished(event, payload, supabase)
       break
 
     case 'track_unpublished':
-      await handleTrackUnpublished(event, payload)
+      await handleTrackUnpublished(event, payload, supabase)
       break
 
     case 'egress_started':
-      await handleEgressStarted(event, payload)
+      await handleEgressStarted(event, payload, supabase)
       break
 
     case 'egress_ended':
-      await handleEgressEnded(event, payload)
+      await handleEgressEnded(event, payload, supabase)
       break
 
     case 'recording_started':
-      await handleRecordingStarted(event, payload)
+      await handleRecordingStarted(event, payload, supabase)
       break
 
     case 'recording_ended':
-      await handleRecordingEnded(event, payload)
+      await handleRecordingEnded(event, payload, supabase)
       break
 
     default:
@@ -135,29 +150,32 @@ function extractUserIdFromMetadata(metadata: string | undefined): string | undef
   try {
     const parsed = JSON.parse(metadata)
     return parsed.userId || parsed.user_id || parsed.identity
-  } catch (error) {
+  } catch (error: unknown) {
     console.warn('Failed to parse participant metadata:', error)
     return undefined
   }
 }
 
 // Event handlers with detailed logging and usage calculation
-async function handleRoomStarted(event: any, payload: any) {
+async function handleRoomStarted(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Room started: ${event.roomId}`)
 
   // Log room creation for analytics
-  await supabase
-    .from('room_events')
-    .insert({
-      roomId: event.roomId,
-      eventType: 'started',
-      participantCount: payload.room?.num_participants || 0,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log room start:', error))
+  try {
+    await supabase
+      .from('room_events')
+      .insert({
+        roomId: event.roomId,
+        eventType: 'started',
+        participantCount: payload.room?.num_participants || 0,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log room start:', error)
+  }
 }
 
-async function handleRoomFinished(event: any, payload: any) {
+async function handleRoomFinished(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Room finished: ${event.roomId}, duration: ${payload.room?.duration}s`)
 
   // Calculate total room duration and distribute among participants
@@ -170,35 +188,41 @@ async function handleRoomFinished(event: any, payload: any) {
   }
 
   // Log room completion
-  await supabase
-    .from('room_events')
-    .insert({
-      roomId: event.roomId,
-      eventType: 'finished',
-      duration: payload.room?.duration || 0,
-      participantCount: payload.room?.num_participants || 0,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log room finish:', error))
+  try {
+    await supabase
+      .from('room_events')
+      .insert({
+        roomId: event.roomId,
+        eventType: 'finished',
+        duration: payload.room?.duration || 0,
+        participantCount: payload.room?.num_participants || 0,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log room finish:', error)
+  }
 }
 
-async function handleParticipantJoined(event: any, payload: any) {
+async function handleParticipantJoined(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Participant joined: ${event.participantId} in room ${event.roomId}`)
 
   // Log participant join for analytics
-  await supabase
-    .from('participant_events')
-    .insert({
-      roomId: event.roomId,
-      participantId: event.participantId,
-      userId: event.userId,
-      eventType: 'joined',
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log participant join:', error))
+  try {
+    await supabase
+      .from('participant_events')
+      .insert({
+        roomId: event.roomId,
+        participantId: event.participantId,
+        userId: event.userId,
+        eventType: 'joined',
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log participant join:', error)
+  }
 }
 
-async function handleParticipantLeft(event: any, payload: any) {
+async function handleParticipantLeft(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Participant left: ${event.participantId} from room ${event.roomId}, duration: ${payload.participant?.duration}s`)
 
   // Calculate participant session duration and usage
@@ -224,74 +248,86 @@ async function handleParticipantLeft(event: any, payload: any) {
   }
 
   // Log participant leave
-  await supabase
-    .from('participant_events')
-    .insert({
-      roomId: event.roomId,
-      participantId: event.participantId,
-      userId: event.userId,
-      eventType: 'left',
-      duration: payload.participant?.duration || 0,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log participant leave:', error))
+  try {
+    await supabase
+      .from('participant_events')
+      .insert({
+        roomId: event.roomId,
+        participantId: event.participantId,
+        userId: event.userId,
+        eventType: 'left',
+        duration: payload.participant?.duration || 0,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log participant leave:', error)
+  }
 }
 
-async function handleTrackPublished(event: any, payload: any) {
+async function handleTrackPublished(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Track published: ${payload.track?.kind} by ${event.participantId}`)
 
   // Log track publication for detailed analytics
-  await supabase
-    .from('track_events')
-    .insert({
-      roomId: event.roomId,
-      participantId: event.participantId,
-      userId: event.userId,
-      trackId: payload.track?.sid,
-      trackKind: payload.track?.kind,
-      eventType: 'published',
-      codec: payload.track?.codec,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log track publish:', error))
+  try {
+    await supabase
+      .from('track_events')
+      .insert({
+        roomId: event.roomId,
+        participantId: event.participantId,
+        userId: event.userId,
+        trackId: payload.track?.sid,
+        trackKind: payload.track?.kind,
+        eventType: 'published',
+        codec: payload.track?.codec,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log track publish:', error)
+  }
 }
 
-async function handleTrackUnpublished(event: any, payload: any) {
+async function handleTrackUnpublished(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Track unpublished: ${payload.track?.kind} by ${event.participantId}`)
 
   // Log track unpublication
-  await supabase
-    .from('track_events')
-    .insert({
-      roomId: event.roomId,
-      participantId: event.participantId,
-      userId: event.userId,
-      trackId: payload.track?.sid,
-      trackKind: payload.track?.kind,
-      eventType: 'unpublished',
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log track unpublish:', error))
+  try {
+    await supabase
+      .from('track_events')
+      .insert({
+        roomId: event.roomId,
+        participantId: event.participantId,
+        userId: event.userId,
+        trackId: payload.track?.sid,
+        trackKind: payload.track?.kind,
+        eventType: 'unpublished',
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log track unpublish:', error)
+  }
 }
 
-async function handleEgressStarted(event: any, payload: any) {
+async function handleEgressStarted(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Egress started: ${payload.egress?.egress_id}, type: ${payload.egress?.egress_type}`)
 
   // Log egress start for cost tracking
-  await supabase
-    .from('egress_events')
-    .insert({
-      egressId: payload.egress?.egress_id,
-      roomId: event.roomId,
-      userId: event.userId,
-      egressType: payload.egress?.egress_type,
-      eventType: 'started',
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log egress start:', error))
+  try {
+    await supabase
+      .from('egress_events')
+      .insert({
+        egressId: payload.egress?.egress_id,
+        roomId: event.roomId,
+        userId: event.userId,
+        egressType: payload.egress?.egress_type,
+        eventType: 'started',
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log egress start:', error)
+  }
 }
 
-async function handleEgressEnded(event: any, payload: any) {
+async function handleEgressEnded(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Egress ended: ${payload.egress?.egress_id}, duration: ${payload.egress?.duration}s`)
 
   // Calculate egress costs based on duration and type
@@ -318,37 +354,43 @@ async function handleEgressEnded(event: any, payload: any) {
   }
 
   // Log egress completion
-  await supabase
-    .from('egress_events')
-    .insert({
-      egressId: payload.egress?.egress_id,
-      roomId: event.roomId,
-      userId: event.userId,
-      egressType: payload.egress?.egress_type,
-      eventType: 'ended',
-      duration: payload.egress?.duration || 0,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log egress end:', error))
+  try {
+    await supabase
+      .from('egress_events')
+      .insert({
+        egressId: payload.egress?.egress_id,
+        roomId: event.roomId,
+        userId: event.userId,
+        egressType: payload.egress?.egress_type,
+        eventType: 'ended',
+        duration: payload.egress?.duration || 0,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log egress end:', error)
+  }
 }
 
-async function handleRecordingStarted(event: any, payload: any) {
+async function handleRecordingStarted(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Recording started: ${payload.recording?.recording_id}`)
 
   // Log recording start
-  await supabase
-    .from('recording_events')
-    .insert({
-      recordingId: payload.recording?.recording_id,
-      roomId: event.roomId,
-      userId: event.userId,
-      eventType: 'started',
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log recording start:', error))
+  try {
+    await supabase
+      .from('recording_events')
+      .insert({
+        recordingId: payload.recording?.recording_id,
+        roomId: event.roomId,
+        userId: event.userId,
+        eventType: 'started',
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log recording start:', error)
+  }
 }
 
-async function handleRecordingEnded(event: any, payload: any) {
+async function handleRecordingEnded(event: LiveKitUsageEvent, payload: any, supabase: SupabaseClient) {
   console.log(`Recording ended: ${payload.recording?.recording_id}, duration: ${payload.recording?.duration}s`)
 
   // Estimate recording data usage
@@ -358,17 +400,20 @@ async function handleRecordingEnded(event: any, payload: any) {
   }
 
   // Log recording completion
-  await supabase
-    .from('recording_events')
-    .insert({
-      recordingId: payload.recording?.recording_id,
-      roomId: event.roomId,
-      userId: event.userId,
-      eventType: 'ended',
-      duration: payload.recording?.duration || 0,
-      createdAt: new Date().toISOString()
-    })
-    .catch(error => console.error('Failed to log recording end:', error))
+  try {
+    await supabase
+      .from('recording_events')
+      .insert({
+        recordingId: payload.recording?.recording_id,
+        roomId: event.roomId,
+        userId: event.userId,
+        eventType: 'ended',
+        duration: payload.recording?.duration || 0,
+        createdAt: new Date().toISOString()
+      })
+  } catch (error: unknown) {
+    console.error('Failed to log recording end:', error)
+  }
 }
 
 // Check for billing triggers based on usage
@@ -414,11 +459,11 @@ async function checkBillingTriggers(userId: string, event: any) {
 
     // Check trial expiration
     const trialResult = await billingService.handleTrialExpiration(userId)
-    if (trialResult.converted) {
-      console.log(`User ${userId} automatically converted from trial to ${trialResult.newTier}`)
+    if (trialResult && (trialResult as any).converted) {
+      console.log(`User ${userId} automatically converted from trial to ${(trialResult as any).newTier}`)
     }
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error checking billing triggers:', error)
   }
 }

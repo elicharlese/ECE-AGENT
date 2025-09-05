@@ -1,0 +1,90 @@
+b8c983b4987b992963543fb0a29d802f
+"use strict";
+jest.mock("sonner", ()=>({
+        toast: {
+            success: jest.fn(),
+            error: jest.fn()
+        }
+    }));
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _react = /*#__PURE__*/ _interop_require_default(require("react"));
+const _react1 = require("@testing-library/react");
+const _ProfileSettings = require("../../components/profile/ProfileSettings");
+function _interop_require_default(obj) {
+    return obj && obj.__esModule ? obj : {
+        default: obj
+    };
+}
+const { toast } = jest.requireMock("sonner");
+describe("ProfileSettings", ()=>{
+    beforeEach(()=>{
+        jest.clearAllMocks();
+    });
+    it("updates profile on valid submit and shows success toast", async ()=>{
+        (0, _react1.render)(/*#__PURE__*/ (0, _jsxruntime.jsx)(_ProfileSettings.ProfileSettings, {}));
+        // Wait for initial GET to populate values
+        await _react1.screen.findByDisplayValue("Old Name");
+        await _react1.screen.findByDisplayValue("olduser");
+        // Change a couple of fields
+        _react1.fireEvent.change(_react1.screen.getByLabelText("Display name"), {
+            target: {
+                value: "New Name"
+            }
+        });
+        _react1.fireEvent.change(_react1.screen.getByLabelText("Username"), {
+            target: {
+                value: "new_user"
+            }
+        });
+        // Submit
+        _react1.fireEvent.click(_react1.screen.getByRole("button", {
+            name: "Save changes"
+        }));
+        await (0, _react1.waitFor)(()=>{
+            expect(toast.success).toHaveBeenCalledWith("Profile updated");
+        });
+        // Values should be reset from PUT response (MSW echoes back what we sent)
+        await _react1.screen.findByDisplayValue("New Name");
+        await _react1.screen.findByDisplayValue("new_user");
+    });
+    it("shows inline zod error messages for invalid inputs", async ()=>{
+        (0, _react1.render)(/*#__PURE__*/ (0, _jsxruntime.jsx)(_ProfileSettings.ProfileSettings, {}));
+        // Wait for initial GET to populate values
+        await _react1.screen.findByDisplayValue("Old Name");
+        // Enter invalid values
+        _react1.fireEvent.change(_react1.screen.getByLabelText("Username"), {
+            target: {
+                value: "A"
+            }
+        }) // too short
+        ;
+        _react1.fireEvent.change(_react1.screen.getByLabelText("Avatar URL"), {
+            target: {
+                value: "not-a-url"
+            }
+        }) // invalid url
+        ;
+        _react1.fireEvent.change(_react1.screen.getByLabelText("Solana Address"), {
+            target: {
+                value: "short"
+            }
+        }) // too short
+        ;
+        // Submit to trigger validation
+        _react1.fireEvent.click(_react1.screen.getByRole("button", {
+            name: "Save changes"
+        }));
+        // Default zod messages are fine to assert against
+        expect(await _react1.screen.findByText(/at least 3 character\(s\)/i)).toBeInTheDocument();
+        expect(_react1.screen.getByText(/invalid url/i)).toBeInTheDocument();
+        expect(await _react1.screen.findByText(/at least 32 character\(s\)/i)).toBeInTheDocument();
+        // Ensure no server toast fired for client-side validation
+        expect(toast.success).not.toHaveBeenCalled();
+        expect(toast.error).not.toHaveBeenCalled();
+    });
+});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvX190ZXN0c19fL2NvbXBvbmVudHMvUHJvZmlsZVNldHRpbmdzLnRlc3QudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCdcbmltcG9ydCB7IHJlbmRlciwgc2NyZWVuLCBmaXJlRXZlbnQsIHdhaXRGb3IgfSBmcm9tICdAdGVzdGluZy1saWJyYXJ5L3JlYWN0J1xuXG5pbXBvcnQgeyBQcm9maWxlU2V0dGluZ3MgfSBmcm9tICdAL2NvbXBvbmVudHMvcHJvZmlsZS9Qcm9maWxlU2V0dGluZ3MnXG5cbmplc3QubW9jaygnc29ubmVyJywgKCkgPT4gKHtcbiAgdG9hc3Q6IHtcbiAgICBzdWNjZXNzOiBqZXN0LmZuKCksXG4gICAgZXJyb3I6IGplc3QuZm4oKSxcbiAgfSxcbn0pKVxuXG5jb25zdCB7IHRvYXN0IH0gPSBqZXN0LnJlcXVpcmVNb2NrKCdzb25uZXInKSBhcyB7IHRvYXN0OiB7IHN1Y2Nlc3M6IGplc3QuTW9jazsgZXJyb3I6IGplc3QuTW9jayB9IH1cblxuZGVzY3JpYmUoJ1Byb2ZpbGVTZXR0aW5ncycsICgpID0+IHtcbiAgYmVmb3JlRWFjaCgoKSA9PiB7XG4gICAgamVzdC5jbGVhckFsbE1vY2tzKClcbiAgfSlcblxuICBpdCgndXBkYXRlcyBwcm9maWxlIG9uIHZhbGlkIHN1Ym1pdCBhbmQgc2hvd3Mgc3VjY2VzcyB0b2FzdCcsIGFzeW5jICgpID0+IHtcbiAgICByZW5kZXIoPFByb2ZpbGVTZXR0aW5ncyAvPilcblxuICAgIC8vIFdhaXQgZm9yIGluaXRpYWwgR0VUIHRvIHBvcHVsYXRlIHZhbHVlc1xuICAgIGF3YWl0IHNjcmVlbi5maW5kQnlEaXNwbGF5VmFsdWUoJ09sZCBOYW1lJylcbiAgICBhd2FpdCBzY3JlZW4uZmluZEJ5RGlzcGxheVZhbHVlKCdvbGR1c2VyJylcblxuICAgIC8vIENoYW5nZSBhIGNvdXBsZSBvZiBmaWVsZHNcbiAgICBmaXJlRXZlbnQuY2hhbmdlKHNjcmVlbi5nZXRCeUxhYmVsVGV4dCgnRGlzcGxheSBuYW1lJyksIHsgdGFyZ2V0OiB7IHZhbHVlOiAnTmV3IE5hbWUnIH0gfSlcbiAgICBmaXJlRXZlbnQuY2hhbmdlKHNjcmVlbi5nZXRCeUxhYmVsVGV4dCgnVXNlcm5hbWUnKSwgeyB0YXJnZXQ6IHsgdmFsdWU6ICduZXdfdXNlcicgfSB9KVxuXG4gICAgLy8gU3VibWl0XG4gICAgZmlyZUV2ZW50LmNsaWNrKHNjcmVlbi5nZXRCeVJvbGUoJ2J1dHRvbicsIHsgbmFtZTogJ1NhdmUgY2hhbmdlcycgfSkpXG5cbiAgICBhd2FpdCB3YWl0Rm9yKCgpID0+IHtcbiAgICAgIGV4cGVjdCh0b2FzdC5zdWNjZXNzKS50b0hhdmVCZWVuQ2FsbGVkV2l0aCgnUHJvZmlsZSB1cGRhdGVkJylcbiAgICB9KVxuXG4gICAgLy8gVmFsdWVzIHNob3VsZCBiZSByZXNldCBmcm9tIFBVVCByZXNwb25zZSAoTVNXIGVjaG9lcyBiYWNrIHdoYXQgd2Ugc2VudClcbiAgICBhd2FpdCBzY3JlZW4uZmluZEJ5RGlzcGxheVZhbHVlKCdOZXcgTmFtZScpXG4gICAgYXdhaXQgc2NyZWVuLmZpbmRCeURpc3BsYXlWYWx1ZSgnbmV3X3VzZXInKVxuICB9KVxuXG4gIGl0KCdzaG93cyBpbmxpbmUgem9kIGVycm9yIG1lc3NhZ2VzIGZvciBpbnZhbGlkIGlucHV0cycsIGFzeW5jICgpID0+IHtcbiAgICByZW5kZXIoPFByb2ZpbGVTZXR0aW5ncyAvPilcblxuICAgIC8vIFdhaXQgZm9yIGluaXRpYWwgR0VUIHRvIHBvcHVsYXRlIHZhbHVlc1xuICAgIGF3YWl0IHNjcmVlbi5maW5kQnlEaXNwbGF5VmFsdWUoJ09sZCBOYW1lJylcblxuICAgIC8vIEVudGVyIGludmFsaWQgdmFsdWVzXG4gICAgZmlyZUV2ZW50LmNoYW5nZShzY3JlZW4uZ2V0QnlMYWJlbFRleHQoJ1VzZXJuYW1lJyksIHsgdGFyZ2V0OiB7IHZhbHVlOiAnQScgfSB9KSAvLyB0b28gc2hvcnRcbiAgICBmaXJlRXZlbnQuY2hhbmdlKHNjcmVlbi5nZXRCeUxhYmVsVGV4dCgnQXZhdGFyIFVSTCcpLCB7IHRhcmdldDogeyB2YWx1ZTogJ25vdC1hLXVybCcgfSB9KSAvLyBpbnZhbGlkIHVybFxuICAgIGZpcmVFdmVudC5jaGFuZ2Uoc2NyZWVuLmdldEJ5TGFiZWxUZXh0KCdTb2xhbmEgQWRkcmVzcycpLCB7IHRhcmdldDogeyB2YWx1ZTogJ3Nob3J0JyB9IH0pIC8vIHRvbyBzaG9ydFxuXG4gICAgLy8gU3VibWl0IHRvIHRyaWdnZXIgdmFsaWRhdGlvblxuICAgIGZpcmVFdmVudC5jbGljayhzY3JlZW4uZ2V0QnlSb2xlKCdidXR0b24nLCB7IG5hbWU6ICdTYXZlIGNoYW5nZXMnIH0pKVxuXG4gICAgLy8gRGVmYXVsdCB6b2QgbWVzc2FnZXMgYXJlIGZpbmUgdG8gYXNzZXJ0IGFnYWluc3RcbiAgICBleHBlY3QoYXdhaXQgc2NyZWVuLmZpbmRCeVRleHQoL2F0IGxlYXN0IDMgY2hhcmFjdGVyXFwoc1xcKS9pKSkudG9CZUluVGhlRG9jdW1lbnQoKVxuICAgIGV4cGVjdChzY3JlZW4uZ2V0QnlUZXh0KC9pbnZhbGlkIHVybC9pKSkudG9CZUluVGhlRG9jdW1lbnQoKVxuICAgIGV4cGVjdChhd2FpdCBzY3JlZW4uZmluZEJ5VGV4dCgvYXQgbGVhc3QgMzIgY2hhcmFjdGVyXFwoc1xcKS9pKSkudG9CZUluVGhlRG9jdW1lbnQoKVxuXG4gICAgLy8gRW5zdXJlIG5vIHNlcnZlciB0b2FzdCBmaXJlZCBmb3IgY2xpZW50LXNpZGUgdmFsaWRhdGlvblxuICAgIGV4cGVjdCh0b2FzdC5zdWNjZXNzKS5ub3QudG9IYXZlQmVlbkNhbGxlZCgpXG4gICAgZXhwZWN0KHRvYXN0LmVycm9yKS5ub3QudG9IYXZlQmVlbkNhbGxlZCgpXG4gIH0pXG59KVxuIl0sIm5hbWVzIjpbImplc3QiLCJtb2NrIiwidG9hc3QiLCJzdWNjZXNzIiwiZm4iLCJlcnJvciIsInJlcXVpcmVNb2NrIiwiZGVzY3JpYmUiLCJiZWZvcmVFYWNoIiwiY2xlYXJBbGxNb2NrcyIsIml0IiwicmVuZGVyIiwiUHJvZmlsZVNldHRpbmdzIiwic2NyZWVuIiwiZmluZEJ5RGlzcGxheVZhbHVlIiwiZmlyZUV2ZW50IiwiY2hhbmdlIiwiZ2V0QnlMYWJlbFRleHQiLCJ0YXJnZXQiLCJ2YWx1ZSIsImNsaWNrIiwiZ2V0QnlSb2xlIiwibmFtZSIsIndhaXRGb3IiLCJleHBlY3QiLCJ0b0hhdmVCZWVuQ2FsbGVkV2l0aCIsImZpbmRCeVRleHQiLCJ0b0JlSW5UaGVEb2N1bWVudCIsImdldEJ5VGV4dCIsIm5vdCIsInRvSGF2ZUJlZW5DYWxsZWQiXSwibWFwcGluZ3MiOiI7QUFLQUEsS0FBS0MsSUFBSSxDQUFDLFVBQVUsSUFBTyxDQUFBO1FBQ3pCQyxPQUFPO1lBQ0xDLFNBQVNILEtBQUtJLEVBQUU7WUFDaEJDLE9BQU9MLEtBQUtJLEVBQUU7UUFDaEI7SUFDRixDQUFBOzs7Ozs4REFWa0I7d0JBQ2lDO2lDQUVuQjs7Ozs7O0FBU2hDLE1BQU0sRUFBRUYsS0FBSyxFQUFFLEdBQUdGLEtBQUtNLFdBQVcsQ0FBQztBQUVuQ0MsU0FBUyxtQkFBbUI7SUFDMUJDLFdBQVc7UUFDVFIsS0FBS1MsYUFBYTtJQUNwQjtJQUVBQyxHQUFHLDJEQUEyRDtRQUM1REMsSUFBQUEsY0FBTSxnQkFBQyxxQkFBQ0MsZ0NBQWU7UUFFdkIsMENBQTBDO1FBQzFDLE1BQU1DLGNBQU0sQ0FBQ0Msa0JBQWtCLENBQUM7UUFDaEMsTUFBTUQsY0FBTSxDQUFDQyxrQkFBa0IsQ0FBQztRQUVoQyw0QkFBNEI7UUFDNUJDLGlCQUFTLENBQUNDLE1BQU0sQ0FBQ0gsY0FBTSxDQUFDSSxjQUFjLENBQUMsaUJBQWlCO1lBQUVDLFFBQVE7Z0JBQUVDLE9BQU87WUFBVztRQUFFO1FBQ3hGSixpQkFBUyxDQUFDQyxNQUFNLENBQUNILGNBQU0sQ0FBQ0ksY0FBYyxDQUFDLGFBQWE7WUFBRUMsUUFBUTtnQkFBRUMsT0FBTztZQUFXO1FBQUU7UUFFcEYsU0FBUztRQUNUSixpQkFBUyxDQUFDSyxLQUFLLENBQUNQLGNBQU0sQ0FBQ1EsU0FBUyxDQUFDLFVBQVU7WUFBRUMsTUFBTTtRQUFlO1FBRWxFLE1BQU1DLElBQUFBLGVBQU8sRUFBQztZQUNaQyxPQUFPdEIsTUFBTUMsT0FBTyxFQUFFc0Isb0JBQW9CLENBQUM7UUFDN0M7UUFFQSwwRUFBMEU7UUFDMUUsTUFBTVosY0FBTSxDQUFDQyxrQkFBa0IsQ0FBQztRQUNoQyxNQUFNRCxjQUFNLENBQUNDLGtCQUFrQixDQUFDO0lBQ2xDO0lBRUFKLEdBQUcsc0RBQXNEO1FBQ3ZEQyxJQUFBQSxjQUFNLGdCQUFDLHFCQUFDQyxnQ0FBZTtRQUV2QiwwQ0FBMEM7UUFDMUMsTUFBTUMsY0FBTSxDQUFDQyxrQkFBa0IsQ0FBQztRQUVoQyx1QkFBdUI7UUFDdkJDLGlCQUFTLENBQUNDLE1BQU0sQ0FBQ0gsY0FBTSxDQUFDSSxjQUFjLENBQUMsYUFBYTtZQUFFQyxRQUFRO2dCQUFFQyxPQUFPO1lBQUk7UUFBRSxHQUFHLFlBQVk7O1FBQzVGSixpQkFBUyxDQUFDQyxNQUFNLENBQUNILGNBQU0sQ0FBQ0ksY0FBYyxDQUFDLGVBQWU7WUFBRUMsUUFBUTtnQkFBRUMsT0FBTztZQUFZO1FBQUUsR0FBRyxjQUFjOztRQUN4R0osaUJBQVMsQ0FBQ0MsTUFBTSxDQUFDSCxjQUFNLENBQUNJLGNBQWMsQ0FBQyxtQkFBbUI7WUFBRUMsUUFBUTtnQkFBRUMsT0FBTztZQUFRO1FBQUUsR0FBRyxZQUFZOztRQUV0RywrQkFBK0I7UUFDL0JKLGlCQUFTLENBQUNLLEtBQUssQ0FBQ1AsY0FBTSxDQUFDUSxTQUFTLENBQUMsVUFBVTtZQUFFQyxNQUFNO1FBQWU7UUFFbEUsa0RBQWtEO1FBQ2xERSxPQUFPLE1BQU1YLGNBQU0sQ0FBQ2EsVUFBVSxDQUFDLCtCQUErQkMsaUJBQWlCO1FBQy9FSCxPQUFPWCxjQUFNLENBQUNlLFNBQVMsQ0FBQyxpQkFBaUJELGlCQUFpQjtRQUMxREgsT0FBTyxNQUFNWCxjQUFNLENBQUNhLFVBQVUsQ0FBQyxnQ0FBZ0NDLGlCQUFpQjtRQUVoRiwwREFBMEQ7UUFDMURILE9BQU90QixNQUFNQyxPQUFPLEVBQUUwQixHQUFHLENBQUNDLGdCQUFnQjtRQUMxQ04sT0FBT3RCLE1BQU1HLEtBQUssRUFBRXdCLEdBQUcsQ0FBQ0MsZ0JBQWdCO0lBQzFDO0FBQ0YifQ==

@@ -1,14 +1,31 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import { useTheme } from 'next-themes'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ProfileUpdateSchema, type ProfileUpdate } from '@/types/profile'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Label,
+  Select
+} from '@/libs/design-system';
+import { Button } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
 import { UI_CONSTANTS } from '@/lib/ui-constants'
 import { toast } from 'sonner'
 
@@ -30,6 +47,9 @@ const FormSchema = ProfileUpdateSchema.extend({
 
 export function ProfileSettings() {
   const [loading, setLoading] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -141,6 +161,25 @@ export function ProfileSettings() {
             <Label htmlFor="solana_address">Solana Address</Label>
             <Input id="solana_address" placeholder="Your Solana wallet address" {...register('solana_address')} />
             {errors.solana_address && <p className="text-xs text-red-500">{errors.solana_address.message}</p>}
+          </div>
+
+          {/* Appearance / Theme Controls */}
+          <div className="space-y-2">
+            <Label htmlFor="theme">Theme</Label>
+            {mounted ? (
+              <Select value={(theme as string) ?? 'system'} onValueChange={(v) => setTheme(v)}>
+                <SelectTrigger id="theme" aria-label="Theme">
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="h-9 w-full rounded-md border bg-muted animate-pulse" aria-hidden />
+            )}
           </div>
 
           <div className="md:col-span-2 flex justify-end gap-2">

@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button, Input, ScrollArea, Popover, PopoverContent, PopoverTrigger } from '@/libs/design-system';
 import { Smile } from "lucide-react"
 
 // Custom emoji data structure

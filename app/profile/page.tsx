@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { ProfileManager } from '@/components/profile/ProfileManager'
 import { useUserTier } from '@/hooks/use-user-tier'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/libs/design-system'
 import { Loader2 } from 'lucide-react'
 
 export default function ProfilePage() {

@@ -1,19 +1,23 @@
-import type { ThemeTokens } from '../types'
+import { ThemeTokens } from '../types'
 
-export const lightTokens: ThemeTokens = {
+export const lightThemeTokens: ThemeTokens = {
   background: '#ffffff',
-  foreground: '#0f172a', // slate-900
-  surface: '#ffffff',
-  surfaceText: '#0f172a',
-  subtleText: '#6b7280', // gray-500
-  card: '#ffffff',
+  foreground: '#000000',
+  surface: '#f8f9fa',
+  surfaceText: '#1a1a1a',
+  subtleText: '#666666',
+  card: '#ffffff'
 }
 
-export const darkTokens: ThemeTokens = {
-  background: '#0b0c10', // approx hsl(240 10% 3.9%)
-  foreground: '#f8fafc', // slate-50
-  surface: '#0f172a',
-  surfaceText: '#e5e7eb', // gray-200
-  subtleText: '#9ca3af', // gray-400
-  card: '#111827', // gray-900
+export const darkThemeTokens: ThemeTokens = {
+  background: '#0a0a0a',
+  foreground: '#ffffff',
+  surface: '#1a1a1a',
+  surfaceText: '#f5f5f5',
+  subtleText: '#a3a3a3',
+  card: '#1a1a1a'
+}
+
+export const getThemeTokens = (isDark: boolean): ThemeTokens => {
+  return isDark ? darkThemeTokens : lightThemeTokens
 }

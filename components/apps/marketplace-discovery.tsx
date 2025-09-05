@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { Button } from '@/libs/design-system'
+import { Card, CardContent, CardHeader, CardTitle } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
+import { Input } from '@/libs/design-system'
 import { Search, Filter, TrendingUp, Star, Eye, Zap, Crown, Target } from "lucide-react"
 
 export interface AppDiscovery {

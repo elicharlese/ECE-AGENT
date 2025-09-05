@@ -650,41 +650,45 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
 
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900">
-      {/* Workspace Toolbar */}
-      <WorkspaceToolbar
-        mode={workspaceMode}
-        layout={workspaceState.layout}
-        activeTab={workspaceState.activeTab}
-        activeParticipants={participantsCount}
-        isConnected={isConnected}
-        onModeChange={(mode) => {
-          setWorkspaceMode(mode)
-          workspaceActions.setMode(mode)
-        }}
-        onLayoutChange={workspaceActions.setLayout}
-        onTabChange={workspaceActions.setActiveTab}
-        onStartVideoCall={() => {
-          setShowVideoCall(true)
-          workspaceActions.startVideoCall()
-        }}
-        onStartPhoneCall={() => {
-          setShowPhoneCall(true)
-          workspaceActions.startPhoneCall()
-        }}
-        onExecuteTool={(toolType) => workspaceActions.executeToolAction(toolType, {})}
-        onGenerateMedia={(type) => workspaceActions.generateMedia(type, `Generate ${type}`)}
-      />
-
       {/* Workspace Mode or Traditional Chat */}
       {workspaceMode === 'workspace' ? (
-        <WorkspaceMode
-          chatId={chatId}
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          onEditMessage={handleUpdateMessage}
-          typingUsers={wsTypingUsers}
-          isConnected={isConnected}
-        />
+        <>
+          {/* Workspace Toolbar (only in workspace mode) */}
+          <WorkspaceToolbar
+            mode={workspaceMode}
+            layout={workspaceState.layout}
+            activeTab={workspaceState.activeTab}
+            activeParticipants={participantsCount}
+            isConnected={isConnected}
+            onModeChange={(mode) => {
+              setWorkspaceMode(mode)
+              workspaceActions.setMode(mode)
+            }}
+            onLayoutChange={workspaceActions.setLayout}
+            onTabChange={workspaceActions.setActiveTab}
+            onStartVideoCall={() => {
+              setShowVideoCall(true)
+              workspaceActions.startVideoCall()
+            }}
+            onStartPhoneCall={() => {
+              setShowPhoneCall(true)
+              workspaceActions.startPhoneCall()
+            }}
+            onExecuteTool={(toolType) => workspaceActions.executeToolAction(toolType, {})}
+            onGenerateMedia={(type) => workspaceActions.generateMedia(type, `Generate ${type}`)}
+          />
+
+          <WorkspaceMode
+            chatId={chatId}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            onEditMessage={handleUpdateMessage}
+            typingUsers={wsTypingUsers}
+            isConnected={isConnected}
+            showInlineInput={false}
+            showHeader={false}
+          />
+        </>
       ) : (
         <>
           {/* Traditional Chat Header */}

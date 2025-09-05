@@ -1,0 +1,74 @@
+4864af61c24dedd7bddadbe285615fbe
+// Mock NextResponse.json to produce a standard Response with JSON body
+"use strict";
+jest.mock("next/server", ()=>({
+        NextResponse: {
+            json: (data, init)=>new Response(JSON.stringify(data), {
+                    status: init?.status ?? 200,
+                    headers: {
+                        "content-type": "application/json"
+                    }
+                })
+        }
+    }));
+function _getRequireWildcardCache(nodeInterop) {
+    if (typeof WeakMap !== "function") return null;
+    var cacheBabelInterop = new WeakMap();
+    var cacheNodeInterop = new WeakMap();
+    return (_getRequireWildcardCache = function(nodeInterop) {
+        return nodeInterop ? cacheNodeInterop : cacheBabelInterop;
+    })(nodeInterop);
+}
+function _interop_require_wildcard(obj, nodeInterop) {
+    if (!nodeInterop && obj && obj.__esModule) {
+        return obj;
+    }
+    if (obj === null || typeof obj !== "object" && typeof obj !== "function") {
+        return {
+            default: obj
+        };
+    }
+    var cache = _getRequireWildcardCache(nodeInterop);
+    if (cache && cache.has(obj)) {
+        return cache.get(obj);
+    }
+    var newObj = {
+        __proto__: null
+    };
+    var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor;
+    for(var key in obj){
+        if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) {
+            var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null;
+            if (desc && (desc.get || desc.set)) {
+                Object.defineProperty(newObj, key, desc);
+            } else {
+                newObj[key] = obj[key];
+            }
+        }
+    }
+    newObj.default = obj;
+    if (cache) {
+        cache.set(obj, newObj);
+    }
+    return newObj;
+}
+describe("MCP GitHub Proxy", ()=>{
+    it("POST /api/mcp/github returns 400 when PAT header missing", async ()=>{
+        const { POST } = await Promise.resolve().then(()=>/*#__PURE__*/ _interop_require_wildcard(require("../../app/api/mcp/github/route")));
+        const req = new Request("http://localhost/api/mcp/github", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                hello: "world"
+            })
+        });
+        const res = await POST(req);
+        expect(res.status).toBe(400);
+        const json = await res.json();
+        expect(json.error).toMatch(/Missing GitHub PAT/i);
+    });
+});
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvX190ZXN0c19fL2FwaS9tY3AucHJveHkudGVzdC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBNb2NrIE5leHRSZXNwb25zZS5qc29uIHRvIHByb2R1Y2UgYSBzdGFuZGFyZCBSZXNwb25zZSB3aXRoIEpTT04gYm9keVxuamVzdC5tb2NrKCduZXh0L3NlcnZlcicsICgpID0+ICh7XG4gIE5leHRSZXNwb25zZToge1xuICAgIGpzb246IChkYXRhOiBhbnksIGluaXQ/OiBSZXNwb25zZUluaXQgJiB7IHN0YXR1cz86IG51bWJlciB9KSA9PlxuICAgICAgbmV3IFJlc3BvbnNlKEpTT04uc3RyaW5naWZ5KGRhdGEpLCB7XG4gICAgICAgIHN0YXR1czogKGluaXQgYXMgYW55KT8uc3RhdHVzID8/IDIwMCxcbiAgICAgICAgaGVhZGVyczogeyAnY29udGVudC10eXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nIH0sXG4gICAgICB9KSxcbiAgfSxcbn0pKVxuXG5kZXNjcmliZSgnTUNQIEdpdEh1YiBQcm94eScsICgpID0+IHtcbiAgaXQoJ1BPU1QgL2FwaS9tY3AvZ2l0aHViIHJldHVybnMgNDAwIHdoZW4gUEFUIGhlYWRlciBtaXNzaW5nJywgYXN5bmMgKCkgPT4ge1xuICAgIGNvbnN0IHsgUE9TVCB9ID0gYXdhaXQgaW1wb3J0KCdAL2FwcC9hcGkvbWNwL2dpdGh1Yi9yb3V0ZScpXG5cbiAgICBjb25zdCByZXEgPSBuZXcgUmVxdWVzdCgnaHR0cDovL2xvY2FsaG9zdC9hcGkvbWNwL2dpdGh1YicsIHtcbiAgICAgIG1ldGhvZDogJ1BPU1QnLFxuICAgICAgaGVhZGVyczogeyAnQ29udGVudC1UeXBlJzogJ2FwcGxpY2F0aW9uL2pzb24nIH0sXG4gICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IGhlbGxvOiAnd29ybGQnIH0pLFxuICAgIH0pXG5cbiAgICBjb25zdCByZXMgPSBhd2FpdCBQT1NUKHJlcSBhcyBhbnkpXG4gICAgZXhwZWN0KHJlcy5zdGF0dXMpLnRvQmUoNDAwKVxuICAgIGNvbnN0IGpzb24gPSBhd2FpdCByZXMuanNvbigpXG4gICAgZXhwZWN0KGpzb24uZXJyb3IpLnRvTWF0Y2goL01pc3NpbmcgR2l0SHViIFBBVC9pKVxuICB9KVxufSlcbiJdLCJuYW1lcyI6WyJqZXN0IiwibW9jayIsIk5leHRSZXNwb25zZSIsImpzb24iLCJkYXRhIiwiaW5pdCIsIlJlc3BvbnNlIiwiSlNPTiIsInN0cmluZ2lmeSIsInN0YXR1cyIsImhlYWRlcnMiLCJkZXNjcmliZSIsIml0IiwiUE9TVCIsInJlcSIsIlJlcXVlc3QiLCJtZXRob2QiLCJib2R5IiwiaGVsbG8iLCJyZXMiLCJleHBlY3QiLCJ0b0JlIiwiZXJyb3IiLCJ0b01hdGNoIl0sIm1hcHBpbmdzIjoiQUFBQSx1RUFBdUU7O0FBQ3ZFQSxLQUFLQyxJQUFJLENBQUMsZUFBZSxJQUFPLENBQUE7UUFDOUJDLGNBQWM7WUFDWkMsTUFBTSxDQUFDQyxNQUFXQyxPQUNoQixJQUFJQyxTQUFTQyxLQUFLQyxTQUFTLENBQUNKLE9BQU87b0JBQ2pDSyxRQUFRLEFBQUNKLE1BQWNJLFVBQVU7b0JBQ2pDQyxTQUFTO3dCQUFFLGdCQUFnQjtvQkFBbUI7Z0JBQ2hEO1FBQ0o7SUFDRixDQUFBOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUFFQUMsU0FBUyxvQkFBb0I7SUFDM0JDLEdBQUcsNERBQTREO1FBQzdELE1BQU0sRUFBRUMsSUFBSSxFQUFFLEdBQUcsTUFBTSxtRUFBQSxRQUFPO1FBRTlCLE1BQU1DLE1BQU0sSUFBSUMsUUFBUSxtQ0FBbUM7WUFDekRDLFFBQVE7WUFDUk4sU0FBUztnQkFBRSxnQkFBZ0I7WUFBbUI7WUFDOUNPLE1BQU1WLEtBQUtDLFNBQVMsQ0FBQztnQkFBRVUsT0FBTztZQUFRO1FBQ3hDO1FBRUEsTUFBTUMsTUFBTSxNQUFNTixLQUFLQztRQUN2Qk0sT0FBT0QsSUFBSVYsTUFBTSxFQUFFWSxJQUFJLENBQUM7UUFDeEIsTUFBTWxCLE9BQU8sTUFBTWdCLElBQUloQixJQUFJO1FBQzNCaUIsT0FBT2pCLEtBQUttQixLQUFLLEVBQUVDLE9BQU8sQ0FBQztJQUM3QjtBQUNGIn0=

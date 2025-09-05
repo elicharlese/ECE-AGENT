@@ -5,6 +5,11 @@ import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import {
+  Label,
+  Select,
+  Separator
+} from '@/libs/design-system';
 
 function Select({
   ...props

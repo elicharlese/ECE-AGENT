@@ -1,9 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Input } from "@/components/ui/input"
+import { Button, Input, ScrollArea, Popover, PopoverContent, PopoverTrigger } from '@/libs/design-system';
 import { ImageIcon, Search, Loader2, Zap } from "lucide-react"
 
 interface GifData {

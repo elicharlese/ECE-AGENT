@@ -1,7 +1,7 @@
 "use client"
 
 import { MessageSquarePlus } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/libs/design-system'
 
 export type EmptyChatStateProps = {
   onStartNewChat?: () => void

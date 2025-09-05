@@ -1,8 +1,11 @@
 import { app, BrowserWindow, Menu, shell, globalShortcut, nativeImage, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import type { UpdateInfo, ProgressInfo } from 'electron-updater';
 import * as path from 'path';
 
-const isDev = process.env.NODE_ENV === 'development';
+// Prefer Electron's packaging flag instead of NODE_ENV which can be unreliable in packaged apps
+let isDev = false;
+let manualCheck = false;
 
 let chatPopout: BrowserWindow | null = null;
 
@@ -38,16 +41,18 @@ function createChatPopoutWindow(chatId?: string): void {
     chatPopout.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   } catch {}
 
-  const baseUrl = isDev
-    ? 'http://localhost:3000'
-    : path.join(__dirname, '../public/index.html');
+  const devBaseUrl = 'http://localhost:3000';
+  const prodBaseUrl = process.env.AGENT_DESKTOP_WEB_URL; // e.g. https://your-deployed-web-app.domain
 
   if (isDev) {
     const qs = new URLSearchParams({ view: 'popout', ...(chatId ? { chatId } : {}) }).toString();
-    chatPopout.loadURL(`${baseUrl}/messages?${qs}`);
+    chatPopout.loadURL(`${devBaseUrl}/messages?${qs}`);
+  } else if (prodBaseUrl) {
+    const qs = new URLSearchParams({ view: 'popout', ...(chatId ? { chatId } : {}) }).toString();
+    chatPopout.loadURL(`${prodBaseUrl}/messages?${qs}`);
   } else {
-    // In production, load the bundled app entry (route handling is delegated to the app)
-    chatPopout.loadFile(baseUrl);
+    // Fallback bundled placeholder page instructing how to configure AGENT_DESKTOP_WEB_URL
+    chatPopout.loadFile(path.join(__dirname, '../public/index.html'));
   }
 
   chatPopout.on('closed', () => {
@@ -69,7 +74,7 @@ function createWindow(): void {
     },
     titleBarStyle: 'default',
     show: false,
-    icon: path.join(__dirname, '../../../public/placeholder-logo.png'),
+    icon: path.join(__dirname, '../../../public/agent-bot.svg'),
   });
 
   // Load the app
@@ -77,7 +82,13 @@ function createWindow(): void {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
+    const prodBaseUrl = process.env.AGENT_DESKTOP_WEB_URL;
+    if (prodBaseUrl) {
+      mainWindow.loadURL(prodBaseUrl);
+    } else {
+      // Fallback to a bundled placeholder page
+      mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
+    }
   }
 
   // Show window when ready
@@ -93,7 +104,7 @@ function createWindow(): void {
 }
 
 function setupAutoUpdates() {
-  if (isDev) return; // only enable in packaged builds
+  if (!app.isPackaged) return; // only enable in packaged builds
 
   try {
     // Allow overriding the feed via env at runtime
@@ -111,12 +122,30 @@ function setupAutoUpdates() {
       console.error('[autoUpdater] error', err);
     });
 
-    autoUpdater.on('update-available', () => {
-      console.log('[autoUpdater] update available, downloading...');
+    autoUpdater.on('update-available', (info: UpdateInfo) => {
+      console.log('[autoUpdater] update available, downloading...', info?.version);
+      if (manualCheck) {
+        dialog.showMessageBox({
+          type: 'info',
+          message: `Update ${info?.version ?? ''} available. Downloading…`,
+        });
+      }
     });
 
     autoUpdater.on('update-not-available', () => {
       console.log('[autoUpdater] no updates available');
+      if (manualCheck) {
+        dialog.showMessageBox({
+          type: 'info',
+          message: 'You are on the latest version.'
+        });
+      }
+      manualCheck = false;
+    });
+
+    autoUpdater.on('download-progress', (p: ProgressInfo) => {
+      const pct = Math.round(p.percent);
+      console.log(`[autoUpdater] download progress: ${pct}% (${p.transferred}/${p.total})`);
     });
 
     autoUpdater.on('update-downloaded', () => {
@@ -132,6 +161,7 @@ function setupAutoUpdates() {
       if (res === 0) {
         autoUpdater.quitAndInstall();
       }
+      manualCheck = false;
     });
 
     // Initial check
@@ -143,11 +173,14 @@ function setupAutoUpdates() {
 
 // App event handlers
 app.whenReady().then(() => {
+  // Set isDev flag after app is ready
+  isDev = !app.isPackaged;
+
   // Set application name and dock icon
   try {
     app.setName('AGENT');
     if (process.platform === 'darwin') {
-      const dockIcon = nativeImage.createFromPath(path.join(__dirname, '../../../public/placeholder-logo.png'));
+      const dockIcon = nativeImage.createFromPath(path.join(__dirname, '../../../public/agent-bot.svg'));
       if (!dockIcon.isEmpty()) {
         app.dock.setIcon(dockIcon);
       }
@@ -264,9 +297,14 @@ const template: Electron.MenuItemConstructorOptions[] = [
         click: () => {
           if (!isDev) {
             try {
-              autoUpdater.checkForUpdatesAndNotify();
+              manualCheck = true;
+              autoUpdater.checkForUpdates();
             } catch (e) {
               console.error('[autoUpdater] manual check failed', e);
+              dialog.showMessageBox({
+                type: 'error',
+                message: 'Failed to check for updates. See logs for details.'
+              });
             }
           } else {
             dialog.showMessageBox({

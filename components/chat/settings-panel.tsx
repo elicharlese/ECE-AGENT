@@ -1,14 +1,46 @@
 "use client"
 
 import { useState, ReactNode } from "react"
-import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Slider } from "@/components/ui/slider"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
+import {
+  Button,
+  Label,
+  Select,
+  Separator,
+  Switch,
+  Tabs,
+  Slider
+} from '@/libs/design-system';
+
+// TODO: Replace deprecated components: Switch
+// 
+// TODO: Replace deprecated components: Switch
+// import { Switch } from '@/components/ui/switch'
+import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/libs/design-system'
+// TODO: Replace deprecated components: Select
+// 
+// TODO: Replace deprecated components: Select
+// import { Select } from '@/components/ui/select'
+
+// TODO: Replace deprecated components: Slider
+// 
+// TODO: Replace deprecated components: Slider
+// import { Slider } from '@/components/ui/slider'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/libs/design-system'
+import { TabsContent, TabsList, TabsTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: Tabs
+// 
+// TODO: Replace deprecated components: Tabs
+// import { Tabs } from '@/components/ui/tabs'
+
+// TODO: Replace deprecated components: Label
+// 
+// TODO: Replace deprecated components: Label
+// import { Label } from '@/components/ui/label'
+
+// TODO: Replace deprecated components: Separator
+// 
+// TODO: Replace deprecated components: Separator
+// import { Separator } from '@/components/ui/separator'
 import {
   Settings,
   Bell,

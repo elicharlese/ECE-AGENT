@@ -1,8 +1,22 @@
 'use client'
 
 import * as React from 'react'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu'
-import { toast } from '@/components/ui/use-toast'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Label,
+  Separator
+} from '@/libs/design-system';
+// TODO: Replace deprecated components: DropdownMenu
+// 
+// TODO: Replace deprecated components: DropdownMenu
+// import { DropdownMenu } from '@/components/ui/dropdown-menu'
+import { toast } from '@/libs/design-system'
 import { useRouter } from 'next/navigation'
 import { Icon } from '@/components/icons/Icon'
 

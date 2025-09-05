@@ -81,17 +81,6 @@ export function useConversations() {
     }
   }
 
-  // New actions
-  const pinConversation = async (conversationId: string, pinned: boolean) => {
-    try {
-      await conversationService.pinConversation(conversationId, pinned)
-      await fetchConversations()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to pin conversation')
-      throw err
-    }
-  }
-
   const archiveConversation = async (conversationId: string, archived: boolean) => {
     try {
       await conversationService.archiveConversation(conversationId, archived)
@@ -156,7 +145,6 @@ export function useConversations() {
     createConversationWithParticipants,
     updateConversation,
     deleteConversation,
-    pinConversation,
     archiveConversation,
     leaveConversation,
     inviteParticipants,

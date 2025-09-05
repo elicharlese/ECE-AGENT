@@ -1,12 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  Textarea
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
 import { MediaPreview } from "./media-preview"
 import { MessageActions } from "./message-actions"
 import { SwipeActions } from "./swipe-actions"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/libs/design-system'
 import { Download, FileText, Pin, Heart, ImageIcon, Copy } from "lucide-react"
 import { useHaptics } from "@/hooks/use-haptics"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -14,7 +19,11 @@ import { MessageReactions } from "./message-reactions"
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
-import { Textarea } from "@/components/ui/textarea"
+
+// TODO: Replace deprecated components: Textarea
+// 
+// TODO: Replace deprecated components: Textarea
+// import { Textarea } from '@/components/ui/textarea'
 
 interface Message {
   id: string

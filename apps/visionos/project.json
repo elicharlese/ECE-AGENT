@@ -1,0 +1,27 @@
+{
+  "name": "visionos",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/visionos/src",
+  "projectType": "application",
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "xcodebuild -project apps/visionos/VisionOSApp.xcodeproj -scheme VisionOSApp -destination 'platform=visionOS Simulator,name=Apple Vision Pro' build"
+      }
+    },
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "xcodebuild -project apps/visionos/VisionOSApp.xcodeproj -scheme VisionOSApp -destination 'platform=visionOS Simulator,name=Apple Vision Pro' run"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "xcodebuild -project apps/visionos/VisionOSApp.xcodeproj -scheme VisionOSAppTest test"
+      }
+    }
+  },
+  "tags": ["platform:visionos", "type:app"]
+}

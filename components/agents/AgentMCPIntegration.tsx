@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { agentService, Agent } from '@/services/agent-service'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@/libs/design-system'
+import { Badge } from '@/libs/design-system'
 
 export interface AgentMCPIntegrationProps {
   agentId: string

@@ -1,0 +1,22 @@
+1e95e526d3ffd5f4f3b72aaa3764708c
+"use strict";
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+Object.defineProperty(exports, "Skeleton", {
+    enumerable: true,
+    get: function() {
+        return Skeleton;
+    }
+});
+const _jsxruntime = require("react/jsx-runtime");
+const _utils = require("../../lib/utils");
+function Skeleton({ className, ...props }) {
+    return /*#__PURE__*/ (0, _jsxruntime.jsx)("div", {
+        "data-slot": "skeleton",
+        className: (0, _utils.cn)("bg-accent animate-pulse rounded-md", className),
+        ...props
+    });
+}
+
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi9Vc2Vycy9lbGljaGFybGVzZS9DYXNjYWRlUHJvamVjdHMvQUdFTlQvY29tcG9uZW50cy91aS9za2VsZXRvbi50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IHsgY24gfSBmcm9tIFwiQC9saWIvdXRpbHNcIlxuXG5mdW5jdGlvbiBTa2VsZXRvbih7IGNsYXNzTmFtZSwgLi4ucHJvcHMgfTogUmVhY3QuQ29tcG9uZW50UHJvcHM8XCJkaXZcIj4pIHtcbiAgcmV0dXJuIChcbiAgICA8ZGl2XG4gICAgICBkYXRhLXNsb3Q9XCJza2VsZXRvblwiXG4gICAgICBjbGFzc05hbWU9e2NuKFwiYmctYWNjZW50IGFuaW1hdGUtcHVsc2Ugcm91bmRlZC1tZFwiLCBjbGFzc05hbWUpfVxuICAgICAgey4uLnByb3BzfVxuICAgIC8+XG4gIClcbn1cblxuZXhwb3J0IHsgU2tlbGV0b24gfVxuIl0sIm5hbWVzIjpbIlNrZWxldG9uIiwiY2xhc3NOYW1lIiwicHJvcHMiLCJkaXYiLCJkYXRhLXNsb3QiLCJjbiJdLCJtYXBwaW5ncyI6Ijs7OzsrQkFZU0E7OztlQUFBQTs7Ozt1QkFaVTtBQUVuQixTQUFTQSxTQUFTLEVBQUVDLFNBQVMsRUFBRSxHQUFHQyxPQUFvQztJQUNwRSxxQkFDRSxxQkFBQ0M7UUFDQ0MsYUFBVTtRQUNWSCxXQUFXSSxJQUFBQSxTQUFFLEVBQUMsc0NBQXNDSjtRQUNuRCxHQUFHQyxLQUFLOztBQUdmIn0=

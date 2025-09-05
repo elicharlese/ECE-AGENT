@@ -1,16 +1,22 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import {
+  Button,
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Label,
+  Separator
+} from '@/libs/design-system';
+import { Badge } from '@/libs/design-system'
+
+// TODO: Replace deprecated components: Separator
+// 
+// TODO: Replace deprecated components: Separator
+// import { Separator } from '@/components/ui/separator'
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,  } from '@/libs/design-system'
+// TODO: Replace deprecated components: DropdownMenu
+// 
+// TODO: Replace deprecated components: DropdownMenu
+// import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import {
   MessageSquare,
   Video,
@@ -30,7 +36,7 @@ import {
   ChevronDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/ui/ThemeToggle"
+import { ThemeToggle } from '@/libs/design-system'
 
 interface WorkspaceToolbarProps {
   mode: 'chat' | 'workspace'

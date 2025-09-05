@@ -4,7 +4,8 @@ import { Zap } from 'lucide-react'
 import { GradientText } from './GradientText'
 import { TrustLogos } from './TrustLogos'
 import { AnimatedButton } from './AnimatedButton'
-import { DownloadButtons } from '@/components/ui/DownloadButtons'
+import { DownloadButtons } from '@/libs/design-system'
+import { MobileStoreBadges } from '@/libs/design-system'
 
 export type HeroCopyProps = {
   className?: string
@@ -41,6 +42,7 @@ export function HeroCopy({ className }: HeroCopyProps) {
         </AnimatedButton>
       </div>
       <DownloadButtons className="animate-in slide-in-from-bottom-4 fade-in duration-1000 delay-900" />
+      <MobileStoreBadges className="animate-in slide-in-from-bottom-4 fade-in duration-1000 delay-[1100ms]" />
       <div className="mt-8 lg:mt-10">
         <TrustLogos />
       </div>

@@ -2,16 +2,15 @@
   "name": "ece-agent-desktop",
   "version": "1.0.0",
   "description": "AGENT Desktop Application",
+  "author": "AGENT Contributors",
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && electron dist/main.js",
-    "dev": "tsc && electron dist/main.js",
+    "start": "npm run build && ./node_modules/.bin/electron dist/main.js",
+    "dev": "tsc && ./node_modules/.bin/electron dist/main.js",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
-  },
-  "build": {
-    "appId": "com.ece.agent.desktop",
+    "dist": "electron-builder",
+  "build": {  },    "appId": "com.ece.agent.desktop",
     "productName": "AGENT",
     "directories": {
       "output": "release"

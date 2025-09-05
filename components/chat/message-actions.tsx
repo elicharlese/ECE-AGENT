@@ -1,8 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  Button,
+  DropdownMenu
+} from '@/libs/design-system';
+import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/libs/design-system'
+// TODO: Replace deprecated components: DropdownMenu
+// 
+// TODO: Replace deprecated components: DropdownMenu
+// import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { Pin, PinOff, Copy, Reply, Forward, Trash2, MoreHorizontal, Heart, HeartOff, Pencil } from "lucide-react"
 
 interface MessageActionsProps {
