@@ -1,41 +1,35 @@
-// Supabase client configuration
 const { createClient } = require('@supabase/supabase-js');
 
-// Load environment variables
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Prefer server-side keys but allow NEXT_PUBLIC fallbacks for local dev
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-// Validate environment variables
 if (!supabaseUrl || !supabaseKey) {
-  console.error('Error: SUPABASE_URL and SUPABASE_KEY must be set in environment variables');
-  process.exit(1);
+  console.warn('[config/db] Missing Supabase credentials. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or NEXT_PUBLIC fallbacks).');
 }
 
-// Create Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Test database connection
-const testConnection = async () => {
+async function testConnection() {
   try {
-    const { data, error } = await supabase
+    // Attempt a lightweight query; if the table doesn't exist, this will error
+    const { error } = await supabase
       .from('conversations')
-      .select('id')
+      .select('id', { count: 'exact', head: true })
       .limit(1);
-    
-    if (error && error.code !== '42P01') { // 42P01 means table doesn't exist, which is okay
-      console.error('Supabase connection error:', error.message);
+
+    if (error) {
+      console.error('[config/db] Test connection error:', error.message);
       return false;
     }
-    
-    console.log('Supabase database connected successfully');
     return true;
   } catch (err) {
-    console.error('Supabase connection failed:', err.message);
+    console.error('[config/db] Unexpected connection error:', err);
     return false;
   }
-};
+}
 
 module.exports = {
   supabase,
-  testConnection
+  testConnection,
 };
