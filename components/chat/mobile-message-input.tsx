@@ -57,6 +57,7 @@ export function MobileMessageInput({
   const [isExpanded, setIsExpanded] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [agentMode, setAgentMode] = useState(false)
+  const [selectedAgentMode, setSelectedAgentMode] = useState('smart_assistant')
   const [activeTab, setActiveTab] = useState<"media" | "apps" | "agents">("media")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { triggerHaptic } = useHaptics()

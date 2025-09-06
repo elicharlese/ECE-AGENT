@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { MessageBubble } from "./message-bubble"
+import { AgentMessageBubble } from "./agent-message-bubble"
 import { MobileMessageInput } from "./mobile-message-input"
 import { PullToRefresh } from "./pull-to-refresh"
 import dynamic from "next/dynamic"
@@ -164,11 +165,35 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isHeadsetView, setIsHeadsetView] = useState<boolean>(false)
   const [workspaceMode, setWorkspaceMode] = useState<'chat' | 'workspace'>('chat')
+  const [agentStatus, setAgentStatus] = useState<'online' | 'offline' | 'unknown'>('unknown')
+  const [agentResponses, setAgentResponses] = useState<Record<string, any>>({})
   const isMobile = useIsMobile()
   const { triggerHaptic } = useHaptics()
   const { isConnected, messages: wsMessages, joinConversation, sendChatMessage, sendTyping, sendEditMessage, typingUsers: wsTypingUsers } = useWebSocket()
   const { conversations, inviteParticipants } = useConversations()
   const [workspaceState, workspaceActions] = useWorkspace(chatId)
+
+  // Check AGENT LLM status
+  useEffect(() => {
+    const checkAgentStatus = async () => {
+      try {
+        const response = await fetch('/api/agents?action=health')
+        if (response.ok) {
+          const health = await response.json()
+          setAgentStatus(health.status === 'healthy' ? 'online' : 'offline')
+        } else {
+          setAgentStatus('offline')
+        }
+      } catch (error) {
+        setAgentStatus('offline')
+      }
+    }
+
+    checkAgentStatus()
+    // Check status every 30 seconds
+    const interval = setInterval(checkAgentStatus, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Restore headset view per chat from localStorage (desktop-only, feature gated)
   useEffect(() => {
@@ -333,12 +358,89 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
     }
   }, [wsMessages])
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!newMessage.trim()) return
 
-    // Send message via WebSocket
-    // useWebSocket expects (text, conversationId)
-    sendChatMessage(newMessage, chatId)
+    // Check if this is an AGENT message (@ai)
+    const isAgentMessage = newMessage.trim().startsWith('@ai') || newMessage.trim().startsWith('@AI')
+    
+    if (isAgentMessage) {
+      // Extract the actual message content
+      const agentMessage = newMessage.trim().substring(3).trim()
+      
+      if (agentMessage) {
+        try {
+          // Send to AGENT LLM system
+          const response = await fetch('/api/agents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: agentMessage,
+              conversationId: chatId,
+              agentMode: 'smart_assistant', // Will be enhanced to use selected mode
+              enableReasoning: true,
+              collectFeedback: true
+            })
+          })
+
+          if (response.ok) {
+            const agentResponse = await response.json()
+            
+            // Add user message to chat
+            const userMessage: Message = {
+              id: Date.now().toString(),
+              content: newMessage,
+              timestamp: new Date(),
+              senderId: "1",
+              senderName: "You",
+              type: "text",
+              isOwn: true,
+            }
+            setMessages((prev) => [...prev, userMessage])
+
+            // Add AGENT response to chat
+            const agentReply: Message = {
+              id: (Date.now() + 1).toString(),
+              content: agentResponse.content,
+              timestamp: new Date(),
+              senderId: "agent-llm",
+              senderName: `AGENT (${agentResponse.agentMode})`,
+              type: "text",
+              isOwn: false,
+            }
+            setMessages((prev) => [...prev, agentReply])
+            
+            // Store the full AGENT response for display
+            setAgentResponses(prev => ({
+              ...prev,
+              [agentReply.id]: agentResponse
+            }))
+
+            // Log the interaction for analytics
+            console.log('AGENT Response:', {
+              mode: agentResponse.agentMode,
+              confidence: agentResponse.confidence,
+              processingTime: agentResponse.metadata.processingTime,
+              examplesUsed: agentResponse.examplesRetrieved,
+              reasoningSteps: agentResponse.reasoningTrace.length
+            })
+          } else {
+            // Fallback: send as regular message if AGENT fails
+            sendChatMessage(newMessage, chatId)
+          }
+        } catch (error) {
+          console.error('AGENT API Error:', error)
+          // Fallback: send as regular message if AGENT fails
+          sendChatMessage(newMessage, chatId)
+        }
+      }
+    } else {
+      // Send regular message via WebSocket
+      sendChatMessage(newMessage, chatId)
+    }
+
     setNewMessage("")
     // Update last read immediately on send
     const now = new Date()
@@ -633,11 +735,12 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
     phone: undefined as string | undefined,
     bio: conversation?.title ? `Conversation • ${conversation.title}` : 'New conversation',
     status: 'online' as const,
-    customStatus: undefined as string | undefined,
+    customStatus: agentStatus === 'online' ? 'AGENT LLM Online' : agentStatus === 'offline' ? 'AGENT LLM Offline' : undefined,
     avatar: undefined as string | undefined,
     type: isGroup ? ('group' as const) : ('direct' as const),
     participants: participantsCount,
     isAgent: Boolean(conversation?.agent_id),
+    agentStatus: agentStatus,
   }
 
   const pinnedForHeader = messages
@@ -779,6 +882,12 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
                             onOpenApp={handleOpenApp}
                           />
                         </div>
+                      ) : message.senderId === "agent-llm" ? (
+                        <AgentMessageBubble 
+                          message={message} 
+                          agentResponse={agentResponses[message.id]}
+                          onUpdateMessage={handleUpdateMessage} 
+                        />
                       ) : (
                         <MessageBubble message={message} onUpdateMessage={handleUpdateMessage} />
                       )}

@@ -151,9 +151,38 @@ export function AgentSidebar({ selectedAgentId, onSelectAgent, panelState, onSet
     try { localStorage.setItem("agentSidebar.recents", JSON.stringify(next)) } catch {}
   }
 
-  const handleSelect = (id: string) => {
+  const handleSelect = async (id: string) => {
     recordRecent(id)
     onSelectAgent(id)
+    
+    // Test the selected agent with AGENT LLM system
+    try {
+      const response = await fetch('/api/agents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Hello! I'm testing the ${id} agent mode.`,
+          conversationId: `agent-test-${Date.now()}`,
+          agentMode: id,
+          enableReasoning: true,
+          collectFeedback: true
+        })
+      })
+
+      if (response.ok) {
+        const agentResponse = await response.json()
+        console.log(`AGENT ${id} Response:`, {
+          content: agentResponse.content,
+          confidence: agentResponse.confidence,
+          processingTime: agentResponse.metadata.processingTime,
+          examplesUsed: agentResponse.examplesRetrieved
+        })
+      }
+    } catch (error) {
+      console.error(`AGENT ${id} Test Error:`, error)
+    }
   }
 
   const applyFilterMode = <T extends { id: string }>(list: T[]): T[] => {
