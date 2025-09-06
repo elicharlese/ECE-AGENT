@@ -6,11 +6,11 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && ./node_modules/.bin/electron dist/main.js",
-    "dev": "tsc && ./node_modules/.bin/electron dist/main.js",
+    "start": "npm run build && node ../../node_modules/electron/cli.js dist/main.js",
+    "dev": "tsc && node ../../node_modules/electron/cli.js dist/main.js",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-  "build": {  },    "appId": "com.ece.agent.desktop",
+    "appId": "com.ece.agent.desktop",
     "productName": "AGENT",
     "directories": {
       "output": "release"
@@ -21,7 +21,10 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
       "target": "nsis"
@@ -42,8 +45,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "electron": "^30.0.0",
-    "electron-builder": "^24.11.0"
+    "electron": "^30.5.1",
+    "electron-builder": "^24.11.0",
+    "typescript": "^5.0.0"
   }
 }

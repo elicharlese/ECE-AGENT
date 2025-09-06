@@ -233,8 +233,8 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
               {/* Favorites */}
               {favoriteContacts.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">FAVORITES</h3>
-                  <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">FAVORITES</h3>
+                  <div className="rounded-lg border border-border bg-card p-3 sm:p-4 space-y-3">
                     {favoriteContacts.map((contact) => (
                       <ContactItem
                         key={contact.id}
@@ -255,9 +255,9 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
               {regularContacts.length > 0 && (
                 <div>
                   {favoriteContacts.length > 0 && (
-                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">ALL CONTACTS</h3>
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">ALL CONTACTS</h3>
                   )}
-                  <div className="space-y-2">
+                  <div className="rounded-lg border border-border bg-card p-3 sm:p-4 space-y-3">
                     {regularContacts.map((contact) => (
                       <ContactItem
                         key={contact.id}
@@ -284,24 +284,26 @@ export function ContactsManager({ onStartChat }: ContactsManagerProps) {
           </TabsContent>
 
           <TabsContent value="favorites" className="flex-1 flex flex-col min-h-0">
-            <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
-              {favoriteContacts.map((contact) => (
-                <ContactItem
-                  key={contact.id}
-                  contact={contact}
-                  onStartChat={onStartChat}
-                  onToggleFavorite={toggleFavorite}
-                  onPhoneCall={handlePhoneCall}
-                  onVideoCall={handleVideoCall}
-                  formatLastSeen={formatLastSeen}
-                  statusColors={statusColors}
-                />
-              ))}
-              {favoriteContacts.length === 0 && (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <p>No favorite contacts yet</p>
-                </div>
-              )}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              <div className="rounded-lg border border-border bg-card p-6 sm:p-8 space-y-6">
+                {favoriteContacts.map((contact) => (
+                  <ContactItem
+                    key={contact.id}
+                    contact={contact}
+                    onStartChat={onStartChat}
+                    onToggleFavorite={toggleFavorite}
+                    onPhoneCall={handlePhoneCall}
+                    onVideoCall={handleVideoCall}
+                    formatLastSeen={formatLastSeen}
+                    statusColors={statusColors}
+                  />
+                ))}
+                {favoriteContacts.length === 0 && (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <p>No favorite contacts yet</p>
+                  </div>
+                )}
+              </div>
             </div>
           </TabsContent>
 

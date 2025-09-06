@@ -648,8 +648,25 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
     messages.map((m) => ({ id: m.id, content: m.content, timestamp: m.timestamp, isOwn: m.isOwn }))
   ), [messages])
 
+  // Suggested prompts for Workspace mode
+  const suggestions = useMemo(() => (
+    [
+      'Summarize the last 10 messages into action items',
+      'Draft a response thanking them and propose a next step',
+      'Create a checklist from this conversation',
+      'Generate a meeting agenda for tomorrow at 10am',
+    ]
+  ), [])
+
+  const onSuggestionClick = useCallback((text: string) => {
+    setNewMessage(text)
+    try {
+      toast({ title: 'Suggestion added', description: 'You can edit before sending.' })
+    } catch {}
+  }, [])
+
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-background text-foreground">
       {/* Workspace Mode or Traditional Chat */}
       {workspaceMode === 'workspace' ? (
         <>
@@ -704,6 +721,10 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
             isMobile={isMobile}
             onToggleHeadsetView={handleToggleHeadsetView}
             isHeadsetView={isHeadsetView}
+            onEnterWorkspace={() => {
+              setWorkspaceMode('workspace')
+              workspaceActions.setMode('workspace')
+            }}
           />
 
           {/* Global App Launcher Drawer and draggable tab */}
@@ -795,6 +816,26 @@ export function ChatWindow({ chatId, onToggleSidebar, sidebarCollapsed }: ChatWi
       {/* Message Input (hidden in Headset view) */}
       {!shouldShowHeadset3D && (
         <div className="flex-shrink-0">
+          {/* Suggestions bar shown in Workspace mode */}
+          {workspaceMode === 'workspace' && (
+            <div className="px-3 md:px-4 lg:px-6 pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-300">Suggested</div>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onSuggestionClick(s)}
+                    className="shrink-0 text-xs rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-1 transition"
+                    title="Insert suggestion"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {isMobile ? (
             <MobileMessageInput
               value={newMessage}

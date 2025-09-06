@@ -183,7 +183,7 @@ export default function DesignSystemPage() {
                   <div>
                     <h3 className="mb-3 text-sm font-semibold">Variants</h3>
                     <div className="flex flex-wrap gap-2">
-                      <Button variant="default">Default</Button>
+                      <Button variant="primary">Default</Button>
                       <Button variant="secondary">Secondary</Button>
                       <Button variant="outline">Outline</Button>
                       <Button variant="ghost">Ghost</Button>
@@ -238,7 +238,7 @@ export default function DesignSystemPage() {
                       <h3 className="mb-3 text-sm font-semibold">Sizes</h3>
                       <div className="flex flex-wrap items-center gap-2">
                         <Badge size="sm">Small</Badge>
-                        <Badge size="default">Default</Badge>
+                        <Badge size="md">Default</Badge>
                         <Badge size="lg">Large</Badge>
                       </div>
                     </div>
@@ -300,7 +300,7 @@ export default function DesignSystemPage() {
                         <Avatar size="sm">
                           <AvatarFallback>JD</AvatarFallback>
                         </Avatar>
-                        <Avatar size="default">
+                        <Avatar size="md">
                           <AvatarFallback>JD</AvatarFallback>
                         </Avatar>
                         <Avatar size="lg">

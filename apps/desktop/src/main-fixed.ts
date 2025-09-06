@@ -1,6 +1,7 @@
-// const electron = require('../../../node_modules/electron');
-const electron = require('electron');
+// Direct access to electron API without require
+const electron = (global as any).electron || require('electron');
 const { app, BrowserWindow, Menu, shell, globalShortcut, nativeImage, dialog } = electron;
+
 import { autoUpdater } from 'electron-updater';
 import type { UpdateInfo, ProgressInfo } from 'electron-updater';
 import * as path from 'path';
@@ -9,7 +10,7 @@ import * as path from 'path';
 let isDev = false;
 let manualCheck = false;
 
-let chatPopout: any = null;
+let chatPopout: BrowserWindow | null = null;
 
 function createChatPopoutWindow(chatId?: string): void {
   if (chatPopout) {
@@ -99,7 +100,7 @@ function createWindow(): void {
   });
 
   // Handle external links
-  mainWindow.webContents.setWindowOpenHandler(({ url }: any) => {
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });

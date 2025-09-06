@@ -17,7 +17,8 @@ import {
   Bell,
   Archive,
   Trash2,
-  Box
+  Box,
+  LayoutGrid
 } from "lucide-react"
 import {
   Button,
@@ -63,6 +64,7 @@ interface EnhancedChatHeaderProps {
   isMobile?: boolean
   onToggleHeadsetView: () => void
   isHeadsetView?: boolean
+  onEnterWorkspace?: () => void
 }
 
 export function EnhancedChatHeader({
@@ -76,7 +78,8 @@ export function EnhancedChatHeader({
   onInviteUsers,
   isMobile = false,
   onToggleHeadsetView,
-  isHeadsetView = false
+  isHeadsetView = false,
+  onEnterWorkspace,
 }: EnhancedChatHeaderProps) {
   const [showPinnedBanner, setShowPinnedBanner] = useState(pinnedMessages.length > 0)
   const [expandedPins, setExpandedPins] = useState(false)
@@ -211,6 +214,19 @@ export function EnhancedChatHeader({
           >
             <SquareArrowOutUpRight className="h-4 w-4" />
           </Button>
+
+          {/* Workspace Mode entry */}
+          {onEnterWorkspace && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onEnterWorkspace}
+              title="Enter Workspace mode"
+              aria-label="Enter Workspace mode"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          )}
 
           {/* 3D Headset Toggle (desktop only, gated by feature flag) */}
           {!isMobile && isFeatureEnabled(FEATURES.IMMERSIVE_CHAT) && (

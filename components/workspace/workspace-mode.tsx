@@ -19,7 +19,6 @@ import {
   Code, 
   Image, 
   Music, 
-  FileText, 
   Play, 
   Pause, 
   Square,
@@ -334,10 +333,10 @@ export function WorkspaceMode({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-background text-foreground">
       {/* Workspace Header (optional) */}
       {showHeader && (
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <div className="flex items-center gap-4">
             <h2 className="text-lg font-semibold">Active Workspace</h2>
             <Badge variant="outline" className="flex items-center gap-1">
@@ -373,7 +372,7 @@ export function WorkspaceMode({
 
             {/* Mode Toggle */}
             <Button
-              variant={activeMode === 'unified' ? 'default' : 'ghost'}
+              variant={activeMode === 'unified' ? 'primary' : 'ghost'}
               size="sm"
               onClick={() => setActiveMode(activeMode === 'unified' ? 'split' : 'unified')}
             >
@@ -435,30 +434,6 @@ export function WorkspaceMode({
             </TabsContent>
 
             <TabsContent value="media" className="flex-1 p-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <Button
-                  onClick={() => generateMedia('image', 'A beautiful landscape')}
-                  className="flex items-center gap-2"
-                >
-                  <Image className="h-4 w-4" />
-                  Generate Image
-                </Button>
-                <Button
-                  onClick={() => generateMedia('audio', 'Relaxing ambient music')}
-                  className="flex items-center gap-2"
-                >
-                  <Music className="h-4 w-4" />
-                  Generate Audio
-                </Button>
-                <Button
-                  onClick={() => generateMedia('video', 'Short animation')}
-                  className="flex items-center gap-2"
-                >
-                  <Video className="h-4 w-4" />
-                  Generate Video
-                </Button>
-              </div>
-              
               <div className="space-y-2">
                 {workspaceData
                   .filter(item => ['image', 'audio', 'video'].includes(item.type))
@@ -467,37 +442,6 @@ export function WorkspaceMode({
             </TabsContent>
 
             <TabsContent value="tools" className="flex-1 p-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <Button
-                  onClick={() => executeToolAction('code_interpreter', { code: 'print("Hello World")' })}
-                  className="flex items-center gap-2"
-                >
-                  <Code className="h-4 w-4" />
-                  Run Code
-                </Button>
-                <Button
-                  onClick={() => executeToolAction('web_search', { query: 'latest AI news' })}
-                  className="flex items-center gap-2"
-                >
-                  <Zap className="h-4 w-4" />
-                  Web Search
-                </Button>
-                <Button
-                  onClick={() => executeToolAction('data_analysis', { dataset: 'sample.csv' })}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  Analyze Data
-                </Button>
-                <Button
-                  onClick={() => executeToolAction('3d_modeling', { prompt: 'simple cube' })}
-                  className="flex items-center gap-2"
-                >
-                  <Bot className="h-4 w-4" />
-                  3D Model
-                </Button>
-              </div>
-              
               <div className="space-y-2">
                 {workspaceData
                   .filter(item => item.type === 'tool_execution')
@@ -510,7 +454,7 @@ export function WorkspaceMode({
         <PanelGroup direction="horizontal" className="flex-1">
           <Panel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-2 border-b border-border">
                 <h3 className="font-medium">Messages</h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -551,7 +495,7 @@ export function WorkspaceMode({
           
           <Panel defaultSize={50} minSize={30}>
             <div className="h-full flex flex-col">
-              <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-2 border-b border-border">
                 <h3 className="font-medium">Workspace</h3>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-2">

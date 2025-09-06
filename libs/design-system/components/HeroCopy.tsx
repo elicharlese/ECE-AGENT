@@ -36,10 +36,10 @@ export function HeroCopy({
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
-        <ShinyButton size="lg" variant="primary" className="w-full sm:w-auto">
+        <ShinyButton size="lg" variant="primary" className="w-full sm:w-auto px-6">
           Get Started
         </ShinyButton>
-        <ShinyButton size="lg" variant="glass" className="w-full sm:w-auto">
+        <ShinyButton size="lg" variant="glass" className="w-full sm:w-auto px-6">
           View Documentation
         </ShinyButton>
       </div>

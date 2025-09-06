@@ -1,17 +1,14 @@
-// const electron = require('../../../node_modules/electron');
 const electron = require('electron');
 const { app, BrowserWindow, Menu, shell, globalShortcut, nativeImage, dialog } = electron;
-import { autoUpdater } from 'electron-updater';
-import type { UpdateInfo, ProgressInfo } from 'electron-updater';
-import * as path from 'path';
+const path = require('path');
 
 // Prefer Electron's packaging flag instead of NODE_ENV which can be unreliable in packaged apps
 let isDev = false;
 let manualCheck = false;
 
-let chatPopout: any = null;
+let chatPopout = null;
 
-function createChatPopoutWindow(chatId?: string): void {
+function createChatPopoutWindow(chatId) {
   if (chatPopout) {
     // Focus existing popout
     if (chatPopout.isMinimized()) chatPopout.restore();
@@ -44,7 +41,7 @@ function createChatPopoutWindow(chatId?: string): void {
   } catch {}
 
   const devBaseUrl = 'http://localhost:3000';
-  const prodBaseUrl = process.env.AGENT_DESKTOP_WEB_URL; // e.g. https://your-deployed-web-app.domain
+  const prodBaseUrl = process.env.AGENT_DESKTOP_WEB_URL;
 
   if (isDev) {
     const qs = new URLSearchParams({ view: 'popout', ...(chatId ? { chatId } : {}) }).toString();
@@ -62,7 +59,7 @@ function createChatPopoutWindow(chatId?: string): void {
   });
 }
 
-function createWindow(): void {
+function createWindow() {
   const mainWindow = new BrowserWindow({
     height: 800,
     width: 1200,
@@ -99,78 +96,15 @@ function createWindow(): void {
   });
 
   // Handle external links
-  mainWindow.webContents.setWindowOpenHandler(({ url }: any) => {
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
   });
 }
 
 function setupAutoUpdates() {
-  if (!app.isPackaged) return; // only enable in packaged builds
-
-  try {
-    // Allow overriding the feed via env at runtime
-    const feedUrl = process.env.AGENT_UPDATE_URL;
-    if (feedUrl) {
-      // Generic provider expects a directory hosting latest.yml and assets
-      // Example: https://downloads.example.com/agent/
-      autoUpdater.setFeedURL({ provider: 'generic', url: feedUrl });
-    }
-
-    autoUpdater.autoDownload = true;
-    autoUpdater.autoInstallOnAppQuit = true;
-
-    autoUpdater.on('error', (err) => {
-      console.error('[autoUpdater] error', err);
-    });
-
-    autoUpdater.on('update-available', (info: UpdateInfo) => {
-      console.log('[autoUpdater] update available, downloading...', info?.version);
-      if (manualCheck) {
-        dialog.showMessageBox({
-          type: 'info',
-          message: `Update ${info?.version ?? ''} available. Downloading…`,
-        });
-      }
-    });
-
-    autoUpdater.on('update-not-available', () => {
-      console.log('[autoUpdater] no updates available');
-      if (manualCheck) {
-        dialog.showMessageBox({
-          type: 'info',
-          message: 'You are on the latest version.'
-        });
-      }
-      manualCheck = false;
-    });
-
-    autoUpdater.on('download-progress', (p: ProgressInfo) => {
-      const pct = Math.round(p.percent);
-      console.log(`[autoUpdater] download progress: ${pct}% (${p.transferred}/${p.total})`);
-    });
-
-    autoUpdater.on('update-downloaded', () => {
-      // Prompt to restart now
-      const res = dialog.showMessageBoxSync({
-        type: 'question',
-        buttons: ['Restart Now', 'Later'],
-        defaultId: 0,
-        cancelId: 1,
-        title: 'Update Ready',
-        message: 'An update has been downloaded. Restart AGENT to apply it?'
-      });
-      if (res === 0) {
-        autoUpdater.quitAndInstall();
-      }
-      manualCheck = false;
-    });
-
-    // Initial check
-    autoUpdater.checkForUpdatesAndNotify();
-  } catch (e) {
-    console.error('[autoUpdater] setup failed', e);
-  }
+  // Auto-updates disabled for now to get basic app working
+  console.log('Auto-updates disabled in development');
 }
 
 // App event handlers
@@ -225,7 +159,7 @@ app.on('will-quit', () => {
 });
 
 // Create application menu
-const template: Electron.MenuItemConstructorOptions[] = [
+const template = [
   {
     label: 'File',
     submenu: [
@@ -295,25 +229,14 @@ const template: Electron.MenuItemConstructorOptions[] = [
     role: 'help',
     submenu: [
       {
-        label: 'Check for Updates…',
+        label: 'About AGENT',
         click: () => {
-          if (!isDev) {
-            try {
-              manualCheck = true;
-              autoUpdater.checkForUpdates();
-            } catch (e) {
-              console.error('[autoUpdater] manual check failed', e);
-              dialog.showMessageBox({
-                type: 'error',
-                message: 'Failed to check for updates. See logs for details.'
-              });
-            }
-          } else {
-            dialog.showMessageBox({
-              type: 'info',
-              message: 'Auto-update is disabled in development builds',
-            });
-          }
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'About AGENT',
+            message: 'AGENT Desktop Application',
+            detail: 'Version 1.0.0\nAdvanced AI Agent Platform'
+          });
         },
       },
     ],

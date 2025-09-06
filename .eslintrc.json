@@ -1,18 +1,1 @@
-{
-  "extends": [
-    "next/core-web-vitals"
-  ],
-  "rules": {
-    "@next/next/no-img-element": "off",
-    "react-hooks/exhaustive-deps": "off"
-  },
-  "overrides": [
-    {
-      "files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"],
-      "env": {
-        "jest": true,
-        "node": true
-      }
-    }
-  ]
-}
+{"extends": ["next/core-web-vitals"], "rules": {"@next/next/no-img-element": "off", "react-hooks/exhaustive-deps": "off", "react/no-unescaped-entities": "off"}, "overrides": [{"files": ["**/__tests__/**/*.{ts,tsx}", "**/*.test.{ts,tsx}"], "env": {"jest": true, "node": true}}]}

@@ -140,7 +140,7 @@ export function ChatSidebar({ selectedChatId, onSelectChat, panelState, onSetPan
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-9 bg-gray-50 dark:bg-white/10 border-0 placeholder:text-gray-400 dark:placeholder:text-gray-400"
+            className="pl-10 h-9 bg-gray-50 dark:bg-white/10 border-0 placeholder:text-gray-400 dark:placeholder:text-gray-400 rounded-2xl"
           />
         </div>
 

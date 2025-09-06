@@ -349,10 +349,9 @@ function AuthenticatedChatApp() {
         const rightPx = (!showWorkspaceSidebar || rightPanelState === "collapsed")
           ? 0
           : (measuredRight ?? getRightSidebarPixels())
-        const leftPaddle = leftPanelState !== "collapsed" ? 20 : 0
-        const rightPaddle = (showWorkspaceSidebar && rightPanelState !== "collapsed") ? 20 : 0
-        const insetLeft = leftPx + leftPaddle
-        const insetRight = rightPx + rightPaddle
+        // Fit chat EXACTLY between visible sidebars
+        const insetLeft = leftPx
+        const insetRight = rightPx
         return (
           <div
             className="fixed inset-y-0 transition-[left,right] duration-300 ease-in-out"

@@ -31,10 +31,11 @@ export const ShinyButton = React.forwardRef<HTMLButtonElement, ShinyButtonProps>
     const variants: Record<typeof variant, string> = {
       primary:
         'text-white bg-gradient-to-br from-blue-500 to-indigo-600 border border-white/20',
+      // High-contrast secondary in light mode (white text) and subtle in dark mode
       secondary:
-        'text-blue-700 dark:text-blue-200 bg-white/20 dark:bg-white/10 border border-white/25',
+        'text-white dark:text-blue-200 bg-slate-900/80 hover:bg-slate-900/90 border border-slate-900/30 dark:bg-white/10 dark:border-white/25',
       glass:
-        'text-white/90 bg-white/15 dark:bg-white/10 border border-white/30',
+        'text-white dark:text-white/90 bg-slate-900/70 hover:bg-slate-900/80 border border-slate-900/30 dark:bg-white/10 dark:border-white/30',
     }
 
     return (

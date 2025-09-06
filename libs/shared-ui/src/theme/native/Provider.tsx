@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, ReactNode } from 'react'
-import { Appearance, ColorSchemeName } from 'react-native'
+import { Platform } from 'react-native'
 import { Theme, ResolvedTheme, ThemeContextValue } from '../types'
 import { getThemeTokens } from './tokens'
 
@@ -12,14 +12,49 @@ interface RNThemeProviderProps {
 
 export function RNThemeProvider({ children, defaultTheme = 'system' }: RNThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme)
-  const [systemTheme, setSystemTheme] = useState<ColorSchemeName>(Appearance.getColorScheme())
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark' | null>(() => {
+    if (Platform.OS === 'web') {
+      try {
+        const isDark = globalThis?.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+        return isDark ? 'dark' : 'light'
+      } catch {
+        return 'light'
+      }
+    } else {
+      try {
+        // Require lazily to avoid bundler resolving Appearance on web
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { Appearance } = require('react-native')
+        return Appearance.getColorScheme()
+      } catch {
+        return 'light'
+      }
+    }
+  })
 
   useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemTheme(colorScheme)
-    })
+    if (Platform.OS === 'web') {
+      try {
+        const mql = globalThis?.matchMedia?.('(prefers-color-scheme: dark)')
+        if (mql && typeof mql.addEventListener === 'function') {
+          const handler = (e: MediaQueryListEvent) => setSystemTheme(e.matches ? 'dark' : 'light')
+          mql.addEventListener('change', handler)
+          return () => mql.removeEventListener('change', handler)
+        }
+      } catch {}
+      return
+    }
 
-    return () => subscription?.remove()
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { Appearance } = require('react-native')
+      const subscription = Appearance.addChangeListener(({ colorScheme }: { colorScheme: 'light' | 'dark' | null }) => {
+        setSystemTheme(colorScheme)
+      })
+      return () => subscription?.remove?.()
+    } catch {
+      return
+    }
   }, [])
 
   const resolvedTheme: ResolvedTheme = useMemo(() => {

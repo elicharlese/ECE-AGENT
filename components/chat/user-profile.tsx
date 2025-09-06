@@ -148,7 +148,7 @@ export function UserProfile({ user = mockUser, isOwnProfile = true }: UserProfil
                   }
                 />
                 <Button asChild size="sm" variant="outline" title="Dashboard" aria-label="Dashboard">
-                  <Link href="/profile">
+                  <Link href="/profile" className="flex items-center">
                     <LayoutDashboard className="h-4 w-4" />
                   </Link>
                 </Button>

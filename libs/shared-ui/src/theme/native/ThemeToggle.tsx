@@ -1,5 +1,5 @@
 import React from 'react'
-import { TouchableOpacity, Text, StyleSheet } from 'react-native'
+import { Pressable, Text, StyleSheet } from 'react-native'
 import { useRNTheme } from './Provider'
 
 export function RNThemeToggle() {
@@ -23,9 +23,9 @@ export function RNThemeToggle() {
   }
 
   return (
-    <TouchableOpacity style={styles.button} onPress={cycleTheme}>
+    <Pressable style={styles.button} onPress={cycleTheme}>
       <Text style={styles.text}>{getThemeLabel()}</Text>
-    </TouchableOpacity>
+    </Pressable>
   )
 }
 

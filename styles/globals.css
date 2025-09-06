@@ -41,39 +41,41 @@
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
+  /* Dark Blue theme */
+  --background: 218 33% 12%;       /* deep navy canvas */
+  --foreground: 210 40% 96%;        /* near-white text */
+  --card: 220 30% 14%;              /* slightly raised card */
+  --card-foreground: 210 40% 96%;
+  --popover: 220 30% 14%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 213 94% 68%;           /* bright brand blue for accents */
+  --primary-foreground: 222 47% 11%;
+  --secondary: 219 26% 18%;         /* subdued container (muted surface) */
+  --secondary-foreground: 210 40% 96%;
+  --muted: 219 26% 18%;
+  --muted-foreground: 217 20% 72%;   /* muted text */
+  --accent: 219 26% 18%;
+  --accent-foreground: 210 40% 96%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 85.7% 97.3%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-  --overlay: 0 0% 0%;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: 240 3.7% 15.9%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 210 40% 98%;
-  --sidebar-primary-foreground: 222.2 47.4% 11.2%;
-  --sidebar-accent: 240 3.7% 15.9%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 240 3.7% 15.9%;
-  --sidebar-ring: 240 4.9% 83.9%;
+  --border: 218 22% 24%;            /* blue-gray borders */
+  --input: 218 22% 24%;
+  --ring: 213 94% 68%;              /* focus ring matches primary */
+  --overlay: 218 33% 12%;
+  /* Charts tuned to blue palette */
+  --chart-1: oklch(0.62 0.18 255);
+  --chart-2: oklch(0.55 0.12 220);
+  --chart-3: oklch(0.48 0.10 200);
+  --chart-4: oklch(0.72 0.17 130);
+  --chart-5: oklch(0.68 0.16 90);
+  --sidebar: 219 26% 18%;
+  --sidebar-foreground: 210 40% 96%;
+  --sidebar-primary: 213 94% 68%;
+  --sidebar-primary-foreground: 222 47% 11%;
+  --sidebar-accent: 220 30% 14%;
+  --sidebar-accent-foreground: 210 40% 96%;
+  --sidebar-border: 218 22% 24%;
+  --sidebar-ring: 213 94% 68%;
 }
 
 
@@ -200,4 +202,9 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.15),
       inset 0 -1px 0 rgba(255, 255, 255, 0.08);
   }
+}
+/* Override unwanted spacing on Radix UI workspace content */
+#radix\:r3\:-content-workspace {
+  margin: 0 !important;
+  padding: 0 !important;
 }

@@ -19,7 +19,11 @@ export function EmptyChatState({ onStartNewChat }: EmptyChatStateProps) {
           Select a conversation from the left, or start a new one to begin chatting.
         </p>
         <div className="mt-4">
-          <Button onClick={onStartNewChat} className="gap-2" aria-label="Start new chat">
+          <Button
+            onClick={onStartNewChat}
+            className="gap-2 dark:!bg-white dark:!text-black dark:hover:!bg-white/90 dark:!border-transparent"
+            aria-label="Start new chat"
+          >
             <MessageSquarePlus className="h-4 w-4" />
             Start new chat
           </Button>

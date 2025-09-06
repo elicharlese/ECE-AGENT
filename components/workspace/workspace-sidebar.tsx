@@ -314,7 +314,7 @@ export function WorkspaceSidebar({
   const isMinimized = panelState === "minimized"
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-white dark:bg-[#1f2937]">
+    <div className="flex flex-col h-full min-h-0 bg-background">
       {isMinimized ? (
         <div className="flex flex-col items-center py-4 gap-4">
           <Button
@@ -360,8 +360,8 @@ export function WorkspaceSidebar({
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-          <div className="sticky top-0 z-10 bg-white/90 dark:bg-[#1f2937]/90 backdrop-blur h-16 px-3">
-            <div className="flex items-center justify-between py-1.5">
+          <div className="sticky top-0 z-10 bg-background/90 backdrop-blur px-3 pt-4 sm:pt-5 pb-2 sm:pb-3 mb-2">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
                   <Users className="h-3 w-3 mr-1" />
@@ -375,20 +375,20 @@ export function WorkspaceSidebar({
                 )}
               </div>
             </div>
-            <TabsList className="grid w-full grid-cols-4 gap-1 sm:gap-2 rounded-xl bg-gray-50 dark:bg-[#1f2937] p-2 ring-1 ring-gray-200 dark:ring-gray-700 overflow-hidden isolate">
-              <TabsTrigger value="workspace" className="w-full min-w-0 text-xs truncate h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm" aria-label="Workspace" title="Workspace">
+            <TabsList className="mt-2 sm:mt-3 flex w-full items-center justify-start gap-1 sm:gap-2 rounded-2xl bg-muted p-1.5 sm:p-2 ring-1 ring-border overflow-x-auto hide-scrollbar whitespace-nowrap snap-x snap-mandatory">
+              <TabsTrigger value="workspace" className="flex-none text-xs sm:text-sm h-9 sm:h-10 rounded-xl px-3 sm:px-4 transition-colors motion-reduce:transition-none bg-transparent hover:bg-muted/60 data-[state=active]:bg-background data-[state=active]:shadow-sm text-muted-foreground data-[state=active]:text-foreground whitespace-nowrap snap-start" aria-label="Workspace" title="Workspace">
                 <Zap className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Workspace</span>
               </TabsTrigger>
-              <TabsTrigger value="ai" className="w-full min-w-0 text-xs truncate h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm" aria-label="AI Models" title="AI Models">
+              <TabsTrigger value="ai" className="flex-none text-xs sm:text-sm h-9 sm:h-10 rounded-xl px-3 sm:px-4 transition-colors motion-reduce:transition-none bg-transparent hover:bg-muted/60 data-[state=active]:bg-background data-[state=active]:shadow-sm text-muted-foreground data-[state=active]:text-foreground whitespace-nowrap snap-start" aria-label="AI Models" title="AI Models">
                 <Bot className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">AI Models</span>
               </TabsTrigger>
-              <TabsTrigger value="mcp" className="w-full min-w-0 text-xs truncate h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm" aria-label="MCP" title="MCP">
+              <TabsTrigger value="mcp" className="flex-none text-xs sm:text-sm h-9 sm:h-10 rounded-xl px-3 sm:px-4 transition-colors motion-reduce:transition-none bg-transparent hover:bg-muted/60 data-[state=active]:bg-background data-[state=active]:shadow-sm text-muted-foreground data-[state=active]:text-foreground whitespace-nowrap snap-start" aria-label="MCP" title="MCP">
                 <Terminal className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">MCP</span>
               </TabsTrigger>
-              <TabsTrigger value="settings" className="w-full min-w-0 text-xs truncate h-11 rounded-lg px-2 sm:px-3 transition-colors motion-reduce:transition-none hover:bg-white/60 dark:hover:bg-gray-900/60 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm" aria-label="Settings" title="Settings">
+              <TabsTrigger value="settings" className="flex-none text-xs sm:text-sm h-9 sm:h-10 rounded-xl px-3 sm:px-4 transition-colors motion-reduce:transition-none bg-transparent hover:bg-muted/60 data-[state=active]:bg-background data-[state=active]:shadow-sm text-muted-foreground data-[state=active]:text-foreground whitespace-nowrap snap-start" aria-label="Settings" title="Settings">
                 <Settings className="h-3 w-3 mr-1" />
                 <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>

@@ -109,6 +109,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     
     const isDisabled = disabled || loading;
     
+    const buttonContent = (
+      <>
+        {loading && <Spinner className="mr-2 h-4 w-4" />}
+        {!loading && leftIcon && <span className="mr-2 flex-shrink-0">{leftIcon}</span>}
+        {children}
+        {!loading && rightIcon && <span className="ml-2 flex-shrink-0">{rightIcon}</span>}
+      </>
+    );
+    
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, fullWidth, className }))}
@@ -117,10 +126,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         aria-disabled={isDisabled}
         {...props}
       >
-        {loading && <Spinner className="mr-2 h-4 w-4" />}
-        {!loading && leftIcon && <span className="mr-2 flex-shrink-0">{leftIcon}</span>}
-        {children}
-        {!loading && rightIcon && <span className="ml-2 flex-shrink-0">{rightIcon}</span>}
+        {asChild ? <span className="flex items-center">{buttonContent}</span> : buttonContent}
       </Comp>
     );
   }

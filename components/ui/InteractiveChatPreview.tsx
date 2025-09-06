@@ -4,6 +4,7 @@ import React from 'react'
 import { Bot, Send, ArrowRight, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { agentLLMService } from '@/services/agent-llm-service'
 
 export type InteractiveChatPreviewProps = {
   className?: string
@@ -22,6 +23,23 @@ export function InteractiveChatPreview({ className }: InteractiveChatPreviewProp
   const [isTyping, setIsTyping] = React.useState(false)
   const [messageCount, setMessageCount] = React.useState(0)
   const [showSignupPrompt, setShowSignupPrompt] = React.useState(false)
+  const [isOnline, setIsOnline] = React.useState<boolean | null>(null)
+  // single preview conversation id (ephemeral)
+  const conversationIdRef = React.useRef<string>('preview-' + Math.random().toString(36).slice(2))
+
+  // Ping health once to display connection status
+  React.useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      try {
+        await agentLLMService.getHealth()
+        if (mounted) setIsOnline(true)
+      } catch (_) {
+        if (mounted) setIsOnline(false)
+      }
+    })()
+    return () => { mounted = false }
+  }, [])
 
   const addMessage = (text: string, sender: 'user' | 'ai') => {
     const newMessage: Message = {
@@ -52,18 +70,27 @@ export function InteractiveChatPreview({ className }: InteractiveChatPreviewProp
       return
     }
 
-    // Simulate AI response
+    // Live AI response via @ai preview endpoint
     setIsTyping(true)
-    setTimeout(() => {
-      setIsTyping(false)
-      
-      if (userMessage.toLowerCase().startsWith('@ai')) {
-        const query = userMessage.slice(3).trim()
-        addMessage(`I'd be happy to help with ${query}! This is a preview of our AI assistant. Sign up to continue the conversation and access all features.`, 'ai')
+    try {
+      if (agentLLMService.isAIMessage(userMessage)) {
+        const query = agentLLMService.extractAIMessage(userMessage)
+        const res = await agentLLMService.sendMessage({
+          message: query,
+          conversationId: conversationIdRef.current,
+          userId: 'preview',
+          agentMode: 'smart_assistant',
+          context: { source: 'landing-hero' },
+        })
+        addMessage(res.content, 'ai')
       } else {
         addMessage(`I see you said ${userMessage}. Try starting your message with @ai to get an AI response! For example: @ai help me with coding`, 'ai')
       }
-    }, 1500)
+    } catch (err) {
+      addMessage('The AI connection is currently unavailable. Please try again or sign in for full access.', 'ai')
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -91,8 +118,12 @@ export function InteractiveChatPreview({ className }: InteractiveChatPreviewProp
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
-          <span className="text-xs text-slate-600 dark:text-slate-400">Live Preview</span>
+          <div className={cn('h-2 w-2 rounded-full',
+            isOnline === null ? 'bg-yellow-400 animate-pulse' : isOnline ? 'bg-green-400 animate-pulse' : 'bg-red-400'
+          )} />
+          <span className="text-xs text-slate-600 dark:text-slate-400">
+            {isOnline === null ? 'Connecting…' : isOnline ? 'Online' : 'Offline'}
+          </span>
         </div>
       </div>
 

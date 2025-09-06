@@ -97,7 +97,7 @@ export function ButtonLoadingSpinner() {
 // Loading states for specific features
 export function AuthLoadingState() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-background">
       <div className="text-center">
         <div>
           <div className="mx-auto mb-4 h-12 w-12 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">

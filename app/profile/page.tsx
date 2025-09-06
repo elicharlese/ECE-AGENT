@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { ProfileManager } from '@/components/profile/ProfileManager'
 import { useUserTier } from '@/hooks/use-user-tier'
-import { Card, CardContent } from '@/libs/design-system'
+import { Card, CardContent, ThemeToggle } from '@/libs/design-system'
 import { Loader2 } from 'lucide-react'
 
 export default function ProfilePage() {
@@ -87,11 +87,14 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Profile Management</h1>
-        <p className="text-muted-foreground">
-          Manage your account settings, tier, and features
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Profile Management</h1>
+          <p className="text-muted-foreground">Manage your account settings, tier, and features</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
       </div>
 
       <ProfileManager

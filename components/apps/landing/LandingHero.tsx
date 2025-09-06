@@ -5,9 +5,8 @@ import { GridOverlay } from '@/libs/design-system'
 import { Vignette } from '@/libs/design-system'
 import { LightDim } from '@/libs/design-system'
 import { GlassCard } from '@/libs/design-system'
-import { TiltGlassCard } from '@/libs/design-system'
 import { HeroCopy } from '@/libs/design-system'
-import { InteractiveChatPreview } from '@/libs/design-system'
+import { InteractiveChatPreview } from '@/components/ui/InteractiveChatPreview'
 import { ThemeToggle } from '@/libs/design-system'
 
 export type LandingHeroProps = {
@@ -35,16 +34,7 @@ export function LandingHero({ className }: LandingHeroProps) {
 
           {/* Interactive chat preview - responsive */}
           <div className="order-last lg:order-none lg:col-span-6 xl:col-span-7 lg:pl-4 xl:pl-6">
-            <TiltGlassCard
-              className="p-3 sm:p-4 md:p-5 bg-white/10 dark:bg-white/5"
-              containerClassName="w-full max-w-[700px] mx-auto lg:mx-0"
-              radiusClassName="rounded-2xl"
-              maxTilt={10}
-              hoverScale={1.02}
-            >
-              <InteractiveChatPreview className="w-full" />
-            </TiltGlassCard>
-          </div>
+            <InteractiveChatPreview className="w-full max-w-[700px] mx-auto lg:mx-0 p-3 sm:p-4 md:p-5" />          </div>
         </div>
       </div>
     </div>
