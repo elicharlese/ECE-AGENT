@@ -1,332 +1,421 @@
 """
-Free Vector Store - ChromaDB-based vector storage and retrieval
-Provides semantic search capabilities for the AGENT LLM system
+Free Vector Store - In-memory vector store for AGENT LLM system
+Provides semantic search and example retrieval without external dependencies
 """
 
-import chromadb
-from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Any, Optional, Tuple
-import uuid
-import os
-from datetime import datetime
+import numpy as np
 import json
+import logging
+from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
+import hashlib
+import re
+from collections import defaultdict
 
+logger = logging.getLogger(__name__)
 
 class FreeVectorStore:
     """
-    Vector database implementation using ChromaDB and Sentence Transformers
-    Handles storage, retrieval, and semantic similarity search for agent examples
+    In-memory vector store using simple TF-IDF and cosine similarity
+    No external dependencies - works entirely in memory
     """
-
-    def __init__(
-        self,
-        collection_name: str = "agent_examples",
-        embedder_model: str = "all-MiniLM-L6-v2",
-        persist_directory: Optional[str] = None
-    ):
+    
+    def __init__(self, max_examples: int = 10000):
         """
         Initialize the vector store
-
+        
         Args:
-            collection_name: Name of the ChromaDB collection
-            embedder_model: Sentence transformer model to use
-            persist_directory: Directory to persist ChromaDB data
+            max_examples: Maximum number of examples to store
         """
-
-        # Initialize ChromaDB client
-        if persist_directory:
-            self.chroma_client = chromadb.PersistentClient(path=persist_directory)
-        else:
-            self.chroma_client = chromadb.Client()
-
-        self.collection_name = collection_name
-        self.embedder_model = embedder_model
-
-        # Initialize sentence transformer
-        self.embedder = SentenceTransformer(embedder_model)
-        # Get or create collection
-        try:
-            self.collection = self.chroma_client.get_collection(name=collection_name)
-        except Exception:
-            # Collection does not exist, create it
-            self.collection = self.chroma_client.create_collection(name=collection_name)
-
+        self.max_examples = max_examples
+        self.examples = []
+        self.vectors = []
+        self.metadata = []
+        self.vocabulary = set()
+        self.idf_scores = {}
+        self.next_id = 1
+        
+        # Statistics
+        self.stats = {
+            "total_examples": 0,
+            "total_searches": 0,
+            "average_similarity": 0.0,
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        logger.info("FreeVectorStore initialized")
+    
+    def _preprocess_text(self, text: str) -> List[str]:
+        """Preprocess text for vectorization"""
+        # Convert to lowercase and split into words
+        text = text.lower()
+        # Remove punctuation and split
+        words = re.findall(r'\b\w+\b', text)
+        # Filter out very short words
+        words = [word for word in words if len(word) > 2]
+        return words
+    
+    def _compute_tf_idf(self, text: str) -> Dict[str, float]:
+        """Compute TF-IDF vector for text"""
+        words = self._preprocess_text(text)
+        
+        # Term frequency
+        tf = defaultdict(int)
+        for word in words:
+            tf[word] += 1
+        
+        # Normalize by document length
+        doc_length = len(words)
+        if doc_length > 0:
+            tf = {word: count / doc_length for word, count in tf.items()}
+        
+        # Apply IDF scores
+        tf_idf = {}
+        for word, tf_score in tf.items():
+            idf_score = self.idf_scores.get(word, 1.0)
+            tf_idf[word] = tf_score * idf_score
+        
+        return tf_idf
+    
+    def _update_idf_scores(self):
+        """Update IDF scores based on current examples"""
+        if not self.examples:
+            return
+        
+        total_docs = len(self.examples)
+        word_doc_counts = defaultdict(int)
+        
+        # Count documents containing each word
+        for example in self.examples:
+            words = set(self._preprocess_text(example["text"]))
+            for word in words:
+                word_doc_counts[word] += 1
+        
+        # Compute IDF scores
+        self.idf_scores = {}
+        for word, doc_count in word_doc_counts.items():
+            self.idf_scores[word] = np.log(total_docs / doc_count)
+    
+    def _vectorize_text(self, text: str) -> np.ndarray:
+        """Convert text to vector representation"""
+        tf_idf = self._compute_tf_idf(text)
+        
+        # Create vector with vocabulary size
+        vector = np.zeros(len(self.vocabulary))
+        vocab_list = list(self.vocabulary)
+        
+        for word, score in tf_idf.items():
+            if word in self.vocabulary:
+                idx = vocab_list.index(word)
+                vector[idx] = score
+        
+        # Normalize vector
+        norm = np.linalg.norm(vector)
+        if norm > 0:
+            vector = vector / norm
+        
+        return vector
+    
+    def _cosine_similarity(self, vec1: np.ndarray, vec2: np.ndarray) -> float:
+        """Compute cosine similarity between two vectors"""
+        if np.linalg.norm(vec1) == 0 or np.linalg.norm(vec2) == 0:
+            return 0.0
+        
+        return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
+    
     def add_example(
         self,
         text: str,
         metadata: Optional[Dict[str, Any]] = None,
-        custom_id: Optional[str] = None
+        example_id: Optional[str] = None
     ) -> str:
         """
-        Add a text example to the vector store
-
+        Add an example to the vector store
+        
         Args:
-            text: The text content to embed and store
-            metadata: Additional metadata to store with the example
-            custom_id: Custom ID for the example (auto-generated if None)
-
+            text: Example text content
+            metadata: Optional metadata dictionary
+            example_id: Optional custom ID
+            
         Returns:
-            The ID of the stored example
+            Example ID
         """
-
-        # Generate embedding
-        embedding = self.embedder.encode([text])[0]
-
+        if len(self.examples) >= self.max_examples:
+            # Remove oldest example
+            self.examples.pop(0)
+            self.vectors.pop(0)
+            self.metadata.pop(0)
+        
         # Generate ID if not provided
-        if custom_id is None:
-            custom_id = str(uuid.uuid4())
-
+        if example_id is None:
+            example_id = f"example_{self.next_id}"
+            self.next_id += 1
+        
         # Prepare metadata
-        if metadata is None:
-            metadata = {}
-
-        # Add timestamp and other metadata
-        metadata.update({
-            "timestamp": datetime.now().isoformat(),
-            "text_length": len(text),
-            "embedder_model": self.embedder_model
+        meta = metadata or {}
+        meta.update({
+            "id": example_id,
+            "created_at": datetime.now().isoformat(),
+            "text_length": len(text)
         })
-
-        # Add to collection
-        self.collection.add(
-            embeddings=[embedding.tolist()],
-            documents=[text],
-            metadatas=[metadata],
-            ids=[custom_id]
-        )
-
-        return custom_id
-
+        
+        # Add to examples
+        example = {
+            "id": example_id,
+            "text": text,
+            "metadata": meta
+        }
+        
+        self.examples.append(example)
+        
+        # Update vocabulary
+        words = self._preprocess_text(text)
+        self.vocabulary.update(words)
+        
+        # Update IDF scores
+        self._update_idf_scores()
+        
+        # Vectorize and store
+        vector = self._vectorize_text(text)
+        self.vectors.append(vector)
+        self.metadata.append(meta)
+        
+        # Update statistics
+        self.stats["total_examples"] = len(self.examples)
+        self.stats["last_updated"] = datetime.now().isoformat()
+        
+        logger.info(f"Added example {example_id} to vector store")
+        return example_id
+    
     def search_similar(
         self,
         query: str,
         n_results: int = 5,
         where: Optional[Dict[str, Any]] = None,
-        where_document: Optional[Dict[str, str]] = None
+        min_similarity: float = 0.1
     ) -> List[Dict[str, Any]]:
         """
-        Search for semantically similar examples
-
+        Search for similar examples
+        
         Args:
-            query: The search query text
+            query: Search query
             n_results: Number of results to return
-            where: Metadata filters
-            where_document: Document content filters
-
+            where: Optional metadata filter
+            min_similarity: Minimum similarity threshold
+            
         Returns:
-            List of similar examples with scores and metadata
+            List of similar examples with similarity scores
         """
-
-        # Generate query embedding
-        query_embedding = self.embedder.encode([query])[0]
-
-        # Perform search
-        results = self.collection.query(
-            query_embeddings=[query_embedding.tolist()],
-            n_results=n_results,
-            where=where,
-            where_document=where_document,
-            include=["documents", "metadatas", "distances"]
-        )
-
-        # Format results
-        formatted_results = []
-        if results["documents"] and len(results["documents"][0]) > 0:
-            for i, (doc, metadata, distance) in enumerate(zip(
-                results["documents"][0],
-                results["metadatas"][0],
-                results["distances"][0]
-            )):
-                formatted_results.append({
-                    "id": results["ids"][0][i],
-                    "text": doc,
-                    "metadata": metadata,
-                    "similarity_score": 1.0 - distance,  # Convert distance to similarity
-                    "distance": distance
-                })
-
-        return formatted_results
-
-    def get_example_by_id(self, example_id: str) -> Optional[Dict[str, Any]]:
-        """
-        Retrieve a specific example by ID
-
-        Args:
-            example_id: The ID of the example to retrieve
-
-        Returns:
-            The example data or None if not found
-        """
-
-        try:
-            result = self.collection.get(ids=[example_id])
-            if result["documents"]:
-                return {
-                    "id": result["ids"][0],
-                    "text": result["documents"][0],
-                    "metadata": result["metadatas"][0]
-                }
-        except Exception:
-            pass
-
+        if not self.examples:
+            return []
+        
+        # Vectorize query
+        query_vector = self._vectorize_text(query)
+        
+        # Compute similarities
+        similarities = []
+        for i, vector in enumerate(self.vectors):
+            similarity = self._cosine_similarity(query_vector, vector)
+            
+            # Apply metadata filter if provided
+            if where:
+                meta = self.metadata[i]
+                if not all(meta.get(key) == value for key, value in where.items()):
+                    continue
+            
+            if similarity >= min_similarity:
+                similarities.append((i, similarity))
+        
+        # Sort by similarity
+        similarities.sort(key=lambda x: x[1], reverse=True)
+        
+        # Return top results
+        results = []
+        for i, similarity in similarities[:n_results]:
+            example = self.examples[i].copy()
+            example["similarity_score"] = similarity
+            results.append(example)
+        
+        # Update statistics
+        self.stats["total_searches"] += 1
+        if results:
+            avg_sim = sum(r["similarity_score"] for r in results) / len(results)
+            self.stats["average_similarity"] = avg_sim
+        
+        logger.info(f"Found {len(results)} similar examples for query")
+        return results
+    
+    def get_example(self, example_id: str) -> Optional[Dict[str, Any]]:
+        """Get a specific example by ID"""
+        for example in self.examples:
+            if example["id"] == example_id:
+                return example
         return None
-
-    def update_example(
-        self,
-        example_id: str,
-        text: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> bool:
-        """
-        Update an existing example
-
-        Args:
-            example_id: ID of the example to update
-            text: New text content (if updating)
-            metadata: New metadata (if updating)
-
-        Returns:
-            True if update was successful
-        """
-
-        try:
-            # Prepare update data
-            update_data = {}
-
-            if text is not None:
-                # Re-embed the text
-                embedding = self.embedder.encode([text])[0]
-                update_data["embeddings"] = [embedding.tolist()]
-                update_data["documents"] = [text]
-
-            if metadata is not None:
-                # Update timestamp
-                metadata["updated_at"] = datetime.now().isoformat()
-                update_data["metadatas"] = [metadata]
-
-            if update_data:
-                self.collection.update(
-                    ids=[example_id],
-                    **update_data
-                )
-
-            return True
-
-        except Exception:
-            return False
-
+    
+    def update_example(self, example_id: str, text: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+        """Update an existing example"""
+        for i, example in enumerate(self.examples):
+            if example["id"] == example_id:
+                # Update text
+                example["text"] = text
+                
+                # Update metadata
+                if metadata:
+                    example["metadata"].update(metadata)
+                
+                # Re-vectorize
+                self.vectors[i] = self._vectorize_text(text)
+                
+                # Update vocabulary and IDF
+                words = self._preprocess_text(text)
+                self.vocabulary.update(words)
+                self._update_idf_scores()
+                
+                logger.info(f"Updated example {example_id}")
+                return True
+        
+        return False
+    
     def delete_example(self, example_id: str) -> bool:
-        """
-        Delete an example from the vector store
-
-        Args:
-            example_id: ID of the example to delete
-
-        Returns:
-            True if deletion was successful
-        """
-
-        try:
-            self.collection.delete(ids=[example_id])
-            return True
-        except Exception:
-            return False
-
+        """Delete an example by ID"""
+        for i, example in enumerate(self.examples):
+            if example["id"] == example_id:
+                del self.examples[i]
+                del self.vectors[i]
+                del self.metadata[i]
+                
+                # Update vocabulary and IDF
+                self._update_idf_scores()
+                
+                # Update statistics
+                self.stats["total_examples"] = len(self.examples)
+                self.stats["last_updated"] = datetime.now().isoformat()
+                
+                logger.info(f"Deleted example {example_id}")
+                return True
+        
+        return False
+    
     def get_collection_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about the vector store collection
-
-        Returns:
-            Dictionary with collection statistics
-        """
-
-        try:
-            # Get all items to count
-            all_items = self.collection.get(include=["metadatas"])
-
-            total_examples = len(all_items["ids"]) if all_items["ids"] else 0
-
-            # Count by agent mode if metadata available
-            mode_counts = {}
-            quality_scores = []
-
-            if all_items["metadatas"]:
-                for metadata in all_items["metadatas"]:
-                    if metadata and "mode" in metadata:
-                        mode = metadata["mode"]
-                        mode_counts[mode] = mode_counts.get(mode, 0) + 1
-
-                    if metadata and "quality_score" in metadata:
-                        try:
-                            quality_scores.append(float(metadata["quality_score"]))
-                        except (ValueError, TypeError):
-                            pass
-
-            avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0
-
-            return {
-                "collection_name": self.collection_name,
-                "total_examples": total_examples,
-                "embedder_model": self.embedder_model,
-                "embedding_dimension": self.embedder.get_sentence_embedding_dimension(),
-                "examples_by_mode": mode_counts,
-                "average_quality_score": round(avg_quality, 2),
-                "last_updated": datetime.now().isoformat()
+        """Get collection statistics"""
+        return {
+            "total_examples": len(self.examples),
+            "vocabulary_size": len(self.vocabulary),
+            "max_examples": self.max_examples,
+            "utilization": len(self.examples) / self.max_examples,
+            "stats": self.stats.copy()
+        }
+    
+    def clear(self) -> None:
+        """Clear all examples from the store"""
+        self.examples.clear()
+        self.vectors.clear()
+        self.metadata.clear()
+        self.vocabulary.clear()
+        self.idf_scores.clear()
+        self.next_id = 1
+        
+        self.stats = {
+            "total_examples": 0,
+            "total_searches": 0,
+            "average_similarity": 0.0,
+            "last_updated": datetime.now().isoformat()
+        }
+        
+        logger.info("Vector store cleared")
+    
+    def export_examples(self) -> List[Dict[str, Any]]:
+        """Export all examples"""
+        return self.examples.copy()
+    
+    def import_examples(self, examples: List[Dict[str, Any]]) -> None:
+        """Import examples from a list"""
+        for example in examples:
+            self.add_example(
+                text=example["text"],
+                metadata=example.get("metadata", {}),
+                example_id=example.get("id")
+            )
+    
+    def initialize_with_default_examples(self) -> None:
+        """Initialize with some default examples for each agent mode"""
+        
+        default_examples = [
+            # Smart Assistant examples
+            {
+                "text": "How can I organize my daily tasks more effectively?",
+                "metadata": {"mode": "smart_assistant", "category": "productivity"}
+            },
+            {
+                "text": "What's the best way to schedule meetings with multiple time zones?",
+                "metadata": {"mode": "smart_assistant", "category": "scheduling"}
+            },
+            {
+                "text": "Help me create a weekly planning routine",
+                "metadata": {"mode": "smart_assistant", "category": "planning"}
+            },
+            
+            # Code Companion examples
+            {
+                "text": "How do I debug a Python function that's returning None?",
+                "metadata": {"mode": "code_companion", "category": "debugging"}
+            },
+            {
+                "text": "What's the best way to structure a React component?",
+                "metadata": {"mode": "code_companion", "category": "architecture"}
+            },
+            {
+                "text": "How can I optimize database queries for better performance?",
+                "metadata": {"mode": "code_companion", "category": "optimization"}
+            },
+            
+            # Creative Writer examples
+            {
+                "text": "Help me develop a compelling character for my story",
+                "metadata": {"mode": "creative_writer", "category": "character_development"}
+            },
+            {
+                "text": "How do I write engaging dialogue between two characters?",
+                "metadata": {"mode": "creative_writer", "category": "dialogue"}
+            },
+            {
+                "text": "What are some techniques for building suspense in a narrative?",
+                "metadata": {"mode": "creative_writer", "category": "storytelling"}
+            },
+            
+            # Legal Assistant examples
+            {
+                "text": "What should I look for when reviewing a software license agreement?",
+                "metadata": {"mode": "legal_assistant", "category": "contract_review"}
+            },
+            {
+                "text": "How do I ensure my website complies with GDPR requirements?",
+                "metadata": {"mode": "legal_assistant", "category": "compliance"}
+            },
+            {
+                "text": "What are the key elements of a privacy policy?",
+                "metadata": {"mode": "legal_assistant", "category": "legal_documents"}
+            },
+            
+            # Designer Agent examples
+            {
+                "text": "How can I improve the user experience of my mobile app?",
+                "metadata": {"mode": "designer_agent", "category": "ux_design"}
+            },
+            {
+                "text": "What color combinations work well for a professional website?",
+                "metadata": {"mode": "designer_agent", "category": "visual_design"}
+            },
+            {
+                "text": "How do I make my interface more accessible to users with disabilities?",
+                "metadata": {"mode": "designer_agent", "category": "accessibility"}
             }
-
-        except Exception as e:
-            return {
-                "error": str(e),
-                "collection_name": self.collection_name
-            }
-
-    def clear_collection(self):
-        """Clear all examples from the collection"""
-        try:
-            # Delete the collection and recreate it
-            self.chroma_client.delete_collection(name=self.collection_name)
-            self.collection = self.chroma_client.create_collection(name=self.collection_name)
-        except Exception:
-            # If deletion fails, try to recreate
-            try:
-                self.collection = self.chroma_client.create_collection(name=self.collection_name)
-            except Exception:
-                pass  # Collection might already exist
-
-    def export_examples(self, format: str = "json") -> str:
-        """
-        Export all examples in the specified format
-
-        Args:
-            format: Export format ("json" or "csv")
-
-        Returns:
-            Exported data as string
-        """
-
-        try:
-            all_data = self.collection.get(include=["documents", "metadatas"])
-
-            if format.lower() == "json":
-                export_data = []
-                for i, doc_id in enumerate(all_data["ids"]):
-                    export_data.append({
-                        "id": doc_id,
-                        "text": all_data["documents"][i],
-                        "metadata": all_data["metadatas"][i]
-                    })
-                return json.dumps(export_data, indent=2, default=str)
-
-            elif format.lower() == "csv":
-                lines = ["id,text,metadata"]
-                for i, doc_id in enumerate(all_data["ids"]):
-                    metadata_str = json.dumps(all_data["metadatas"][i]) if all_data["metadatas"][i] else ""
-                    text = all_data["documents"][i].replace('"', '""')  # Escape quotes
-                    lines.append(f'"{doc_id}","{text}","{metadata_str}"')
-                return "\n".join(lines)
-
-            else:
-                raise ValueError(f"Unsupported export format: {format}")
-
-        except Exception as e:
-            return f"Export failed: {str(e)}"
+        ]
+        
+        for example in default_examples:
+            self.add_example(
+                text=example["text"],
+                metadata=example["metadata"]
+            )
+        
+        logger.info(f"Initialized vector store with {len(default_examples)} default examples")

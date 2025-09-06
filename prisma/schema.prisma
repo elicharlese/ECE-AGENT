@@ -11,11 +11,92 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// Start with no models; you can introspect existing DB or add models then migrate.
-// Example model (uncomment and adjust as needed):
-// model Conversation {
-//   id        String   @id @default(uuid())
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   title     String
-// }
+// AGENT LLM Models
+
+model AgentConversation {
+  id                String   @id @default(uuid())
+  userId            String?
+  agentMode         String   @default("smart_assistant")
+  conversationData  Json     @default("{}")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  messages          AgentMessage[]
+  reasoningTraces   ReasoningTrace[]
+  
+  @@map("agent_conversations")
+}
+
+model AgentMessage {
+  id              String   @id @default(uuid())
+  conversationId  String
+  role            String   // "user" or "assistant"
+  content         String
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@map("agent_messages")
+}
+
+model AgentExample {
+  id              String   @id @default(uuid())
+  agentMode       String
+  queryText       String
+  responseText    String
+  reasoningTrace  Json?
+  toolCalls       Json?
+  successRating   Int?     @db.SmallInt // 1-5 rating
+  tags            String[]
+  createdAt       DateTime @default(now())
+  
+  @@map("agent_examples")
+}
+
+model ReasoningTrace {
+  id              String   @id @default(uuid())
+  conversationId  String
+  stepNumber      Int
+  stepType        String   // "observe", "reason", "act", "reflect"
+  content         String
+  metadata        Json     @default("{}")
+  executionTimeMs Int?
+  createdAt       DateTime @default(now())
+  
+  // Relations
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  @@map("reasoning_traces")
+}
+
+model TrainingInteraction {
+  id                String   @id @default(uuid())
+  userId            String?
+  agentMode         String
+  queryText         String
+  responseText      String
+  userRating        Int?     @db.SmallInt // 1-5 rating
+  feedbackText      String?
+  interactionMetadata Json   @default("{}")
+  createdAt         DateTime @default(now())
+  
+  @@map("training_interactions")
+}
+
+model WorkingMemory {
+  id                  String   @id @default(uuid())
+  sessionId           String   @unique
+  userId              String?
+  agentMode           String
+  conversationHistory Json     @default("[]")
+  scratchpad          String?
+  retrievedExamples   Json     @default("[]")
+  contextData         Json     @default("{}")
+  expiresAt           DateTime?
+  updatedAt           DateTime @updatedAt
+  
+  @@map("working_memory")
+}
