@@ -52,6 +52,7 @@ export function DesktopMessageInput({
   placeholder = "Type a message...",
 }: DesktopMessageInputProps) {
   const [agentMode, setAgentMode] = useState(false)
+  const [selectedAgentMode, setSelectedAgentMode] = useState('smart_assistant')
   const [isExpanded, setIsExpanded] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -65,25 +66,39 @@ export function DesktopMessageInput({
 
   const aiAgents = [
     {
-      id: "smart-assistant",
+      id: "smart_assistant",
       name: "Smart Assistant",
       icon: Brain,
       color: "bg-indigo-500",
       description: "General AI helper",
     },
     {
-      id: "code-companion",
+      id: "code_companion",
       name: "Code Companion",
       icon: Zap,
       color: "bg-orange-500",
       description: "Programming assistant",
     },
     {
-      id: "creative-writer",
+      id: "creative_writer",
       name: "Creative Writer",
       icon: Sparkles,
       color: "bg-pink-500",
       description: "Writing & content",
+    },
+    {
+      id: "legal_assistant",
+      name: "Legal Assistant",
+      icon: Bot,
+      color: "bg-blue-600",
+      description: "Legal analysis",
+    },
+    {
+      id: "designer_agent",
+      name: "Designer Agent",
+      icon: Bot,
+      color: "bg-purple-500",
+      description: "UI/UX design",
     },
   ]
 
@@ -129,6 +144,13 @@ export function DesktopMessageInput({
     const next = !agentMode
     setAgentMode(next)
     onAgentToggle?.(next)
+  }
+
+  const handleAgentModeSelect = (agentId: string) => {
+    setSelectedAgentMode(agentId)
+    setAgentMode(true)
+    onAgentToggle?.(true)
+    setShowActions(false)
   }
 
   const toggleActions = () => setShowActions(v => !v)
@@ -208,28 +230,38 @@ export function DesktopMessageInput({
             {activeTab === "agents" && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Agents</div>
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300">AGENT LLM Modes</div>
                   <Badge variant={agentMode ? "default" : "secondary"} className="text-xs">
-                    {agentMode ? "Active" : "Inactive"}
+                    {agentMode ? `${aiAgents.find(a => a.id === selectedAgentMode)?.name || 'Active'}` : "Inactive"}
                   </Badge>
                 </div>
                 <div className="space-y-2">
                   {aiAgents.map((agent) => (
                     <Button
                       key={agent.id}
-                      variant="outline"
-                      className="flex items-center gap-3 w-full justify-start h-auto py-3 bg-transparent"
-                      onClick={() => handleAppLaunch(agent.id, agent.name)}
+                      variant={selectedAgentMode === agent.id ? "default" : "outline"}
+                      className={`flex items-center gap-3 w-full justify-start h-auto py-3 ${
+                        selectedAgentMode === agent.id ? "bg-indigo-500 text-white" : "bg-transparent"
+                      }`}
+                      onClick={() => handleAgentModeSelect(agent.id)}
                     >
                       <div className={`p-2 rounded-full ${agent.color} text-white`}>
                         <agent.icon className="h-4 w-4" />
                       </div>
                       <div className="flex flex-col items-start">
                         <span className="text-sm font-medium">{agent.name}</span>
-                        <span className="text-xs text-gray-500">{agent.description}</span>
+                        <span className="text-xs opacity-75">{agent.description}</span>
                       </div>
+                      {selectedAgentMode === agent.id && (
+                        <div className="ml-auto">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      )}
                     </Button>
                   ))}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t">
+                  💡 Type @ai to use AGENT LLM or select a mode above
                 </div>
               </div>
             )}
