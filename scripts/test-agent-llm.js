@@ -5,7 +5,7 @@
  * Tests the end-to-end functionality of the AGENT LLM system
  */
 
-const fetch = require('node-fetch');
+// Using built-in fetch (Node.js 18+);
 
 const API_BASE = 'http://localhost:3000/api';
 const PYTHON_BASE = 'http://localhost:8001';
