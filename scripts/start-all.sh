@@ -1,67 +1,90 @@
 #!/bin/bash
+# Complete AGENT System Startup Script
 
-echo "🚀 Starting all AGENT applications..."
+echo "🚀 Starting Complete AGENT System..."
+echo "====================================="
 
-# Function to kill process on a specific port
-kill_port() {
+# Function to check if a port is in use
+check_port() {
     local port=$1
-    local pid=$(lsof -ti:$port)
-    if [ ! -z "$pid" ]; then
-        echo "🔄 Killing process on port $port (PID: $pid)"
-        kill -9 $pid 2>/dev/null || true
-        sleep 2
+    if lsof -i :$port > /dev/null 2>&1; then
+        return 0  # Port is in use
     else
-        echo "✅ Port $port is free"
+        return 1  # Port is free
     fi
 }
 
-# Clear ports
-echo "🧹 Clearing ports..."
-kill_port 3000
-kill_port 19000
-
-# Start web application (Next.js)
-echo "🌐 Starting web application on port 3000..."
-npm run dev &
-WEB_PID=$!
-echo "Web app started with PID: $WEB_PID"
-
-# Start mobile application (Expo)
-echo "📱 Starting mobile application on port 19000..."
-nx run mobile:start &
-MOBILE_PID=$!
-echo "Mobile app started with PID: $MOBILE_PID"
-
-# Wait a moment for apps to start
-sleep 5
-
-# Start desktop application (Electron)
-echo "💻 Starting desktop application..."
-nx run desktop:serve &
-DESKTOP_PID=$!
-echo "Desktop app started with PID: $DESKTOP_PID"
-
-echo ""
-echo "🎉 All applications started!"
-echo "📊 Web: http://localhost:3000"
-echo "📱 Mobile: http://localhost:19000"
-echo "💻 Desktop: Electron window should open"
-echo ""
-echo "Press Ctrl+C to stop all applications"
-
-# Function to cleanup on exit
-cleanup() {
-    echo ""
-    echo "🛑 Stopping all applications..."
-    kill $WEB_PID 2>/dev/null || true
-    kill $MOBILE_PID 2>/dev/null || true
-    kill $DESKTOP_PID 2>/dev/null || true
-    echo "✅ All applications stopped"
-    exit 0
+# Function to start a service in the background
+start_service() {
+    local name=$1
+    local script=$2
+    local port=$3
+    
+    echo "🚀 Starting $name..."
+    
+    if [ -n "$port" ] && check_port $port; then
+        echo "⚠️  Port $port is already in use, skipping $name"
+        return
+    fi
+    
+    # Start the service in the background
+    bash "$script" > "logs/${name,,}.log" 2>&1 &
+    local pid=$!
+    echo $pid > "logs/${name,,}.pid"
+    
+    echo "✅ $name started (PID: $pid, Log: logs/${name,,}.log)"
+    
+    # Give the service time to start
+    sleep 2
 }
 
-# Set trap for cleanup
-trap cleanup SIGINT SIGTERM
+# Create logs directory
+mkdir -p logs
 
-# Wait for all processes
-wait
+echo "📋 Starting services in the following order:"
+echo "  1. AGENT LLM Server (Python backend)"
+echo "  2. Next.js Development Server"
+echo ""
+
+# Start AGENT server first
+start_service "AGENT-Server" "scripts/start-agent-server.sh" "8000"
+
+# Wait a moment for AGENT server to initialize
+echo "⏳ Waiting for AGENT server to initialize..."
+sleep 5
+
+# Check AGENT server health
+if curl -s http://localhost:8000/api/agents/health > /dev/null 2>&1; then
+    echo "✅ AGENT server is healthy"
+else
+    echo "⚠️  AGENT server may still be starting..."
+fi
+
+# Start Next.js development server
+start_service "NextJS-Dev" "scripts/start-nextjs-dev.sh" "3000"
+
+echo ""
+echo "🎉 AGENT System Startup Complete!"
+echo "=================================="
+echo ""
+echo "📍 Access Points:"
+echo "  • Web Application: http://localhost:3000"
+echo "  • AGENT API: http://localhost:8000/api/agents"
+echo "  • Health Check: http://localhost:8000/api/agents/health"
+echo ""
+echo "📊 System Status:"
+echo "  • AGENT Server: $([ -f logs/agent-server.pid ] && echo "Running (PID: $(cat logs/agent-server.pid))" || echo "Not started")"
+echo "  • Next.js Dev: $([ -f logs/nextjs-dev.pid ] && echo "Running (PID: $(cat logs/nextjs-dev.pid))" || echo "Not started")"
+echo ""
+echo "📋 Management Commands:"
+echo "  • Stop all: ./scripts/stop-all.sh"
+echo "  • View logs: tail -f logs/*.log"
+echo "  • Health check: curl http://localhost:8000/api/agents/health"
+echo ""
+echo "🎯 Ready to use AGENT LLM system with 5 specialized modes!"
+
+# Keep the script running to show logs
+echo ""
+echo "📜 Live logs (Ctrl+C to exit):"
+echo "================================"
+tail -f logs/*.log 2>/dev/null || echo "No logs available yet..."
