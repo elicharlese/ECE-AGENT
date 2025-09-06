@@ -66,9 +66,9 @@ class AgentLLMIntegration {
     const { message, agentMode = 'smart_assistant', mediaType } = data
     
     // Check if this is a media generation request
-    const isImageRequest = mediaType === 'image' || message.toLowerCase().includes('generate') && (message.toLowerCase().includes('image') || message.toLowerCase().includes('picture') || message.toLowerCase().includes('photo'))
-    const isVideoRequest = mediaType === 'video' || message.toLowerCase().includes('generate') && (message.toLowerCase().includes('video') || message.toLowerCase().includes('movie') || message.toLowerCase().includes('animation'))
-    const isAudioRequest = mediaType === 'audio' || message.toLowerCase().includes('generate') && (message.toLowerCase().includes('audio') || message.toLowerCase().includes('sound') || message.toLowerCase().includes('music'))
+    const isImageRequest = mediaType === 'image' || (message.toLowerCase().includes('generate') || message.toLowerCase().includes('create')) && (message.toLowerCase().includes('image') || message.toLowerCase().includes('picture') || message.toLowerCase().includes('photo'))
+    const isVideoRequest = mediaType === 'video' || (message.toLowerCase().includes('generate') || message.toLowerCase().includes('create')) && (message.toLowerCase().includes('video') || message.toLowerCase().includes('movie') || message.toLowerCase().includes('animation'))
+    const isAudioRequest = mediaType === 'audio' || (message.toLowerCase().includes('generate') || message.toLowerCase().includes('create')) && (message.toLowerCase().includes('audio') || message.toLowerCase().includes('sound') || message.toLowerCase().includes('music'))
     
     let response = ''
     let mediaGenerated = null
